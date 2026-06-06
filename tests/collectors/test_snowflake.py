@@ -58,3 +58,29 @@ def test_fetch_yesterday_orders_missing_segment():
 
     assert result["nbe_havenly"]    == 0.0
     assert result["orders_havenly"] == 0
+
+
+def test_fetch_yesterday_assisted_pct():
+    """fetch_yesterday_assisted() returns assisted_pct and upt."""
+    from src.collectors.snowflake import fetch_yesterday_assisted
+
+    mock_df = pd.DataFrame([{"total_orders": 100, "assisted_orders": 67, "total_items": 215}])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_yesterday_assisted()
+
+    assert result["assisted_pct"] == pytest.approx(0.67)
+    assert result["upt"]          == pytest.approx(2.15)
+
+
+def test_fetch_yesterday_assisted_zero_orders():
+    """fetch_yesterday_assisted() handles zero-order edge case without dividing by zero."""
+    from src.collectors.snowflake import fetch_yesterday_assisted
+
+    mock_df = pd.DataFrame([{"total_orders": 0, "assisted_orders": 0, "total_items": 0}])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_yesterday_assisted()
+
+    assert result["assisted_pct"] == 0.0
+    assert result["upt"]          == 0.0

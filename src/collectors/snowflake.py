@@ -45,3 +45,32 @@ def fetch_yesterday_orders() -> dict:
         "aov_trade":      _aov("Trade"),
         "aov_blended":    nbe_total / orders_total if orders_total else 0.0,
     }
+
+
+def fetch_yesterday_assisted() -> dict:
+    """Assisted sales % and UPT for yesterday."""
+    df = _query(f"""
+        SELECT
+            COUNT(*)                                                        AS total_orders,
+            SUM(CASE WHEN INDIVIDUAL IS NOT NULL AND INDIVIDUAL != ''
+                     THEN 1 ELSE 0 END)                                     AS assisted_orders,
+            (SELECT COUNT(*) FROM PROD.ID_WAREHOUSE.ORDER_ITEMS oi
+             JOIN PROD.ID_WAREHOUSE.ORDERS o2 ON oi.ORDER_ID = o2.ORDER_ID
+             WHERE {_ORDER_FILTER}
+               AND {_DENVER_DATE.replace('ORDER_CREATED_AT', 'o2.ORDER_CREATED_AT')}
+                   = DATEADD('day', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+            )                                                               AS total_items
+        FROM PROD.ID_WAREHOUSE.ORDERS
+        WHERE {_ORDER_FILTER}
+          AND {_DENVER_DATE}
+              = DATEADD('day', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+    """)
+
+    row = df.iloc[0]
+    total  = int(row["total_orders"])
+    items  = int(row["total_items"])
+
+    return {
+        "assisted_pct": int(row["assisted_orders"]) / total if total else 0.0,
+        "upt":          items / total if total else 0.0,
+    }
