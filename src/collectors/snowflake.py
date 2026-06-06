@@ -74,3 +74,45 @@ def fetch_yesterday_assisted() -> dict:
         "assisted_pct": int(row["assisted_orders"]) / total if total else 0.0,
         "upt":          items / total if total else 0.0,
     }
+
+
+def fetch_mtd_orders() -> dict:
+    """MTD NBE + order counts for TY and LY (same calendar days last year)."""
+    _mtd_filter = f"""
+        {_ORDER_FILTER}
+        AND {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+        AND {_DENVER_DATE} <  CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE
+    """
+    _ly_filter = f"""
+        {_ORDER_FILTER}
+        AND {_DENVER_DATE} >= DATEADD('year', -1, DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE))
+        AND {_DENVER_DATE} <  DATEADD('year', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+    """
+
+    def _segment_totals(filter_clause) -> dict:
+        df = _query(f"""
+            SELECT
+                CUSTOMER_GROUP,
+                SUM(NET_BOOKINGS_ESTIMATED) AS nbe,
+                COUNT(*)                    AS order_count
+            FROM PROD.ID_WAREHOUSE.ORDERS
+            WHERE {filter_clause}
+            GROUP BY CUSTOMER_GROUP
+        """)
+        seg = {row["customer_group"]: row for _, row in df.iterrows()}
+        def _nbe(g):    return float(seg[g]["nbe"]) if g in seg else 0.0
+        def _cnt(g):    return int(seg[g]["order_count"]) if g in seg else 0
+        nbe = _nbe("B2C") + _nbe("Trade") + _nbe("Havenly")
+        cnt = _cnt("B2C") + _cnt("Trade") + _cnt("Havenly")
+        return {"nbe_b2c": _nbe("B2C"), "nbe_trade": _nbe("Trade"),
+                "nbe_havenly": _nbe("Havenly"), "nbe_total": nbe,
+                "orders_total": cnt}
+
+    ty = _segment_totals(_mtd_filter)
+    ly = _segment_totals(_ly_filter)
+
+    return {
+        **ty,
+        "nbe_total_ly":    ly["nbe_total"],
+        "orders_total_ly": ly["orders_total"],
+    }

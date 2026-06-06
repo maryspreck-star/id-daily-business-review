@@ -84,3 +84,55 @@ def test_fetch_yesterday_assisted_zero_orders():
 
     assert result["assisted_pct"] == 0.0
     assert result["upt"]          == 0.0
+
+
+def test_fetch_mtd_returns_totals_and_ly():
+    """fetch_mtd_orders() returns this-year and last-year totals."""
+    from src.collectors.snowflake import fetch_mtd_orders
+
+    ty_rows = [
+        ("B2C",   7_100_000.0, 2482),
+        ("Trade", 1_900_000.0,  590),
+    ]
+    ly_rows = [
+        ("B2C",   7_800_000.0, 2700),
+        ("Trade", 1_560_000.0,  504),
+    ]
+    ty_df = pd.DataFrame(ty_rows, columns=["customer_group", "nbe", "order_count"])
+    ly_df = pd.DataFrame(ly_rows, columns=["customer_group", "nbe", "order_count"])
+
+    call_count = 0
+    def mock_query(sql):
+        nonlocal call_count
+        call_count += 1
+        return ty_df if call_count == 1 else ly_df
+
+    with patch("src.collectors.snowflake._query", side_effect=mock_query):
+        result = fetch_mtd_orders()
+
+    assert result["nbe_b2c"]        == pytest.approx(7_100_000.0)
+    assert result["nbe_total"]      == pytest.approx(9_000_000.0)
+    assert result["nbe_total_ly"]   == pytest.approx(9_360_000.0)
+    assert result["orders_total"]   == 3072
+    assert result["orders_total_ly"] == 3204
+
+
+def test_fetch_mtd_yoy_zero_ly():
+    """fetch_mtd_orders() handles zero LY data gracefully."""
+    from src.collectors.snowflake import fetch_mtd_orders
+
+    ty_df = pd.DataFrame([("B2C", 500_000.0, 175)],
+                         columns=["customer_group", "nbe", "order_count"])
+    ly_df = pd.DataFrame([], columns=["customer_group", "nbe", "order_count"])
+
+    call_count = 0
+    def mock_query(sql):
+        nonlocal call_count
+        call_count += 1
+        return ty_df if call_count == 1 else ly_df
+
+    with patch("src.collectors.snowflake._query", side_effect=mock_query):
+        result = fetch_mtd_orders()
+
+    assert result["nbe_total_ly"]    == 0.0
+    assert result["orders_total_ly"] == 0
