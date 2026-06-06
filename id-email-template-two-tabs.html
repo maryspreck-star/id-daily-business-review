@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interior Define — Business Reports</title>
+<style>
+/* ── Tab Shell ── */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 0; background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+.tab-shell { max-width: 680px; margin: 0 auto; }
+.tab-radio { display: none; }
+.tab-bar {
+  display: flex;
+  background: #ffffff;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.tab-bar label {
+  padding: 14px 20px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+.tab-bar label:hover { color: #334155; }
+#tab-biz:checked ~ .tab-shell .tab-bar label[for="tab-biz"],
+#tab-sales:checked ~ .tab-shell .tab-bar label[for="tab-sales"] {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
+  font-weight: 600;
+}
+.tab-content { display: none; }
+#tab-biz:checked ~ .tab-shell #content-biz { display: block; }
+#tab-sales:checked ~ .tab-shell #content-sales { display: block; }
+
+/* ── Total Business styles ── */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 32px 16px 64px; }
+  .page-label { text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; margin-bottom: 24px; }
+  .email-wrap { max-width: 680px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+  .hdr { background: #0f172a; color: #f1f5f9; padding: 22px 28px; }
+  .hdr-brand { font-size: 18px; font-weight: 700; }
+  .hdr-meta { color: #94a3b8; font-size: 12px; margin-top: 5px; }
+  .hdr-badge { display: inline-block; background: #134e4a; color: #99f6e4; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+  .section { padding: 22px 28px; border-bottom: 1px solid #e2e8f0; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #64748b; margin-bottom: 12px; }
+  .kpi-grid { display: flex; gap: 10px; margin-bottom: 14px; }
+  .kpi { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; }
+  .kpi-val { font-size: 20px; font-weight: 800; color: #0f172a; }
+  .kpi-lbl { font-size: 10px; color: #94a3b8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-chg { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .up { color: #16a34a; }
+  .dn { color: #dc2626; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+  .bar-lbl { width: 110px; flex-shrink: 0; color: #475569; }
+  .bar-track { flex: 1; height: 7px; background: #f1f5f9; border-radius: 2px; overflow: hidden; max-width: 180px; }
+  .bar-fill { height: 100%; border-radius: 2px; }
+  .bar-val { width: 50px; text-align: right; color: #334155; font-weight: 600; }
+  .bar-yoy { font-size: 10px; color: #94a3b8; width: 54px; }
+  .note { font-size: 11px; color: #64748b; margin-top: 10px; line-height: 1.6; }
+  .looker-note { font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 8px; }
+
+
+/* ── Sales Team overrides scoped to #content-sales ── */
+</style>
+<style>
+/* Sales Team styles — scoped where possible */
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 32px 16px 64px;
+    }
+    .page-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+    .email-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+
+    /* ── Header ── */
+    .hdr {
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 22px 28px;
+    }
+    .hdr-brand { font-size: 18px; font-weight: 700; }
+    .hdr-meta { color: #94a3b8; font-size: 12px; margin-top: 5px; }
+    .hdr-badge {
+      display: inline-block;
+      background: #1e40af;
+      color: #bfdbfe;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ── TL;DR ── */
+    .tldr {
+      background: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 14px 20px;
+    }
+    .tldr-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #1d4ed8;
+      margin-bottom: 5px;
+    }
+    .tldr p { font-size: 13px; color: #1e3a5f; line-height: 1.7; }
+
+    /* ── Sections ── */
+    .section {
+      padding: 22px 28px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+    .prose {
+      font-size: 13.5px;
+      color: #1e293b;
+      line-height: 1.85;
+    }
+    .prose strong { color: #0f172a; }
+
+    /* ── Watch ── */
+    .watch-section {
+      padding: 22px 28px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #fffbeb;
+    }
+    .watch-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #b45309;
+      margin-bottom: 14px;
+    }
+    .watch-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #1e293b;
+      line-height: 1.7;
+    }
+    .watch-item:last-child { margin-bottom: 0; }
+    .watch-tag {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #92400e;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      padding: 9px 12px;
+      text-align: right;
+      color: #475569;
+      font-weight: 600;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th:first-child { text-align: left; }
+    td { padding: 9px 12px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    td:first-child { text-align: left; }
+    tr:last-child td { border-bottom: none; }
+    .row-top { background: #f0fdf4; }
+    .row-warn { background: #fff7ed; }
+    .row-total { background: #f8fafc; border-top: 2px solid #e2e8f0 !important; }
+    .row-total td { color: #64748b; font-style: italic; border-top: 2px solid #e2e8f0; }
+    .up { color: #16a34a; font-weight: 600; }
+    .dn { color: #dc2626; font-weight: 600; }
+    .nt { color: #94a3b8; }
+    .bold { font-weight: 700; }
+    .rep-cvr td:nth-child(2) { text-align: left; }
+
+    /* ── CVR trend bar ── */
+    .cvr-trend {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .cvr-trend-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #be123c;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+    .cvr-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 40px;
+      margin-bottom: 6px;
+    }
+    .cvr-bar {
+      width: 28px;
+      border-radius: 3px 3px 0 0;
+      position: relative;
+    }
+    .cvr-bar-val {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .cvr-bar-week {
+      font-size: 10px;
+      color: #94a3b8;
+      text-align: center;
+      width: 28px;
+    }
+    .cvr-summary {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+
+    /* ── Rep table panels ── */
+    .rep-panels {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .rep-panel {
+      flex: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .rep-panel-hdr {
+      padding: 7px 10px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .rep-panel-hdr.green { background: #d1fae5; color: #065f46; }
+    .rep-panel-hdr.amber { background: #fed7aa; color: #92400e; }
+    .rep-panel-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      font-size: 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .rep-panel-row:last-child { border-bottom: none; }
+    .rep-name { color: #1e293b; }
+    .rep-team { color: #94a3b8; font-size: 10px; margin-left: 4px; }
+
+    /* ── Monday Recap ── */
+    .monday-section {
+      padding: 22px 28px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f0f9ff;
+    }
+    .monday-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #0369a1;
+      margin-bottom: 12px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 14px 28px;
+      background: #f8fafc;
+      text-align: center;
+    }
+    .footer a { color: #2563eb; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .footer-links { font-size: 12px; color: #64748b; }
+
+    /* ── Note ── */
+    .note {
+      font-size: 12px;
+      color: #475569;
+      background: #f8fafc;
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    /* ── Divider label ── */
+    .divider-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      text-align: center;
+      padding: 8px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* ── Segment pills ── */
+    .segments { display: flex; gap: 10px; margin-top: 4px; }
+    .segment {
+      flex: 1;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+    .segment-name { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .segment-val { font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: 4px; }
+    .segment-sub { font-size: 11px; }
+  
+</style>
+</head>
+<body>
+
+<input type="radio" name="tab" id="tab-biz" class="tab-radio" checked>
+<input type="radio" name="tab" id="tab-sales" class="tab-radio">
+
+<div class="tab-shell">
+  <div class="tab-bar">
+    <label for="tab-biz">📊 Total Business</label>
+    <label for="tab-sales">👥 Sales Team</label>
+  </div>
+  <div class="tab-content" id="content-biz">
+<div class="page-label">Interior Define · Total Business Review · Apr 1, 2026 · March Full Month</div>
+<div class="email-wrap">
+
+  <div class="hdr">
+    <div class="hdr-brand">Interior Define <span class="hdr-badge">Total Business</span></div>
+    <div class="hdr-meta">Daily Business Review · Apr 1, 2026 · March 2026 Full Month</div>
+  </div>
+
+  <!-- ── NET BOOKINGS OVERVIEW ── -->
+  <div class="section">
+    <div class="section-label">📈 Net Bookings — March 2026 Full Month</div>
+
+    <div class="kpi-grid">
+      <div class="kpi" style="border-left:3px solid #0d9488;">
+        <div class="kpi-val">$9.63M</div>
+        <div class="kpi-lbl">Total Revenue</div>
+        <div class="kpi-chg dn">▼ −8% vs $10.44M YoY</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">$2,939</div>
+        <div class="kpi-lbl">Blended AOV</div>
+        <div class="kpi-chg up">▲ +7% vs $2,755 YoY</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">3,277</div>
+        <div class="kpi-lbl">Orders</div>
+        <div class="kpi-chg dn">▼ −14% vs 3,790 YoY</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-val">$2,864</div>
+        <div class="kpi-lbl">B2C AOV</div>
+        <div class="kpi-chg up">▲ +5% vs $2,717 YoY</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">$3,226</div>
+        <div class="kpi-lbl">Trade AOV</div>
+        <div class="kpi-chg up">▲ +4% vs $3,091 YoY</div>
+      </div>
+      <div class="kpi" style="background:#f8fafc;border-color:#e2e8f0;">
+        <div class="kpi-val" style="color:#94a3b8;">—</div>
+        <div class="kpi-lbl">Pacing vs Forecast</div>
+        <div class="kpi-chg" style="color:#94a3b8;">not yet wired</div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:8px;">Revenue Mix</div>
+    <div class="bar-row">
+      <span class="bar-lbl">B2C</span>
+      <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:100%;background:#6366f1;"></div></div>
+      <span class="bar-val">$7.10M</span>
+      <span class="bar-yoy" style="color:#6366f1;">73.7%</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">Trade</span>
+      <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:27%;background:#0d9488;"></div></div>
+      <span class="bar-val">$1.90M</span>
+      <span class="bar-yoy" style="color:#0d9488;">19.7%</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">Havenly</span>
+      <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:9%;background:#a78bfa;"></div></div>
+      <span class="bar-val">$629K</span>
+      <span class="bar-yoy" style="color:#a78bfa;">6.5%</span>
+    </div>
+    <div class="note">Discounted revenue before refunds. Segment via <code>CUSTOMER_GROUP_CLASS</code>. Order volume −14% YoY but AOV up +7% — Trade mix expanded from 15.0% to 19.7%, lifting blended AOV. Trade AOV +4% YoY ($3,226 vs $3,091). Volume gap is the primary driver vs LY.</div>
+  </div>
+
+  <!-- ── MERCHANDISE PERFORMANCE ── -->
+  <div class="section">
+    <div class="section-label">🛋 Merchandise Performance — March 2026</div>
+    <div class="kpi-grid">
+      <div class="kpi" style="flex:1;background:#fefce8;border-color:#fde68a;">
+        <div class="kpi-val" style="color:#94a3b8;">—</div>
+        <div class="kpi-lbl">Merch Contribution</div>
+        <div class="kpi-chg" style="color:#d97706;">⚠ definition TBD</div>
+      </div>
+      <div class="kpi" style="flex:1;">
+        <div class="kpi-val">2.15</div>
+        <div class="kpi-lbl">UPT</div>
+        <div class="kpi-chg up">▲ +2% vs 2.10 YoY</div>
+      </div>
+      <div class="kpi" style="flex:1;">
+        <div class="kpi-val">39.2%</div>
+        <div class="kpi-lbl">Sectionals Mix</div>
+        <div class="kpi-chg up">▲ vs 38.2% YoY</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;">
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;border-bottom:1px solid #e2e8f0;">Collection Mix — % of Item Revenue</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Sectionals</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#0d9488;"></div></div><span class="bar-val">39.2%</span><span class="bar-yoy up">↑38.2%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Sofas</span><div class="bar-track"><div class="bar-fill" style="width:60%;background:#dc2626;"></div></div><span class="bar-val">23.6%</span><span class="bar-yoy dn">↓25.7%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Chairs</span><div class="bar-track"><div class="bar-fill" style="width:34%;background:#94a3b8;"></div></div><span class="bar-val">13.5%</span><span class="bar-yoy nt">→13.4%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Dining</span><div class="bar-track"><div class="bar-fill" style="width:27%;background:#0d9488;"></div></div><span class="bar-val">10.4%</span><span class="bar-yoy up">↑9.1%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Beds</span><div class="bar-track"><div class="bar-fill" style="width:16%;background:#0d9488;"></div></div><span class="bar-val">6.2%</span><span class="bar-yoy up">↑5.4%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl" style="color:#94a3b8;">Other</span><div class="bar-track"><div class="bar-fill" style="width:18%;background:#cbd5e1;"></div></div><span class="bar-val" style="color:#94a3b8;">7.1%</span><span class="bar-yoy"></span></div>
+        </div>
+      </div>
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;border-bottom:1px solid #e2e8f0;">Fabric Mix — % of Item Revenue</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Velvet</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#0d9488;"></div></div><span class="bar-val">53.7%</span><span class="bar-yoy up">↑52.2%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Performance</span><div class="bar-track"><div class="bar-fill" style="width:59%;background:#dc2626;"></div></div><span class="bar-val">31.7%</span><span class="bar-yoy dn">↓34.1%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Leather</span><div class="bar-track"><div class="bar-fill" style="width:14%;background:#94a3b8;"></div></div><span class="bar-val">7.4%</span><span class="bar-yoy nt">→7.5%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl" style="color:#94a3b8;">Other</span><div class="bar-track"><div class="bar-fill" style="width:12%;background:#cbd5e1;"></div></div><span class="bar-val" style="color:#94a3b8;">7.2%</span><span class="bar-yoy"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Source: <code>PROD.ID_WAREHOUSE.ORDER_ITEMS</code> joined to <code>PRODUCTS</code> via <code>CATALOG_PRODUCT_ID</code>. Fabric grouped from <code>FABRIC_FAMILY</code>. ⚠ Merch Contribution metric needs business definition before wiring.</div>
+  </div>
+
+  <!-- ── SWATCH PERFORMANCE ── -->
+  <div class="section">
+    <div class="section-label">🎨 Swatch Performance — March 2026</div>
+
+    <div class="kpi-grid" style="margin-bottom:14px;">
+      <div class="kpi">
+        <div class="kpi-val">12,847</div>
+        <div class="kpi-lbl">Swatch Orders — March</div>
+        <div class="kpi-chg dn">▼ −7% vs 13,785 YoY</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">10,709</div>
+        <div class="kpi-lbl">Swatch Customers — March</div>
+        <div class="kpi-chg dn">▼ −8% vs 11,603 YoY</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:800;color:#dc2626;">5.1%</div>
+        <div style="font-size:10px;color:#64748b;margin-top:2px;">14-day CVR</div>
+        <div style="font-size:9px;color:#94a3b8;margin-top:2px;">LY 5.9%</div>
+      </div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:800;color:#dc2626;">8.6%</div>
+        <div style="font-size:10px;color:#64748b;margin-top:2px;">30-day CVR</div>
+        <div style="font-size:9px;color:#94a3b8;margin-top:2px;">LY 9.9%</div>
+      </div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:800;color:#dc2626;">12.1%</div>
+        <div style="font-size:10px;color:#64748b;margin-top:2px;">90-day CVR</div>
+        <div style="font-size:9px;color:#94a3b8;margin-top:2px;">LY 15.3%</div>
+      </div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:800;color:#dc2626;">5.3%</div>
+        <div style="font-size:10px;color:#64748b;margin-top:2px;">In-month CVR</div>
+        <div style="font-size:9px;color:#94a3b8;margin-top:2px;">686 converted</div>
+      </div>
+    </div>
+    <div class="note">14-day = Mar 1–18 cohort (has 14d to convert). 30-day = Feb cohort. 90-day = Dec cohort. All windows down YoY.</div>
+
+    <!-- Rolling 6-month swatch volume trend -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:8px;margin-top:12px;">Monthly Swatch Orders — Rolling 6 Months</div>
+    <svg width="100%" viewBox="0 0 480 80" style="display:block;height:auto;" font-family="-apple-system,BlinkMacSystemFont,sans-serif">
+      <!-- orders: Oct=12.9K, Nov=17.9K, Dec=10.7K, Jan=16.5K, Feb=15.8K, Mar=12.8K -->
+      <!-- scale: 0=y68, 20K=y12 → 56px/20K = 2.8px/K → h = val*2.8, y = 68-h -->
+      <rect x="10"  y="32" width="60" height="36" rx="2" fill="#99f6e4"/>  <!-- Oct 12.9K -->
+      <rect x="90"  y="18" width="60" height="50" rx="2" fill="#0d9488"/>  <!-- Nov 17.9K -->
+      <rect x="170" y="38" width="60" height="30" rx="2" fill="#99f6e4"/> <!-- Dec 10.7K -->
+      <rect x="250" y="22" width="60" height="46" rx="2" fill="#0d9488"/> <!-- Jan 16.5K -->
+      <rect x="330" y="24" width="60" height="44" rx="2" fill="#0d9488"/> <!-- Feb 15.8K -->
+      <rect x="410" y="32" width="60" height="36" rx="2" fill="#99f6e4"/> <!-- Mar 12.8K -->
+      <text x="40"  y="28" text-anchor="middle" font-size="9" fill="#64748b">12.9K</text>
+      <text x="120" y="14" text-anchor="middle" font-size="9" fill="#0f766e">17.9K</text>
+      <text x="200" y="34" text-anchor="middle" font-size="9" fill="#64748b">10.7K</text>
+      <text x="280" y="18" text-anchor="middle" font-size="9" fill="#0f766e">16.5K</text>
+      <text x="360" y="20" text-anchor="middle" font-size="9" fill="#0f766e">15.8K</text>
+      <text x="440" y="28" text-anchor="middle" font-size="9" fill="#64748b">12.8K</text>
+      <text x="40"  y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Oct</text>
+      <text x="120" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Nov</text>
+      <text x="200" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Dec</text>
+      <text x="280" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Jan</text>
+      <text x="360" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Feb</text>
+      <text x="440" y="76" text-anchor="middle" font-size="9" fill="#64748b">Mar</text>
+    </svg>
+    <div class="note">Source: <code>PROD.ID_WAREHOUSE.SWATCH_ORDERS</code>. Swatch volume −7% YoY. All CVR windows below LY — swatch-to-purchase conversion has weakened across all time horizons.</div>
+  </div>
+
+  <!-- ── UNASSISTED BUSINESS ── -->
+  <div class="section" style="background:#fafafa;">
+    <div class="section-label">🔍 Unassisted Business — MTD</div>
+    <div class="note" style="margin-bottom:12px;font-style:italic;">B2C + Trade · meaningful_contact = No or blank · no inbound engagement · source: HubSpot via Snowflake</div>
+
+    <div class="kpi-grid" style="margin-bottom:14px;">
+      <div class="kpi" style="border-left:3px solid #6366f1;">
+        <div class="kpi-val">$1.57M</div>
+        <div class="kpi-lbl">Unassisted NBE MTD</div>
+        <div class="kpi-chg dn">▼ −40% vs $2.61M YoY</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">$2,261</div>
+        <div class="kpi-lbl">Unassisted AOV</div>
+        <div class="kpi-chg" style="color:#64748b;">vs $2,740 blended</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val" style="color:#16a34a;">31.3%</div>
+        <div class="kpi-lbl">% of Total NBE</div>
+        <div class="kpi-chg dn">▼ vs 48.4% YoY</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;padding:6px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;border-bottom:1px solid #e2e8f0;">Customer Type</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+          <div class="bar-row" style="margin-bottom:0;">
+            <span class="bar-lbl">B2C</span>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:#6366f1;"></div></div>
+            <span class="bar-val">87%</span>
+          </div>
+          <div class="bar-row" style="margin-bottom:0;">
+            <span class="bar-lbl">Trade</span>
+            <div class="bar-track"><div class="bar-fill" style="width:15%;background:#0d9488;"></div></div>
+            <span class="bar-val">13%</span>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;padding:6px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;border-bottom:1px solid #e2e8f0;">Order Volume</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+          <div class="bar-row" style="margin-bottom:0;">
+            <span class="bar-lbl">B2C</span>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:#6366f1;"></div></div>
+            <span class="bar-val">603</span>
+          </div>
+          <div class="bar-row" style="margin-bottom:0;">
+            <span class="bar-lbl">Trade</span>
+            <div class="bar-track"><div class="bar-fill" style="width:15%;background:#0d9488;"></div></div>
+            <span class="bar-val">92</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:8px;">Merch Mix — Unassisted Only</div>
+    <div style="display:flex;gap:12px;">
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;padding:6px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;border-bottom:1px solid #e2e8f0;">Collection</div>
+        <div style="padding:8px 12px;display:flex;flex-direction:column;gap:5px;">
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Sectionals</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#6366f1;"></div></div><span class="bar-val">38%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Sofas</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:#94a3b8;"></div></div><span class="bar-val">31%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Chairs</span><div class="bar-track"><div class="bar-fill" style="width:37%;background:#94a3b8;"></div></div><span class="bar-val">14%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Tables</span><div class="bar-track"><div class="bar-fill" style="width:29%;background:#94a3b8;"></div></div><span class="bar-val">11%</span></div>
+        </div>
+      </div>
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;padding:6px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;border-bottom:1px solid #e2e8f0;">Fabric</div>
+        <div style="padding:8px 12px;display:flex;flex-direction:column;gap:5px;">
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Performance</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#6366f1;"></div></div><span class="bar-val">48%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Linen</span><div class="bar-track"><div class="bar-fill" style="width:40%;background:#94a3b8;"></div></div><span class="bar-val">19%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Velvet</span><div class="bar-track"><div class="bar-fill" style="width:33%;background:#94a3b8;"></div></div><span class="bar-val">16%</span></div>
+          <div class="bar-row" style="margin-bottom:0;"><span class="bar-lbl">Boucle</span><div class="bar-track"><div class="bar-fill" style="width:19%;background:#94a3b8;"></div></div><span class="bar-val">9%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:10px;">Unassisted business dropped significantly YoY (31% of NBE vs 48% LY) — sales team engagement is meaningfully higher this year. Unassisted AOV ($2,261) is $479 below blended, reflecting absence of upsell on self-service orders.</div>
+    <div class="looker-note">Merch mix for unassisted from Looker 1156 — sample data shown</div>
+  </div>
+
+  <!-- ── MARKET & REPEAT HEALTH ── -->
+  <div class="section">
+    <div class="section-label">🌍 Market &amp; Repeat Health</div>
+
+    <div class="kpi-grid" style="margin-bottom:16px;">
+      <div class="kpi">
+        <div class="kpi-val">31.6%</div>
+        <div class="kpi-lbl">Repeat Business MTD</div>
+        <div class="kpi-chg up">▲ vs 28.7% YoY (+3pp)</div>
+      </div>
+      <div class="kpi" style="border-left:3px solid #dc2626;">
+        <div class="kpi-val" style="color:#dc2626;">−7%</div>
+        <div class="kpi-lbl">Market Growth YoY</div>
+        <div class="kpi-chg" style="color:#64748b;">$5.02M vs $5.40M MTD LY</div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:8px;">Weekly Inbound Engagements — Rolling 4 Weeks</div>
+    <svg width="100%" viewBox="0 0 480 80" style="display:block;height:auto;" font-family="-apple-system,BlinkMacSystemFont,sans-serif">
+      <rect x="30"  y="33" width="100" height="35" rx="2" fill="#ccfbf1"/>
+      <rect x="160" y="22" width="100" height="46" rx="2" fill="#0d9488"/>
+      <rect x="290" y="28" width="100" height="40" rx="2" fill="#0d9488"/>
+      <rect x="360" y="12" width="100" height="56" rx="2" fill="#0f766e"/>
+      <text x="80"  y="29" text-anchor="middle" font-size="9" fill="#64748b">285</text>
+      <text x="210" y="18" text-anchor="middle" font-size="9" fill="#0f766e">312</text>
+      <text x="340" y="24" text-anchor="middle" font-size="9" fill="#0f766e">298</text>
+      <text x="410" y="8"  text-anchor="middle" font-size="9" fill="#0f766e" font-weight="600">341</text>
+      <text x="80"  y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Wk Feb 17</text>
+      <text x="210" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Wk Feb 24</text>
+      <text x="340" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Wk Mar 3</text>
+      <text x="410" y="76" text-anchor="middle" font-size="9" fill="#0d9488" font-weight="600">Wk Mar 10</text>
+    </svg>
+    <div class="looker-note">⚠ Weekly inbound from Looker 1156 — sample data shown</div>
+  </div>
+
+  <!-- ── DIGITAL & MARKETING PERFORMANCE ── -->
+  <div class="section" style="border-bottom:none;">
+    <div class="section-label">📱 Digital &amp; Marketing Performance</div>
+
+    <div class="kpi-grid" style="margin-bottom:16px;">
+      <div class="kpi" style="border-left:3px solid #0d9488;">
+        <div class="kpi-val">$172K</div>
+        <div class="kpi-lbl">Marketing Spend MTD</div>
+        <div class="kpi-chg dn">▼ −21% vs $217K YoY</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">$29.19</div>
+        <div class="kpi-lbl">NBE per $ Spent</div>
+        <div class="kpi-chg up">▲ +17% vs $24.90 YoY</div>
+      </div>
+      <div class="kpi" style="background:#fff7ed;border-color:#fed7aa;">
+        <div class="kpi-val" style="color:#92400e;">No data</div>
+        <div class="kpi-lbl">Web Sessions MTD</div>
+        <div class="kpi-chg" style="color:#94a3b8;">SESSIONS ends Aug 2025</div>
+      </div>
+    </div>
+
+    <!-- Weekly spend trend -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:4px;">Weekly Marketing Spend — TY vs LY</div>
+    <div style="display:flex;gap:10px;font-size:9px;color:#64748b;margin-bottom:6px;align-items:center;">
+      <span style="display:inline-block;width:10px;height:10px;background:#0d9488;border-radius:2px;"></span> This year
+      <span style="display:inline-block;width:10px;height:10px;background:#cbd5e1;border-radius:2px;margin-left:4px;"></span> Last year
+    </div>
+    <svg width="100%" viewBox="0 0 480 90" style="display:block;height:auto;margin-bottom:14px;" font-family="-apple-system,BlinkMacSystemFont,sans-serif">
+      <!-- TY: 42.8K, 43.9K, 59.8K, 63.1K — LY: 43.2K, 52.3K, 80.5K, 71.5K -->
+      <!-- scale: 0=y76, 90K=y12 → 64px/90K = 0.711px/K → h=val*0.711, y=76-h -->
+      <!-- group starts: 20, 140, 260, 370 — bar w=34, gap=6 -->
+
+      <!-- Wk Feb 23 TY=42.8K h=30, y=46 | LY=43.2K h=31, y=45 -->
+      <rect x="20"  y="46" width="34" height="30" rx="2" fill="#0d9488"/>
+      <rect x="58"  y="45" width="34" height="31" rx="2" fill="#cbd5e1"/>
+      <text x="37"  y="42" text-anchor="middle" font-size="8" fill="#0f766e">$43K</text>
+      <text x="75"  y="41" text-anchor="middle" font-size="8" fill="#94a3b8">$43K</text>
+
+      <!-- Wk Mar 2 TY=43.9K h=31, y=45 | LY=52.3K h=37, y=39 -->
+      <rect x="140" y="45" width="34" height="31" rx="2" fill="#0d9488"/>
+      <rect x="178" y="39" width="34" height="37" rx="2" fill="#cbd5e1"/>
+      <text x="157" y="41" text-anchor="middle" font-size="8" fill="#0f766e">$44K</text>
+      <text x="195" y="35" text-anchor="middle" font-size="8" fill="#94a3b8">$52K</text>
+
+      <!-- Wk Mar 9 TY=59.8K h=43, y=33 | LY=80.5K h=57, y=19 -->
+      <rect x="260" y="33" width="34" height="43" rx="2" fill="#0d9488"/>
+      <rect x="298" y="19" width="34" height="57" rx="2" fill="#cbd5e1"/>
+      <text x="277" y="29" text-anchor="middle" font-size="8" fill="#0f766e">$60K</text>
+      <text x="315" y="15" text-anchor="middle" font-size="8" fill="#94a3b8">$81K</text>
+
+      <!-- Wk Mar 16 TY=63.1K h=45, y=31 | LY=71.5K h=51, y=25 -->
+      <rect x="380" y="31" width="34" height="45" rx="2" fill="#0f766e"/>
+      <rect x="418" y="25" width="34" height="51" rx="2" fill="#cbd5e1"/>
+      <text x="397" y="27" text-anchor="middle" font-size="8" fill="#0f766e" font-weight="600">$63K</text>
+      <text x="435" y="21" text-anchor="middle" font-size="8" fill="#94a3b8">$72K</text>
+
+      <text x="75"  y="86" text-anchor="middle" font-size="8" fill="#94a3b8">Wk Feb 23</text>
+      <text x="195" y="86" text-anchor="middle" font-size="8" fill="#94a3b8">Wk Mar 2</text>
+      <text x="315" y="86" text-anchor="middle" font-size="8" fill="#94a3b8">Wk Mar 9</text>
+      <text x="435" y="86" text-anchor="middle" font-size="8" fill="#0d9488" font-weight="600">Wk Mar 16</text>
+    </svg>
+
+    <!-- Session source — LY reference only -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:4px;">Web Session Sources — LY Reference (Mar 2025)</div>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:4px;padding:7px 12px;font-size:10px;color:#92400e;margin-bottom:10px;">⚠ SESSIONS table ends Aug 2025. Showing Mar 2025 for reference — 2026 data not yet available.</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <div class="bar-row">
+        <span class="bar-lbl">Direct</span>
+        <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:100%;background:#94a3b8;"></div></div>
+        <span class="bar-val">272K</span>
+        <span class="bar-yoy" style="color:#94a3b8;">37.4%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">Paid Social</span>
+        <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:61%;background:#f59e0b;"></div></div>
+        <span class="bar-val">166K</span>
+        <span class="bar-yoy" style="color:#94a3b8;">22.8%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">Paid Search</span>
+        <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:55%;background:#6366f1;"></div></div>
+        <span class="bar-val">151K</span>
+        <span class="bar-yoy" style="color:#94a3b8;">20.7%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">Referral</span>
+        <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:13%;background:#94a3b8;"></div></div>
+        <span class="bar-val">36K</span>
+        <span class="bar-yoy" style="color:#94a3b8;">5.0%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl">Organic Search</span>
+        <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:15%;background:#0d9488;"></div></div>
+        <span class="bar-val">40K</span>
+        <span class="bar-yoy" style="color:#94a3b8;">5.5%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl" style="color:#94a3b8;">Other</span>
+        <div class="bar-track" style="max-width:200px;"><div class="bar-fill" style="width:9%;background:#e2e8f0;"></div></div>
+        <span class="bar-val" style="color:#94a3b8;">63K</span>
+        <span class="bar-yoy" style="color:#94a3b8;">8.6%</span>
+      </div>
+    </div>
+    <div class="note" style="margin-top:10px;">Spend −21% YoY but efficiency improved: $29.19 NBE per $1 spent vs $24.90 LY (+17%). Spend running below LY every week — biggest gap in Wk Mar 9 ($60K vs $81K LY). Digital channels only; Paid Social + Paid Search account for all tracked TY spend.</div>
+  </div>
+
+</div><!-- end .email-wrap -->
+  </div>
+  <div class="tab-content" id="content-sales">
+<div class="page-label">Interior Define · Daily Business Review · Email Mockup · Mon Mar 17</div>
+
+<div class="email-wrap">
+
+  <!-- ── HEADER ── -->
+  <div class="hdr">
+    <div class="hdr-brand">Interior Define · Daily Business Review</div>
+    <div class="hdr-meta">
+      Monday, March 17, 2026
+      <span class="hdr-badge">⚡ Monday Mode</span>
+    </div>
+  </div>
+
+  <!-- ── TL;DR ── -->
+  <div class="tldr">
+    <div class="tldr-label">TL;DR</div>
+    <p>Strong Sunday on Trade (+18% YoY), broad-based. AOV soft at $2,718 — likely sectional mix at 33%. Inbound flat YoY (315 vs 323). <strong>Watch:</strong> B2C CVR down WoW for 3rd straight week. Minneapolis and Philadelphia flagged on conversion + activity.</p>
+  </div>
+
+  <!-- ── MONDAY RECAP ── -->
+  <div class="monday-section">
+    <div class="monday-label">📅 Last Week Recap — Mar 10–16</div>
+    <p class="prose">
+      Last week came in just above LY on NBE despite inbound running below trend — assisted sales carried the conversion.
+      Trade mix was elevated Thu–Fri on a handful of larger orders; strip those out and the underlying business was roughly flat to LY.
+      B2C conversion rate for the week was the lowest since February, and that trend is now carrying into this week.
+      <strong>Inbound engagements LW: 1,820</strong> (WoW −1%, YoY −3%).
+    </p>
+  </div>
+
+  <!-- ── YESTERDAY'S STORY ── -->
+  <div class="section">
+    <div class="section-label">📊 Yesterday's Story</div>
+    <p class="prose">
+      Sunday was a strong Trade day — <strong>NBE $142K (+12% DoD, +8% YoY)</strong>, broad-based with no single outlier order (largest Trade order $5,500).
+      AOV came in soft at <strong>$2,718 (−4% DoD)</strong>, which likely traces to sectional mix sitting low at <strong>33% merch contribution</strong> — worth watching as a recurring AOV drag.
+      Inbound engagements were essentially flat YoY (<strong>315 vs. 323</strong> same Monday last year), which is a better story than recent weeks where we've been running down 8–10%.
+      Assisted sales % was <strong>67% (+5pp DoD)</strong>.
+    </p>
+
+    <!-- Segment pills -->
+    <div class="segments" style="margin-top: 16px;">
+      <div class="segment" style="background: #f0fdf4; border-color: #bbf7d0;">
+        <div class="segment-name" style="color: #16a34a;">Trade</div>
+        <div class="segment-val">42%</div>
+        <div class="segment-sub" style="color: #16a34a;">▲ +5pp vs avg</div>
+      </div>
+      <div class="segment">
+        <div class="segment-name" style="color: #475569;">B2C</div>
+        <div class="segment-val">45%</div>
+        <div class="segment-sub" style="color: #94a3b8;">in line</div>
+      </div>
+      <div class="segment">
+        <div class="segment-name" style="color: #475569;">Havenly</div>
+        <div class="segment-val">13%</div>
+        <div class="segment-sub" style="color: #94a3b8;">in line</div>
+      </div>
+    </div>
+
+    <div class="note">
+      MTD pace: <strong>97% of forecast</strong>. Repeat customer % MTD: <strong>14.2%</strong>.
+    </div>
+  </div>
+
+  <!-- ── WHAT TO WATCH ── -->
+  <div class="watch-section">
+    <div class="watch-label">⚠️ What to Watch Today</div>
+
+    <div class="watch-item">
+      <div class="watch-tag">B2C CVR</div>
+      <div>B2C conversion has declined WoW for <strong>3 consecutive weeks</strong> (23% → 22% → 21% → 19%). Not yet alarming but if it drops again this week, worth a deeper look at the funnel — particularly whether inbound quality has shifted or MC activity is down.</div>
+    </div>
+
+    <div class="watch-item">
+      <div class="watch-tag">MINNEAPOLIS</div>
+      <div>Minneapolis CVR (12%) and MC% (41%) are both below threshold, and call volume MTD is the lowest of any studio. Two reps flagged individually. Worth a check-in today before the week sets a pattern.</div>
+    </div>
+
+    <div class="watch-item">
+      <div class="watch-tag">SECTIONALS</div>
+      <div>NYC SoHo flagged supply delays on sectionals affecting close rate. Merch contribution MTD at 33% is tracking below expectation — if sectional supply is constrained in multiple markets, this could weigh on AOV through end of month.</div>
+    </div>
+  </div>
+
+  <!-- ── CONVERSION ── -->
+  <div class="section">
+    <div class="section-label">📈 Conversion — MTD (B2C + Trade, excl. Direct Orders)</div>
+
+    <!-- Pipeline health — deals created (bars) + % moved to MC (line) -->
+    <div class="cvr-trend" style="background:#f8fafc;border-color:#e2e8f0;">
+      <div class="cvr-trend-label" style="color:#4338ca;">📊 Pipeline Health — 4-Week Trend</div>
+      <div style="padding:16px 10px 4px;">
+        <svg width="100%" viewBox="0 0 480 160" style="display:block;overflow:visible;height:auto;" font-family="-apple-system,BlinkMacSystemFont,sans-serif">
+
+          <!-- section micro-label: % to MC -->
+          <text x="0" y="12" font-size="9" font-weight="700" fill="#7c3aed" letter-spacing="0.8">% WITH MEANINGFUL CONTACT = YES</text>
+
+          <!-- area fill under line -->
+          <polygon points="60,35 190,32 320,39 430,43 430,60 60,60" fill="#ede9fe" opacity="0.5"/>
+
+          <!-- line -->
+          <polyline points="60,35 190,32 320,39 430,43" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+          <!-- line dots -->
+          <circle cx="60"  cy="35" r="4"   fill="#a78bfa" stroke="white" stroke-width="2"/>
+          <circle cx="190" cy="32" r="4"   fill="#8b5cf6" stroke="white" stroke-width="2"/>
+          <circle cx="320" cy="39" r="4"   fill="#8b5cf6" stroke="white" stroke-width="2"/>
+          <circle cx="430" cy="43" r="5"   fill="#7c3aed" stroke="white" stroke-width="2.5"/>
+
+          <!-- % labels -->
+          <text x="60"  y="27" text-anchor="middle" font-size="11" fill="#94a3b8">62%</text>
+          <text x="190" y="24" text-anchor="middle" font-size="11" fill="#94a3b8">65%</text>
+          <text x="320" y="31" text-anchor="middle" font-size="11" fill="#94a3b8">60%</text>
+          <text x="430" y="35" text-anchor="middle" font-size="11" fill="#7c3aed" font-weight="bold">58%</text>
+
+          <!-- divider -->
+          <line x1="0" y1="71" x2="480" y2="71" stroke="#e2e8f0" stroke-width="1"/>
+
+          <!-- section micro-label: deals created -->
+          <text x="0" y="83" font-size="9" font-weight="700" fill="#4338ca" letter-spacing="0.8">DEALS CREATED</text>
+
+          <!-- bars -->
+          <rect x="35"  y="97" width="50" height="48" fill="#c7d2fe" rx="2"/>
+          <rect x="165" y="95" width="50" height="50" fill="#a5b4fc" rx="2"/>
+          <rect x="295" y="96" width="50" height="49" fill="#a5b4fc" rx="2"/>
+          <rect x="405" y="90" width="50" height="55" fill="#6366f1" rx="2"/>
+
+          <!-- deal count labels (above bars) -->
+          <text x="60"  y="94" text-anchor="middle" font-size="11" fill="#6366f1" font-weight="600">298</text>
+          <text x="190" y="92" text-anchor="middle" font-size="11" fill="#6366f1" font-weight="600">312</text>
+          <text x="320" y="93" text-anchor="middle" font-size="11" fill="#6366f1" font-weight="600">305</text>
+          <text x="430" y="87" text-anchor="middle" font-size="11" fill="#4338ca" font-weight="700">341</text>
+
+          <!-- date labels -->
+          <text x="60"  y="155" text-anchor="middle" font-size="10" fill="#94a3b8">Feb 24</text>
+          <text x="190" y="155" text-anchor="middle" font-size="10" fill="#94a3b8">Mar 3</text>
+          <text x="320" y="155" text-anchor="middle" font-size="10" fill="#94a3b8">Mar 10</text>
+          <text x="430" y="155" text-anchor="middle" font-size="10" fill="#4338ca" font-weight="700">Mar 17</text>
+
+        </svg>
+      </div>
+      <div class="cvr-summary" style="color:#475569;">Deals up this week (<strong style="color:#4338ca;">+36 WoW</strong>). <code style="font-size:10px;background:#f1f5f9;padding:1px 4px;border-radius:3px;">meaningful_contact = Yes</code> rate slipping: 65% → 58% — <strong style="color:#d97706;">below 66% threshold</strong>.</div>
+    </div>
+
+    <!-- Open deal age + CVR by stage — side by side -->
+    <div style="display:flex;gap:12px;margin-bottom:16px;">
+
+      <!-- Open deals by creation month -->
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">Open Deals — by Month Created</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+
+          <!-- Jan -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+              <span style="font-size:11px;font-weight:600;color:#92400e;">Jan (aging)</span>
+              <span style="font-size:12px;font-weight:700;color:#92400e;">94</span>
+            </div>
+            <div style="height:9px;background:#fed7aa;border-radius:2px;overflow:hidden;">
+              <div style="height:100%;width:39%;background:#f97316;border-radius:2px;"></div>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">avg age 52 days · should be closing or lost</div>
+          </div>
+
+          <!-- Feb -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+              <span style="font-size:11px;font-weight:600;color:#334155;">Feb</span>
+              <span style="font-size:12px;font-weight:700;color:#334155;">241</span>
+            </div>
+            <div style="height:9px;background:#e0e7ff;border-radius:2px;overflow:hidden;">
+              <div style="height:100%;width:100%;background:#6366f1;border-radius:2px;"></div>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">avg age 28 days · normal cycle</div>
+          </div>
+
+          <!-- Mar -->
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+              <span style="font-size:11px;font-weight:600;color:#334155;">Mar (MTD)</span>
+              <span style="font-size:12px;font-weight:700;color:#334155;">187</span>
+            </div>
+            <div style="height:9px;background:#e0e7ff;border-radius:2px;overflow:hidden;">
+              <div style="height:100%;width:78%;background:#a5b4fc;border-radius:2px;"></div>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">avg age 9 days · new / early stage</div>
+          </div>
+
+          <div style="border-top:1px solid #f1f5f9;padding-top:6px;display:flex;justify-content:space-between;font-size:11px;">
+            <span style="color:#64748b;">Total open</span>
+            <span style="font-weight:700;color:#334155;">522</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CVR by stage -->
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">CVR by Stage — MTD</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:0;">
+
+          <!-- stage rows: stage | open now | → won CVR -->
+          <div style="display:grid;grid-template-columns:1fr 38px 52px;font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;padding:0 0 5px;border-bottom:1px solid #f1f5f9;letter-spacing:0.5px;">
+            <div>Stage</div><div style="text-align:right;">Open</div><div style="text-align:right;">→ Won</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 38px 52px;padding:5px 0;border-bottom:1px solid #f8fafc;align-items:center;">
+            <div style="font-size:11px;color:#334155;">Swatch</div>
+            <div style="text-align:right;font-size:11px;color:#94a3b8;">198</div>
+            <div style="text-align:right;font-size:12px;font-weight:700;color:#334155;">22%</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 38px 52px;padding:5px 0;border-bottom:1px solid #f8fafc;align-items:center;">
+            <div style="font-size:11px;color:#334155;">Connected</div>
+            <div style="text-align:right;font-size:11px;color:#94a3b8;">143</div>
+            <div style="text-align:right;font-size:12px;font-weight:700;color:#16a34a;">31%</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 38px 52px;padding:5px 0;border-bottom:1px solid #f8fafc;align-items:center;">
+            <div style="font-size:11px;color:#334155;">Meeting</div>
+            <div style="text-align:right;font-size:11px;color:#94a3b8;">112</div>
+            <div style="text-align:right;font-size:12px;font-weight:700;color:#16a34a;">54%</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 38px 52px;padding:5px 0;border-bottom:1px solid #f1f5f9;align-items:center;">
+            <div style="font-size:11px;color:#334155;">Quote</div>
+            <div style="text-align:right;font-size:11px;color:#94a3b8;">69</div>
+            <div style="text-align:right;font-size:12px;font-weight:700;color:#16a34a;">81%</div>
+          </div>
+
+          <div style="padding-top:6px;display:flex;justify-content:space-between;font-size:11px;">
+            <span style="color:#64748b;">Overall CVR</span>
+            <span style="font-weight:700;color:#334155;">15.8%</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- so what -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#334155;line-height:1.6;">
+      <span style="font-weight:700;color:#0f172a;">So what: </span>
+      Pipeline volume is healthy — deals are up WoW and Feb/Mar cohorts are on track. Three things to note:
+      <ol style="margin:6px 0 0 16px;padding:0;display:flex;flex-direction:column;gap:4px;">
+        <li><strong>Goal is within reach but requires late-stage conversion.</strong> MTD revenue is $1.47M against a $2.1M goal — tracking to ~$1.82M (87%) at current pace, leaving a <strong style="color:#d97706;">~$280K gap</strong>. There is ~$340K in closeable pipeline in Meeting + Quote stages (181 deals at historical CVR). If those convert at rate, goal is achievable. If MC engagement stays at 58% and fewer deals reach Meeting, it likely isn't.</li>
+        <li><strong>94 Jan deals are aging (avg 52 days)</strong> — these are unlikely to close without intervention. Reps should move them to a decision: advance or mark lost to keep the pipeline clean and the forecast honest.</li>
+        <li><strong>Meeting → Won (54%) is the highest-leverage stage</strong> — once a deal reaches a meeting it closes more than half the time. With <code style="font-size:10px;background:#e2e8f0;padding:1px 4px;border-radius:3px;">meaningful_contact</code> rate slipping to 58%, fewer deals are reaching this stage. That's the primary lever to close the gap before month end.</li>
+      </ol>
+    </div>
+
+    <!-- MC Funnel by Studio — clean table -->
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#475569;margin-bottom:10px;">MC Funnel by Studio (MTD)</div>
+
+    <!-- columns: studio(120px) | deals(44px) | avg/rep(44px) | MC% bar(1fr) | MC CVR(72px) -->
+    <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+
+      <!-- header -->
+      <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:7px 12px 7px 12px;gap:0 8px;align-items:center;">
+        <div style="color:#64748b;">Studio</div>
+        <div style="text-align:right;color:#64748b;">Deals</div>
+        <div style="text-align:right;color:#64748b;">Avg/Rep</div>
+        <div style="color:#3b82f6;">→ MC engagement</div>
+        <div style="text-align:right;color:#16a34a;">MC CVR</div>
+      </div>
+
+      <!-- rows -->
+      <div style="font-size:12px;">
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-weight:600;color:#334155;">Washington DC</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">510</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">85</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:36%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">36%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;color:#16a34a;">19.1%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">San Francisco</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">417</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">104</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:39%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">39%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;color:#16a34a;">14.3%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Baltimore</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">426</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">107</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:51%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">51%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;color:#16a34a;">14.0%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Charlotte</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">537</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">107</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:43%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">43%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;">13.3%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">New York</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">959</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">120</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:38%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">38%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;">13.3%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Chicago</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">814</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">116</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:43%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">43%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;">12.9%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Philadelphia</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">479</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">120</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:52%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">52%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;">12.5%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Dallas</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">491</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">123</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:39%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">39%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;">11.0%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Minneapolis</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">641</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">128</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:69%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">69%</span>
+          </div>
+          <div style="text-align:right;color:#475569;">9.5%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Seattle</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">684</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">114</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:47%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">47%</span>
+          </div>
+          <div style="text-align:right;color:#475569;">9.4%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Boston</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">710</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">118</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:66%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">66%</span>
+          </div>
+          <div style="text-align:right;color:#475569;">8.8%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Los Angeles</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">558</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">112</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#eff6ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:66%;background:#3b82f6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#3b82f6;width:28px;">66%</span>
+          </div>
+          <div style="text-align:right;color:#475569;">8.5%</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:120px 44px 44px 1fr 72px;gap:0 8px;align-items:center;padding:6px 12px;background:#fff7ed;">
+          <div style="color:#92400e;font-weight:700;">⚠ Denver</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">595</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">119</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fed7aa;border-radius:2px;overflow:hidden;"><div style="height:100%;width:38%;background:#f97316;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#f97316;width:28px;">38%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;color:#dc2626;">7.6%</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:12px 14px;margin:14px 0 0;font-size:12px;color:#0369a1;line-height:1.7;">
+      <strong>Two conversion archetypes:</strong><br>
+      <strong>Selective MC, high CVR</strong> — DC (36%→MC, 19.1%), SF (39%, 14.3%), NY (38%, 13.3%): fewer deals reach MC but strong close rate when they do.<br>
+      <strong>Broad MC, lower CVR</strong> — Minneapolis (69%→MC, 9.5%), Boston (66%, 8.8%), LA (66%, 8.5%): high MC engagement but lower conversion. Check whether MC criteria are applied consistently.
+    </div>
+  </div>
+
+  <!-- ── REP CVR ── -->
+  <div class="section">
+    <div class="section-label">👤 Rep CVR — MTD</div>
+
+    <!-- columns: rep(80px) | studio(90px) | all cvr(44px) | deals(44px) | %→mc bar(1fr) | mc cvr(52px) -->
+    <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+
+      <!-- header -->
+      <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:7px 12px;gap:0 8px;align-items:center;">
+        <div style="color:#64748b;">Rep</div>
+        <div style="color:#64748b;">Studio</div>
+        <div style="text-align:right;color:#64748b;">All CVR</div>
+        <div style="text-align:right;color:#64748b;">Deals</div>
+        <div style="color:#8b5cf6;">→ % sent to MC</div>
+        <div style="text-align:right;color:#16a34a;">MC CVR</div>
+      </div>
+
+      <div style="font-size:12px;">
+
+        <!-- Sarah M. — top -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-weight:700;color:#334155;">Sarah M.</div>
+          <div style="color:#64748b;font-size:11px;">Chicago</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">26%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">248</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#ede9fe;border-radius:2px;overflow:hidden;"><div style="height:100%;width:100%;background:#8b5cf6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#8b5cf6;font-weight:700;width:28px;">74%</span>
+          </div>
+          <div style="text-align:right;font-weight:700;color:#16a34a;">34%</div>
+        </div>
+
+        <!-- Tyler K. -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-weight:600;color:#334155;">Tyler K.</div>
+          <div style="color:#64748b;font-size:11px;">New York</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">22%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">231</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#ede9fe;border-radius:2px;overflow:hidden;"><div style="height:100%;width:93%;background:#8b5cf6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#8b5cf6;width:28px;">69%</span>
+          </div>
+          <div style="text-align:right;font-weight:600;color:#16a34a;">31%</div>
+        </div>
+
+        <!-- Priya N. -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Priya N.</div>
+          <div style="color:#64748b;font-size:11px;">Los Angeles</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">20%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">187</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#ede9fe;border-radius:2px;overflow:hidden;"><div style="height:100%;width:92%;background:#8b5cf6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#8b5cf6;width:28px;">68%</span>
+          </div>
+          <div style="text-align:right;font-weight:600;color:#16a34a;">29%</div>
+        </div>
+
+        <!-- Devon A. -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;">
+          <div style="color:#334155;">Devon A.</div>
+          <div style="color:#64748b;font-size:11px;">Dallas</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">18%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">203</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#ede9fe;border-radius:2px;overflow:hidden;"><div style="height:100%;width:89%;background:#8b5cf6;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#8b5cf6;width:28px;">66%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">25%</div>
+        </div>
+
+        <!-- Mia T. — yellow (below 66%) -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Mia T.</div>
+          <div style="color:#64748b;font-size:11px;">Boston</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">17%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">195</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:82%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">61%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">23%</div>
+        </div>
+
+        <!-- Kim R. — yellow (below 66%) -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Kim R.</div>
+          <div style="color:#64748b;font-size:11px;">Denver</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">16%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">178</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:78%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">58%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">21%</div>
+        </div>
+
+        <!-- Aaliya S. — yellow (below 66%) -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Aaliya S.</div>
+          <div style="color:#64748b;font-size:11px;">Seattle</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">15%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">212</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:77%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">57%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">20%</div>
+        </div>
+
+        <!-- Rachel B. — yellow (below 66%) -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Rachel B.</div>
+          <div style="color:#64748b;font-size:11px;">San Francisco</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">14%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">164</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:74%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">55%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">18%</div>
+        </div>
+
+        <!-- Chris V. — yellow (low %→MC) -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Chris V.</div>
+          <div style="color:#64748b;font-size:11px;">Washington DC</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">13%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">219</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:70%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">52%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">17%</div>
+        </div>
+
+        <!-- Dana L. — yellow -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Dana L.</div>
+          <div style="color:#64748b;font-size:11px;">Philadelphia</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">12%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">188</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:69%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">51%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">15%</div>
+        </div>
+
+        <!-- Sam H. — yellow -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Sam H.</div>
+          <div style="color:#64748b;font-size:11px;">Santa Monica</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">11%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">143</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:68%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">50%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">14%</div>
+        </div>
+
+        <!-- Jamie O. — yellow -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;background:#fefce8;">
+          <div style="color:#334155;">Jamie O.</div>
+          <div style="color:#64748b;font-size:11px;">Charlotte</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">10%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">176</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fef9c3;border-radius:2px;overflow:hidden;"><div style="height:100%;width:65%;background:#d97706;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#d97706;width:28px;">48%</span>
+          </div>
+          <div style="text-align:right;color:#334155;">13%</div>
+        </div>
+
+        <!-- Marcus D. — flagged -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;border-bottom:1px solid #fed7aa;background:#fff7ed;">
+          <div style="font-weight:600;color:#92400e;">⚠ Marcus D.</div>
+          <div style="color:#64748b;font-size:11px;">Baltimore</div>
+          <div style="text-align:right;color:#f97316;font-size:11px;">7%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">211</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fed7aa;border-radius:2px;overflow:hidden;"><div style="height:100%;width:58%;background:#f97316;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#f97316;width:28px;">43%</span>
+          </div>
+          <div style="text-align:right;color:#dc2626;font-weight:700;">9%</div>
+        </div>
+
+        <!-- Jordan L. — flagged -->
+        <div style="display:grid;grid-template-columns:80px 90px 44px 44px 1fr 52px;gap:0 8px;align-items:center;padding:6px 12px;background:#fff7ed;">
+          <div style="font-weight:600;color:#92400e;">⚠ Jordan L.</div>
+          <div style="color:#64748b;font-size:11px;">Minneapolis</div>
+          <div style="text-align:right;color:#f97316;font-size:11px;">6%</div>
+          <div style="text-align:right;color:#94a3b8;font-size:11px;">224</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="flex:1;height:8px;background:#fed7aa;border-radius:2px;overflow:hidden;"><div style="height:100%;width:55%;background:#f97316;border-radius:2px;"></div></div>
+            <span style="font-size:11px;color:#f97316;width:28px;">41%</span>
+          </div>
+          <div style="text-align:right;color:#dc2626;font-weight:700;">8%</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="note" style="margin-top:8px;">Yellow = % sent to MC below 66% threshold. Red = MC CVR &gt;15pp below studio avg.</div>
+  </div>
+
+    <!-- ── % TO GOAL ── -->
+  <div class="section">
+    <div class="section-label">🎯 % to Goal — MTD + 3-Month Trend</div>
+    <div class="note" style="margin-bottom:14px;background:#fefce8;border-left:3px solid #eab308;">
+      ⚠ Goal data pulled from HubSpot Goals (not yet wired — placeholder structure below). Source: HubSpot Goals API <code>/crm/v3/objects/goal_targets</code>.
+    </div>
+
+    <!-- Top 3 / Middle / Bottom 3 by % to goal MTD -->
+    <!-- 3-month sparkline = Jan, Feb, Mar (current MTD) -->
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#475569;margin-bottom:10px;">By Studio — % to Monthly Revenue Goal</div>
+
+    <!-- Column headers -->
+    <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding:0 4px;">
+      <div style="width:116px;flex-shrink:0;">Studio</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;">MTD %</div>
+      <div style="flex:1;text-align:left;padding-left:8px;">3-month trend (Jan · Feb · Mar MTD)</div>
+      <div style="width:72px;text-align:right;flex-shrink:0;">Rev MTD</div>
+    </div>
+
+    <!-- TOP 3 -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#16a34a;margin:4px 0 6px;padding:0 4px;">▲ Top</div>
+
+    <!-- Chicago -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;background:#f0fdf4;">
+      <div style="width:116px;color:#1a5c36;flex-shrink:0;font-weight:600;font-size:12px;">Chicago</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:700;color:#16a34a;font-size:12px;">118%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:75%;background:#bbf7d0;border-radius:2px 2px 0 0;" title="Jan 88%"></div>
+          <div style="width:14px;height:87%;background:#4ade80;border-radius:2px 2px 0 0;" title="Feb 102%"></div>
+          <div style="width:14px;height:100%;background:#16a34a;border-radius:2px 2px 0 0;" title="Mar 118%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">88% · 102% · <strong style="color:#16a34a;">118%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$312K</div>
+    </div>
+
+    <!-- New York -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;background:#f0fdf4;margin-top:3px;">
+      <div style="width:116px;color:#1a5c36;flex-shrink:0;font-size:12px;">New York</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:700;color:#16a34a;font-size:12px;">109%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:85%;background:#bbf7d0;border-radius:2px 2px 0 0;" title="Jan 93%"></div>
+          <div style="width:14px;height:95%;background:#4ade80;border-radius:2px 2px 0 0;" title="Feb 104%"></div>
+          <div style="width:14px;height:100%;background:#16a34a;border-radius:2px 2px 0 0;" title="Mar 109%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">93% · 104% · <strong style="color:#16a34a;">109%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$287K</div>
+    </div>
+
+    <!-- Washington DC -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;background:#f0fdf4;margin-top:3px;">
+      <div style="width:116px;color:#1a5c36;flex-shrink:0;font-size:12px;">Washington DC</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:700;color:#16a34a;font-size:12px;">104%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:83%;background:#bbf7d0;border-radius:2px 2px 0 0;" title="Jan 86%"></div>
+          <div style="width:14px;height:94%;background:#4ade80;border-radius:2px 2px 0 0;" title="Feb 98%"></div>
+          <div style="width:14px;height:100%;background:#16a34a;border-radius:2px 2px 0 0;" title="Mar 104%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">86% · 98% · <strong style="color:#16a34a;">104%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$241K</div>
+    </div>
+
+    <!-- MIDDLE -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;margin:10px 0 6px;padding:0 4px;">— Middle</div>
+
+    <!-- Dallas rising -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Dallas</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">96%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:95%;background:#cbd5e1;border-radius:2px 2px 0 0;" title="Jan 91%"></div>
+          <div style="width:14px;height:98%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 94%"></div>
+          <div style="width:14px;height:100%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 96%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">91% · 94% · <strong>96%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$198K</div>
+    </div>
+    <!-- Boston peaked Feb -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Boston</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">93%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:92%;background:#cbd5e1;border-radius:2px 2px 0 0;" title="Jan 88%"></div>
+          <div style="width:14px;height:100%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 96%"></div>
+          <div style="width:14px;height:97%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 93%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">88% · 96% · <strong>93%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$176K</div>
+    </div>
+    <!-- Philadelphia rising -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Philadelphia</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">91%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:92%;background:#cbd5e1;border-radius:2px 2px 0 0;" title="Jan 84%"></div>
+          <div style="width:14px;height:99%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 90%"></div>
+          <div style="width:14px;height:100%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 91%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">84% · 90% · <strong>91%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$162K</div>
+    </div>
+    <!-- San Francisco declining -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">San Francisco</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">89%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:100%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Jan 92%"></div>
+          <div style="width:14px;height:96%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 88%"></div>
+          <div style="width:14px;height:97%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 89%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">92% · 88% · <strong>89%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$148K</div>
+    </div>
+    <!-- Seattle rising -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Seattle</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">87%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:91%;background:#cbd5e1;border-radius:2px 2px 0 0;" title="Jan 79%"></div>
+          <div style="width:14px;height:98%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 85%"></div>
+          <div style="width:14px;height:100%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 87%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">79% · 85% · <strong>87%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$134K</div>
+    </div>
+    <!-- Los Angeles peaked Feb -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Los Angeles</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">84%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:97%;background:#cbd5e1;border-radius:2px 2px 0 0;" title="Jan 88%"></div>
+          <div style="width:14px;height:100%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 91%"></div>
+          <div style="width:14px;height:92%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 84%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">88% · 91% · <strong>84%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$119K</div>
+    </div>
+    <!-- Charlotte rising -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Charlotte</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">82%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:93%;background:#cbd5e1;border-radius:2px 2px 0 0;" title="Jan 76%"></div>
+          <div style="width:14px;height:98%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 80%"></div>
+          <div style="width:14px;height:100%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 82%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">76% · 80% · <strong>82%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$103K</div>
+    </div>
+    <!-- Denver declining -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;margin-top:3px;">
+      <div style="width:116px;color:#334155;flex-shrink:0;font-size:12px;">Denver</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:600;font-size:12px;color:#475569;">78%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:100%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Jan 82%"></div>
+          <div style="width:14px;height:98%;background:#94a3b8;border-radius:2px 2px 0 0;" title="Feb 80%"></div>
+          <div style="width:14px;height:95%;background:#64748b;border-radius:2px 2px 0 0;" title="Mar 78%"></div>
+        </div>
+        <span style="font-size:10px;color:#64748b;">82% · 80% · <strong>78%</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$91K</div>
+    </div>
+
+    <!-- BOTTOM 3 -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#dc2626;margin:10px 0 6px;padding:0 4px;">▼ Bottom</div>
+
+    <!-- Santa Monica -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;background:#fff7ed;border:1px solid #fed7aa;">
+      <div style="width:116px;color:#92400e;flex-shrink:0;font-weight:600;font-size:12px;">Santa Monica</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:700;color:#dc2626;font-size:12px;">71%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:100%;background:#fca5a5;border-radius:2px 2px 0 0;" title="Jan 82%"></div>
+          <div style="width:14px;height:95%;background:#f87171;border-radius:2px 2px 0 0;" title="Feb 78%"></div>
+          <div style="width:14px;height:86%;background:#dc2626;border-radius:2px 2px 0 0;" title="Mar 71%"></div>
+        </div>
+        <span style="font-size:10px;color:#92400e;">82% · 78% · <strong style="color:#dc2626;">71% ▼</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$78K</div>
+    </div>
+
+    <!-- Baltimore -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;background:#fff7ed;border:1px solid #fed7aa;margin-top:3px;">
+      <div style="width:116px;color:#92400e;flex-shrink:0;font-weight:600;font-size:12px;">Baltimore</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:700;color:#dc2626;font-size:12px;">68%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:100%;background:#fca5a5;border-radius:2px 2px 0 0;" title="Jan 74%"></div>
+          <div style="width:14px;height:97%;background:#f87171;border-radius:2px 2px 0 0;" title="Feb 72%"></div>
+          <div style="width:14px;height:92%;background:#dc2626;border-radius:2px 2px 0 0;" title="Mar 68%"></div>
+        </div>
+        <span style="font-size:10px;color:#92400e;">74% · 72% · <strong style="color:#dc2626;">68% ▼</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$54K</div>
+    </div>
+
+    <!-- Minneapolis -->
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;background:#fff7ed;border:1px solid #fed7aa;margin-top:3px;">
+      <div style="width:116px;color:#92400e;flex-shrink:0;font-weight:600;font-size:12px;">Minneapolis</div>
+      <div style="width:48px;text-align:right;flex-shrink:0;font-weight:700;color:#dc2626;font-size:12px;">61%</div>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;padding-left:8px;">
+        <div style="display:flex;align-items:flex-end;gap:3px;height:24px;">
+          <div style="width:14px;height:100%;background:#fca5a5;border-radius:2px 2px 0 0;" title="Jan 78%"></div>
+          <div style="width:14px;height:94%;background:#f87171;border-radius:2px 2px 0 0;" title="Feb 73%"></div>
+          <div style="width:14px;height:78%;background:#dc2626;border-radius:2px 2px 0 0;" title="Mar 61%"></div>
+        </div>
+        <span style="font-size:10px;color:#92400e;">78% · 73% · <strong style="color:#dc2626;">61% ▼▼</strong></span>
+      </div>
+      <div style="width:72px;text-align:right;flex-shrink:0;font-size:11px;color:#334155;">$47K</div>
+    </div>
+
+    <div class="note" style="margin-top:14px;">
+      Minneapolis has declined 3 consecutive months on % to goal. Santa Monica and Baltimore are also trending down. Chicago, NY, and DC are the only studios consistently above goal.
+    </div>
+  </div>
+
+  <!-- ── ACTIVITY ── -->
+  <div class="section">
+    <div class="section-label">📞 Activity — MTD (Inbound + Outbound)</div>
+
+    <!-- Studio-level activity table — per person (calls & emails per DE/SDE) -->
+    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-bottom: 4px;">By Studio — Per Rep (MTD)</div>
+    <div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">Active DEs &amp; SDEs only (from roster) · Sorted by outbound calls/rep</div>
+
+    <!-- legend -->
+    <div style="display:flex;gap:14px;margin-bottom:10px;font-size:11px;color:#64748b;">
+      <span><span style="display:inline-block;width:10px;height:10px;background:#0ea5e9;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Outbound calls</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#7dd3fc;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Inbound calls</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#e2e8f0;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Outbound emails (number)</span>
+    </div>
+
+    <!-- column headers -->
+    <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;padding:0 0 6px 0;border-bottom:1px solid #e2e8f0;margin-bottom:8px;">
+      <span>Studio</span>
+      <span style="text-align:center;">Reps</span>
+      <span>Calls/Rep</span>
+      <span style="text-align:right;">Out</span>
+      <span style="text-align:right;">In</span>
+      <span style="text-align:right;">Emails</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Philadelphia</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">3</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:61%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:61%;top:0;height:100%;width:39%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">127</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">81</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,133</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Denver</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">3</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:54%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:54%;top:0;height:100%;width:35%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">113</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">72</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,835</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Minneapolis</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">4</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:45%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:45%;top:0;height:100%;width:17%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">94</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">35</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,256</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Chicago</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">5</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:38%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:38%;top:0;height:100%;width:22%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">80</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">45</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,227</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Baltimore</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">3</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:36%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:36%;top:0;height:100%;width:14%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">74</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">30</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">2,418</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Washington DC</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">3</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:33%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:33%;top:0;height:100%;width:27%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">69</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">56</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,679</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Los Angeles</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">4</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:33%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:33%;top:0;height:100%;width:28%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#0369a1;font-size:12px;">69</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">58</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">750</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Seattle</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">5</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:32%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:32%;top:0;height:100%;width:13%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:500;color:#0369a1;font-size:12px;">66</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">27</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">882</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;border-top:1px dashed #cbd5e1;border-bottom:1px dashed #cbd5e1;padding:3px 0;margin:2px 0;">
+        <span style="color:#94a3b8;font-style:italic;font-size:11px;">Team avg</span>
+        <span></span>
+        <div style="position:relative;height:12px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:33%;background:#94a3b8;opacity:0.7;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:33%;top:0;height:100%;width:27%;background:#cbd5e1;opacity:0.7;"></div>
+        </div>
+        <span style="text-align:right;color:#94a3b8;font-style:italic;font-size:12px;">69</span>
+        <span style="text-align:right;color:#94a3b8;font-style:italic;font-size:12px;">57</span>
+        <span style="text-align:right;color:#94a3b8;font-style:italic;font-size:12px;">1,350</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">Dallas</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">3</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:28%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:28%;top:0;height:100%;width:25%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:500;color:#0369a1;font-size:12px;">59</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">53</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,545</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;">
+        <span style="color:#334155;font-weight:500;font-size:12px;">New York</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">5</span>
+        <div style="position:relative;height:12px;background:#e0f2fe;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:25%;background:#0ea5e9;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:25%;top:0;height:100%;width:42%;background:#7dd3fc;"></div>
+        </div>
+        <span style="text-align:right;font-weight:500;color:#0369a1;font-size:12px;">53</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">88</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,003</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;background:#fff7ed;padding:3px 6px;border-radius:4px;margin:0 -6px;">
+        <span style="color:#92400e;font-weight:700;font-size:12px;">⚠ San Francisco</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">2</span>
+        <div style="position:relative;height:12px;background:#fed7aa;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:22%;background:#f97316;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:22%;top:0;height:100%;width:42%;background:#fdba74;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#dc2626;font-size:12px;">45</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">88</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">870</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;background:#fff7ed;padding:3px 6px;border-radius:4px;margin:0 -6px;">
+        <span style="color:#92400e;font-weight:700;font-size:12px;">⚠ Boston</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">4</span>
+        <div style="position:relative;height:12px;background:#fed7aa;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:12%;background:#f97316;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:12%;top:0;height:100%;width:25%;background:#fdba74;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#dc2626;font-size:12px;">25</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">52</span>
+        <span style="text-align:right;font-size:12px;color:#64748b;">1,087</span>
+      </div>
+      <div style="display:grid;grid-template-columns:108px 28px 1fr 46px 40px 62px;gap:0 5px;align-items:center;background:#fff7ed;padding:3px 6px;border-radius:4px;margin:0 -6px;">
+        <span style="color:#92400e;font-weight:700;font-size:12px;">⚠ Charlotte</span>
+        <span style="text-align:center;color:#94a3b8;font-size:11px;">3</span>
+        <div style="position:relative;height:12px;background:#fed7aa;border-radius:3px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:11%;background:#f97316;border-radius:3px 0 0 3px;"></div>
+          <div style="position:absolute;left:11%;top:0;height:100%;width:24%;background:#fdba74;"></div>
+        </div>
+        <span style="text-align:right;font-weight:700;color:#dc2626;font-size:12px;">23</span>
+        <span style="text-align:right;color:#64748b;font-size:12px;">49</span>
+        <span style="text-align:right;font-size:12px;color:#92400e;font-weight:600;">1,858 ↑</span>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:#475569;background:#f0f9ff;border:1px solid #bae6fd;padding:9px 12px;border-radius:4px;margin-top:12px;line-height:1.6;">
+      💡 <strong>NY &amp; SF:</strong> High inbound calls/rep (88 each) relative to low outbound — these studios may be handling more reactive pipeline vs. proactive outreach. <strong>Charlotte:</strong> Low calls but 1,858 emails/rep — email-heavy workflow worth understanding. <strong>Boston</strong> is low across the board.
+    </div>
+
+    </div><!-- end studio activity chart -->
+
+    <!-- Rep-level activity table -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin:18px 0 8px;">By Rep — Activity MTD</div>
+
+    <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+
+      <!-- Group super-header -->
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;background:#f8fafc;padding:6px 12px 0;border-bottom:1px solid #e2e8f0;">
+        <div></div><div></div>
+        <div style="grid-column:span 2;text-align:center;font-size:9px;font-weight:700;letter-spacing:0.6px;color:#3b82f6;padding-bottom:4px;border-bottom:2px solid #93c5fd;text-transform:uppercase;">Calls</div>
+        <div style="grid-column:span 2;text-align:center;font-size:9px;font-weight:700;letter-spacing:0.6px;color:#7c3aed;padding-bottom:4px;border-bottom:2px solid #c4b5fd;text-transform:uppercase;">Email</div>
+        <div style="text-align:center;font-size:9px;font-weight:600;color:#0284c7;padding-bottom:4px;text-transform:uppercase;">Quote</div>
+        <div style="text-align:center;font-size:9px;font-weight:600;color:#059669;padding-bottom:4px;text-transform:uppercase;">SMS</div>
+        <div style="text-align:center;font-size:9px;font-weight:600;color:#d97706;padding-bottom:4px;text-transform:uppercase;">Chat</div>
+        <div style="text-align:center;font-size:9px;font-weight:600;color:#64748b;padding-bottom:4px;text-transform:uppercase;">Mtgs</div>
+      </div>
+
+      <!-- Sub-header -->
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;background:#f8fafc;padding:3px 12px 5px;border-bottom:2px solid #e2e8f0;">
+        <div style="font-size:10px;font-weight:600;color:#475569;">Rep</div>
+        <div style="font-size:10px;font-weight:600;color:#475569;">Studio</div>
+        <div style="font-size:10px;text-align:center;color:#3b82f6;">Out</div>
+        <div style="font-size:10px;text-align:center;color:#3b82f6;">In</div>
+        <div style="font-size:10px;text-align:center;color:#7c3aed;">Out</div>
+        <div style="font-size:10px;text-align:center;color:#7c3aed;">In</div>
+        <div style="font-size:10px;text-align:center;color:#0284c7;">#</div>
+        <div style="font-size:10px;text-align:center;color:#059669;">#</div>
+        <div style="font-size:10px;text-align:center;color:#d97706;">#</div>
+        <div style="font-size:10px;text-align:center;color:#64748b;">#</div>
+      </div>
+
+      <!-- row macro: Rep | Studio | CallsOut | CallsIn | EmailOut | EmailIn | Quote | SMS | Chat | Mtgs -->
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:700;color:#1e293b;">Sarah M.</div><div style="font-size:11px;color:#94a3b8;">Chicago</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">58</div><div style="text-align:center;font-size:12px;color:#94a3b8;">31</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">89</div><div style="text-align:center;font-size:12px;color:#94a3b8;">53</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">12</div><div style="text-align:center;font-size:12px;color:#334155;">34</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">8</div><div style="text-align:center;font-size:12px;color:#334155;">12</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Tyler K.</div><div style="font-size:11px;color:#94a3b8;">New York</div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#1e293b;">65</div><div style="text-align:center;font-size:12px;color:#94a3b8;">27</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">96</div><div style="text-align:center;font-size:12px;color:#94a3b8;">60</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">10</div><div style="text-align:center;font-size:12px;color:#334155;">38</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">7</div><div style="text-align:center;font-size:12px;color:#334155;">9</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Priya N.</div><div style="font-size:11px;color:#94a3b8;">Los Angeles</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">52</div><div style="text-align:center;font-size:12px;color:#94a3b8;">24</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">74</div><div style="text-align:center;font-size:12px;color:#94a3b8;">44</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">9</div><div style="text-align:center;font-size:12px;color:#334155;">28</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">6</div><div style="text-align:center;font-size:12px;color:#334155;">8</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Devon A.</div><div style="font-size:11px;color:#94a3b8;">Dallas</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">59</div><div style="text-align:center;font-size:12px;color:#94a3b8;">22</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">65</div><div style="text-align:center;font-size:12px;color:#94a3b8;">38</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">8</div><div style="text-align:center;font-size:12px;color:#334155;">24</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">5</div><div style="text-align:center;font-size:12px;color:#334155;">7</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Mia T.</div><div style="font-size:11px;color:#94a3b8;">Boston</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">49</div><div style="text-align:center;font-size:12px;color:#94a3b8;">19</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">59</div><div style="text-align:center;font-size:12px;color:#94a3b8;">35</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">7</div><div style="text-align:center;font-size:12px;color:#334155;">22</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">4</div><div style="text-align:center;font-size:12px;color:#334155;">6</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Kim R.</div><div style="font-size:11px;color:#94a3b8;">Denver</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">43</div><div style="text-align:center;font-size:12px;color:#94a3b8;">18</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">55</div><div style="text-align:center;font-size:12px;color:#94a3b8;">33</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">6</div><div style="text-align:center;font-size:12px;color:#334155;">20</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">4</div><div style="text-align:center;font-size:12px;color:#334155;">5</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Aaliya S.</div><div style="font-size:11px;color:#94a3b8;">Seattle</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">44</div><div style="text-align:center;font-size:12px;color:#94a3b8;">17</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">49</div><div style="text-align:center;font-size:12px;color:#94a3b8;">29</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">6</div><div style="text-align:center;font-size:12px;color:#334155;">18</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">4</div><div style="text-align:center;font-size:12px;color:#334155;">5</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Rachel B.</div><div style="font-size:11px;color:#94a3b8;">San Francisco</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">41</div><div style="text-align:center;font-size:12px;color:#94a3b8;">16</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">46</div><div style="text-align:center;font-size:12px;color:#94a3b8;">28</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">5</div><div style="text-align:center;font-size:12px;color:#334155;">16</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">3</div><div style="text-align:center;font-size:12px;color:#334155;">4</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Chris V.</div><div style="font-size:11px;color:#94a3b8;">Washington DC</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">38</div><div style="text-align:center;font-size:12px;color:#94a3b8;">15</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">43</div><div style="text-align:center;font-size:12px;color:#94a3b8;">26</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">5</div><div style="text-align:center;font-size:12px;color:#334155;">14</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">3</div><div style="text-align:center;font-size:12px;color:#334155;">3</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Dana L.</div><div style="font-size:11px;color:#94a3b8;">Philadelphia</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">35</div><div style="text-align:center;font-size:12px;color:#94a3b8;">14</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">39</div><div style="text-align:center;font-size:12px;color:#94a3b8;">24</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">4</div><div style="text-align:center;font-size:12px;color:#334155;">12</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">2</div><div style="text-align:center;font-size:12px;color:#334155;">3</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Sam H.</div><div style="font-size:11px;color:#94a3b8;">Santa Monica</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">33</div><div style="text-align:center;font-size:12px;color:#94a3b8;">13</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">36</div><div style="text-align:center;font-size:12px;color:#94a3b8;">22</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">4</div><div style="text-align:center;font-size:12px;color:#334155;">11</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">2</div><div style="text-align:center;font-size:12px;color:#334155;">3</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#1e293b;">Jamie O.</div><div style="font-size:11px;color:#94a3b8;">Charlotte</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">29</div><div style="text-align:center;font-size:12px;color:#94a3b8;">12</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">33</div><div style="text-align:center;font-size:12px;color:#94a3b8;">19</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">3</div><div style="text-align:center;font-size:12px;color:#334155;">9</div>
+        <div style="text-align:center;font-size:12px;color:#334155;">2</div><div style="text-align:center;font-size:12px;color:#334155;">2</div>
+      </div>
+      <!-- Flagged rows -->
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px 5px 9px;border-left:3px solid #f59e0b;border-bottom:1px solid #fde68a;background:#fffbeb;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#92400e;">⚠ Marcus D.</div><div style="font-size:11px;color:#94a3b8;">Baltimore</div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#dc2626;">21</div><div style="text-align:center;font-size:12px;color:#dc2626;">8</div>
+        <div style="text-align:center;font-size:12px;color:#dc2626;">25</div><div style="text-align:center;font-size:12px;color:#dc2626;">14</div>
+        <div style="text-align:center;font-size:12px;color:#dc2626;">2</div><div style="text-align:center;font-size:12px;color:#dc2626;">7</div>
+        <div style="text-align:center;font-size:12px;color:#dc2626;">1</div><div style="text-align:center;font-size:12px;color:#dc2626;">1</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 122px 36px 36px 38px 38px 36px 36px 34px 38px;gap:0 3px;padding:5px 12px 5px 9px;border-left:3px solid #f59e0b;background:#fffbeb;align-items:center;">
+        <div style="font-size:12px;font-weight:600;color:#92400e;">⚠ Jordan L.</div><div style="font-size:11px;color:#94a3b8;">Minneapolis</div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#dc2626;">18</div><div style="text-align:center;font-size:12px;color:#dc2626;">7</div>
+        <div style="text-align:center;font-size:12px;color:#dc2626;">21</div><div style="text-align:center;font-size:12px;color:#dc2626;">12</div>
+        <div style="text-align:center;font-size:12px;color:#dc2626;">2</div><div style="text-align:center;font-size:12px;color:#dc2626;">6</div>
+        <div style="text-align:center;font-size:12px;color:#dc2626;">1</div><div style="text-align:center;font-size:12px;color:#dc2626;">1</div>
+      </div>
+
+    </div>
+
+    <div style="font-size:11px;color:#92400e;margin-top:8px;padding:8px 12px;background:#fffbeb;border-radius:6px;border:1px solid #fde68a;">
+      ⚠ Marcus D. and Jordan L.: outbound calls MTD &lt;50% of peer avg across all activity types.
+    </div>
+  </div>
+
+  <!-- ── TEAM REVENUE CALLOUTS ── -->
+  <div class="section">
+    <div class="section-label">👥 Studio Revenue (MTD)</div>
+
+    <!-- column headers -->
+    <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;padding:0 0 6px 14px;border-bottom:1px solid #e2e8f0;margin-bottom:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;">
+      <div>Studio</div>
+      <div></div>
+      <div style="text-align:right;">Revenue</div>
+      <div style="text-align:center;">MC%</div>
+      <div style="text-align:right;">Top Rep</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px;">
+
+      <!-- row macro: studio(110px) | bar(1fr) | revenue(58px) | mc%(40px) | top rep(96px) -->
+      <!-- green: top 2 -->
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #16a34a;padding-left:10px;border-radius:3px;background:#f0fdf4;">
+        <div style="font-size:12px;font-weight:700;color:#14532d;">Chicago</div>
+        <div style="height:10px;background:#dcfce7;border-radius:2px;overflow:hidden;"><div style="height:100%;width:100%;background:#16a34a;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$312K</div>
+        <div style="text-align:center;font-size:11px;font-weight:600;color:#16a34a;">74%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Sarah M. $148K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #4ade80;padding-left:10px;border-radius:3px;background:#f0fdf4;">
+        <div style="font-size:12px;color:#1e293b;">New York</div>
+        <div style="height:10px;background:#dcfce7;border-radius:2px;overflow:hidden;"><div style="height:100%;width:92%;background:#4ade80;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$287K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">69%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Tyler K. $121K</div>
+      </div>
+
+      <!-- gray: middle 10 -->
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Los Angeles</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:77%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$241K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">68%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Priya N. $108K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Dallas</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:63%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$198K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">66%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Devon A. $92K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Boston</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:56%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$176K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">61%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Mia T. $84K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Denver</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:52%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$162K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">60%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Kim R. $78K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">San Francisco</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:47%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$148K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">58%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Rachel B. $71K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Seattle</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:43%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$134K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">57%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Aaliya S. $66K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Washington DC</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:38%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$119K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">52%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Chris V. $58K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Philadelphia</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:33%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$103K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">51%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Dana L. $51K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Santa Monica</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:29%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$91K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">50%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Sam H. $45K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #e2e8f0;padding-left:10px;border-radius:3px;">
+        <div style="font-size:12px;color:#1e293b;">Charlotte</div>
+        <div style="height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:25%;background:#94a3b8;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$78K</div>
+        <div style="text-align:center;font-size:11px;color:#475569;">48%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Jamie O. $39K</div>
+      </div>
+
+      <!-- red: flagged -->
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #dc2626;padding-left:10px;border-radius:3px;background:#fff7ed;">
+        <div style="font-size:12px;font-weight:700;color:#92400e;">⚠ Baltimore</div>
+        <div style="height:10px;background:#fed7aa;border-radius:2px;overflow:hidden;"><div style="height:100%;width:17%;background:#f87171;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$54K</div>
+        <div style="text-align:center;font-size:11px;font-weight:600;color:#dc2626;">43%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Marcus D. $28K</div>
+      </div>
+      <div style="display:grid;grid-template-columns:110px 1fr 58px 40px 96px;gap:0 8px;align-items:center;padding:6px 0 6px 0;border-left:4px solid #dc2626;padding-left:10px;border-radius:3px;background:#fff7ed;">
+        <div style="font-size:12px;font-weight:700;color:#92400e;">⚠ Minneapolis</div>
+        <div style="height:10px;background:#fed7aa;border-radius:2px;overflow:hidden;"><div style="height:100%;width:15%;background:#f87171;border-radius:2px;"></div></div>
+        <div style="text-align:right;font-size:13px;font-weight:800;color:#0f172a;">$47K</div>
+        <div style="text-align:center;font-size:11px;font-weight:600;color:#dc2626;">41%</div>
+        <div style="text-align:right;font-size:10px;color:#64748b;">Jordan L. $24K</div>
+      </div>
+
+    </div>
+
+    <p class="prose">
+      Chicago and New York are pacing well above the rest of the field on both revenue and MC%. Baltimore and Minneapolis are flagged — both have the lowest outbound call volume and MC% of any studio, and their conversion reflects it. These aren't market issues; the pipeline data shows sufficient inbound. It's an activity and engagement gap.
+    </p>
+  </div>
+
+  <!-- ── MERCH MIX ── -->
+  <div class="section">
+    <div class="section-label">🛋 Merch Mix — YoY + 90-Day Trends</div>
+
+    <!-- Row 1: AOV trend — full width -->
+    <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;margin-bottom:12px;">
+      <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">AOV — 90-Day Trend vs YoY</div>
+      <div style="padding:10px 16px 8px;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:8px;">Sales team only · HubSpot team = known · Closed won · Meaningful contact = Yes</div>
+        <svg width="100%" viewBox="0 0 480 128" style="display:block;height:auto;" font-family="-apple-system,BlinkMacSystemFont,sans-serif">
+          <!-- TRADE zone: y=10–50 -->
+          <text x="8" y="11" font-size="8" fill="#94a3b8">TRADE</text>
+          <line x1="40" y1="46" x2="400" y2="46" stroke="#99f6e4" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="404" y="44" font-size="8" fill="#0d9488">$4,100 YoY</text>
+          <polyline points="40,44 160,21 280,36 400,14" fill="none" stroke="#0d9488" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="40"  cy="44" r="2.5" fill="#5eead4" stroke="white" stroke-width="1"/>
+          <circle cx="160" cy="21" r="2.5" fill="#0d9488" stroke="white" stroke-width="1"/>
+          <circle cx="280" cy="36" r="2.5" fill="#0d9488" stroke="white" stroke-width="1"/>
+          <circle cx="400" cy="14" r="3"   fill="#0f766e" stroke="white" stroke-width="1"/>
+          <text x="40"  y="39" text-anchor="middle" font-size="8" fill="#94a3b8">$4.1K</text>
+          <text x="160" y="16" text-anchor="middle" font-size="8" fill="#94a3b8">$4.4K</text>
+          <text x="280" y="31" text-anchor="middle" font-size="8" fill="#94a3b8">$4.2K</text>
+          <text x="400" y="10" text-anchor="middle" font-size="9" fill="#0f766e">$4,450</text>
+          <!-- Divider -->
+          <line x1="0" y1="59" x2="480" y2="59" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- B2C zone: y=66–108 -->
+          <text x="8" y="68" font-size="8" fill="#94a3b8">B2C</text>
+          <line x1="40" y1="89" x2="400" y2="89" stroke="#c7d2fe" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="404" y="87" font-size="8" fill="#6366f1">$2,790 YoY</text>
+          <polyline points="40,79 160,83 280,87 400,96" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="40"  cy="79" r="2.5" fill="#a5b4fc" stroke="white" stroke-width="1"/>
+          <circle cx="160" cy="83" r="2.5" fill="#6366f1" stroke="white" stroke-width="1"/>
+          <circle cx="280" cy="87" r="2.5" fill="#6366f1" stroke="white" stroke-width="1"/>
+          <circle cx="400" cy="96" r="3"   fill="#4338ca" stroke="white" stroke-width="1"/>
+          <text x="40"  y="74" text-anchor="middle" font-size="8" fill="#94a3b8">$2,890</text>
+          <text x="160" y="78" text-anchor="middle" font-size="8" fill="#94a3b8">$2,854</text>
+          <text x="280" y="82" text-anchor="middle" font-size="8" fill="#94a3b8">$2,810</text>
+          <text x="400" y="109" text-anchor="middle" font-size="9" fill="#4338ca">$2,718</text>
+          <!-- x-axis labels -->
+          <text x="40"  y="122" text-anchor="middle" font-size="9" fill="#94a3b8">Jan</text>
+          <text x="160" y="122" text-anchor="middle" font-size="9" fill="#94a3b8">Feb</text>
+          <text x="280" y="122" text-anchor="middle" font-size="9" fill="#94a3b8">Mar 1</text>
+          <text x="400" y="122" text-anchor="middle" font-size="9" fill="#4338ca">Mar 17</text>
+        </svg>
+        <div style="font-size:11px;color:#0f766e;font-weight:600;margin-top:4px;">▲ Trade AOV at $4,450 — up YoY and accelerating · B2C softening at $2,718, below $2,790 YoY for first time this quarter</div>
+      </div>
+    </div>
+
+    <!-- Row 1b: UPT trend — full width -->
+    <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;margin-bottom:12px;">
+      <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">UPT — 90-Day Trend vs YoY</div>
+      <div style="padding:10px 16px 8px;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:8px;">Sales team only · HubSpot team = known · Closed won · Meaningful contact = Yes</div>
+        <svg width="100%" viewBox="0 0 480 128" style="display:block;height:auto;" font-family="-apple-system,BlinkMacSystemFont,sans-serif">
+          <!-- TRADE zone: y=10–50 -->
+          <text x="8" y="11" font-size="8" fill="#94a3b8">TRADE</text>
+          <line x1="40" y1="37" x2="400" y2="37" stroke="#99f6e4" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="404" y="35" font-size="8" fill="#0d9488">3.2 YoY</text>
+          <polyline points="40,43 160,23 280,37 400,17" fill="none" stroke="#0d9488" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="40"  cy="43" r="2.5" fill="#5eead4" stroke="white" stroke-width="1"/>
+          <circle cx="160" cy="23" r="2.5" fill="#0d9488" stroke="white" stroke-width="1"/>
+          <circle cx="280" cy="37" r="2.5" fill="#0d9488" stroke="white" stroke-width="1"/>
+          <circle cx="400" cy="17" r="3"   fill="#0f766e" stroke="white" stroke-width="1"/>
+          <text x="40"  y="38" text-anchor="middle" font-size="8" fill="#94a3b8">3.1</text>
+          <text x="160" y="18" text-anchor="middle" font-size="8" fill="#94a3b8">3.4</text>
+          <text x="280" y="32" text-anchor="middle" font-size="8" fill="#94a3b8">3.2</text>
+          <text x="400" y="13" text-anchor="middle" font-size="9" fill="#0f766e">3.5</text>
+          <!-- Divider -->
+          <line x1="0" y1="59" x2="480" y2="59" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- B2C zone: y=66–108 -->
+          <text x="8" y="68" font-size="8" fill="#94a3b8">B2C</text>
+          <line x1="40" y1="77" x2="400" y2="77" stroke="#fed7aa" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="404" y="75" font-size="8" fill="#f97316">2.45 YoY</text>
+          <polyline points="40,79 160,85 280,91 400,97" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="40"  cy="79" r="2.5" fill="#fdba74" stroke="white" stroke-width="1"/>
+          <circle cx="160" cy="85" r="2.5" fill="#f97316" stroke="white" stroke-width="1"/>
+          <circle cx="280" cy="91" r="2.5" fill="#f97316" stroke="white" stroke-width="1"/>
+          <circle cx="400" cy="97" r="3"   fill="#ea580c" stroke="white" stroke-width="1"/>
+          <text x="40"  y="74" text-anchor="middle" font-size="8" fill="#94a3b8">2.4</text>
+          <text x="160" y="80" text-anchor="middle" font-size="8" fill="#94a3b8">2.3</text>
+          <text x="280" y="86" text-anchor="middle" font-size="8" fill="#94a3b8">2.2</text>
+          <text x="400" y="110" text-anchor="middle" font-size="9" fill="#ea580c">2.1</text>
+          <!-- x-axis labels -->
+          <text x="40"  y="122" text-anchor="middle" font-size="9" fill="#94a3b8">Jan</text>
+          <text x="160" y="122" text-anchor="middle" font-size="9" fill="#94a3b8">Feb</text>
+          <text x="280" y="122" text-anchor="middle" font-size="9" fill="#94a3b8">Mar 1</text>
+          <text x="400" y="122" text-anchor="middle" font-size="9" fill="#ea580c">Mar 17</text>
+        </svg>
+        <div style="font-size:11px;color:#0f766e;font-weight:600;margin-top:4px;">▲ Trade UPT at 3.5 — above YoY 3.2 and improving · B2C sliding to 2.1, below YoY 2.45 — accent attach declining</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Collection mix + Fabric mix side by side -->
+    <div style="display:flex;gap:12px;margin-bottom:12px;">
+
+      <!-- Collection Mix -->
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">Collection Mix — vs YoY</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+
+          <!-- Sectionals -->
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Sectionals</span>
+              <span style="font-weight:700;color:#16a34a;">33% <span style="font-size:10px;font-weight:400;color:#16a34a;">↑ 26% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#e0e7ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:100%;background:#6366f1;border-radius:2px;"></div></div>
+          </div>
+
+          <!-- Sofas -->
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Sofas</span>
+              <span style="font-weight:600;color:#dc2626;">28% <span style="font-size:10px;font-weight:400;color:#dc2626;">↓ 31% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#e0e7ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:85%;background:#6366f1;border-radius:2px;"></div></div>
+          </div>
+
+          <!-- Chairs -->
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Chairs</span>
+              <span style="font-weight:600;color:#16a34a;">18% <span style="font-size:10px;font-weight:400;color:#16a34a;">↑ 15% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#e0e7ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:55%;background:#6366f1;border-radius:2px;"></div></div>
+          </div>
+
+          <!-- Tables/Accent -->
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Tables &amp; Accent</span>
+              <span style="font-weight:600;color:#dc2626;">14% <span style="font-size:10px;font-weight:400;color:#dc2626;">↓ 18% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#e0e7ff;border-radius:2px;overflow:hidden;"><div style="height:100%;width:42%;background:#94a3b8;border-radius:2px;"></div></div>
+          </div>
+
+          <!-- Other -->
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#94a3b8;">Other</span>
+              <span style="color:#94a3b8;">7%</span>
+            </div>
+            <div style="height:7px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:21%;background:#cbd5e1;border-radius:2px;"></div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Fabric Mix -->
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+        <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">Fabric Mix — vs YoY</div>
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Performance</span>
+              <span style="font-weight:700;color:#16a34a;">41% <span style="font-size:10px;font-weight:400;color:#16a34a;">↑ 34% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#dcfce7;border-radius:2px;overflow:hidden;"><div style="height:100%;width:100%;background:#16a34a;border-radius:2px;"></div></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Velvet</span>
+              <span style="font-weight:600;color:#16a34a;">19% <span style="font-size:10px;font-weight:400;color:#16a34a;">↑ 14% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#dcfce7;border-radius:2px;overflow:hidden;"><div style="height:100%;width:46%;background:#16a34a;border-radius:2px;"></div></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Boucle</span>
+              <span style="font-weight:600;color:#16a34a;">12% <span style="font-size:10px;font-weight:400;color:#16a34a;">↑ 7% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#dcfce7;border-radius:2px;overflow:hidden;"><div style="height:100%;width:29%;background:#4ade80;border-radius:2px;"></div></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Linen</span>
+              <span style="font-weight:600;color:#dc2626;">18% <span style="font-size:10px;font-weight:400;color:#dc2626;">↓ 24% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:44%;background:#94a3b8;border-radius:2px;"></div></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+              <span style="color:#334155;">Leather</span>
+              <span style="font-weight:600;color:#dc2626;">10% <span style="font-size:10px;font-weight:400;color:#dc2626;">↓ 14% YoY</span></span>
+            </div>
+            <div style="height:7px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:24%;background:#94a3b8;border-radius:2px;"></div></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Row 3: What's working / what's not -->
+    <div style="display:flex;gap:12px;margin-bottom:12px;">
+
+      <div style="flex:1;border-radius:5px;overflow:hidden;border:1px solid #bbf7d0;">
+        <div style="background:#d1fae5;padding:6px 10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#065f46;">▲ What's Working</div>
+        <div style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;font-size:11px;color:#334155;">
+          <div>🟢 <strong>Performance fabric + sectionals</strong> — high-volume combination, drives repeat purchase intent</div>
+          <div>🟢 <strong>Velvet &amp; boucle in chairs</strong> — elevated AOV ($3,100+ avg), strongest CVR in the category</div>
+          <div>🟢 <strong>Full-room approach</strong> — orders with 3+ categories average $4,200 AOV vs $2,718 overall. Chicago leads at 38% full-room attach rate</div>
+          <div>🟢 <strong>Boucle trending strongly</strong> — up 5pp YoY, highest growth fabric in the mix</div>
+        </div>
+      </div>
+
+      <div style="flex:1;border-radius:5px;overflow:hidden;border:1px solid #fed7aa;">
+        <div style="background:#fed7aa;padding:6px 10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#92400e;">⚠ What's Not</div>
+        <div style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;font-size:11px;color:#334155;">
+          <div>🔴 <strong>Tables &amp; accent pieces declining</strong> — down 4pp YoY, dragging UPT below 2.2. Reps not consistently attaching</div>
+          <div>🔴 <strong>Leather softening</strong> — down 4pp YoY. Price sensitivity + performance shift likely cause</div>
+          <div>🔴 <strong>AOV below YoY</strong> — sectional mix shift pulls ticket size down despite volume growth. Need higher-AOV categories to compensate</div>
+          <div>🔴 <strong>Linen losing share</strong> — down 6pp YoY. Low conversion when presented vs performance alternatives</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Row 4: Team callouts -->
+    <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+      <div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#475569;">Team Callouts — Merch Mix</div>
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:#334155;">
+
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:0 10px;align-items:start;padding:5px 0;border-bottom:1px solid #f8fafc;">
+          <div style="font-weight:700;color:#16a34a;">Sarah M.<br><span style="font-size:10px;color:#64748b;font-weight:400;">Chicago</span></div>
+          <div>Highest full-room attach rate (38%) and UPT 3.2 — consistently pairs performance sectionals with accent chairs and side tables. Strong model for other reps to follow.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:0 10px;align-items:start;padding:5px 0;border-bottom:1px solid #f8fafc;">
+          <div style="font-weight:700;color:#16a34a;">Priya N.<br><span style="font-size:10px;color:#64748b;font-weight:400;">Los Angeles</span></div>
+          <div>Leading in velvet + boucle chair attachment — AOV $3,340 vs studio avg $2,890. LA clientele showing strong appetite for elevated fabric options.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:0 10px;align-items:start;padding:5px 0;border-bottom:1px solid #f8fafc;">
+          <div style="font-weight:700;color:#d97706;">Jordan L.<br><span style="font-size:10px;color:#64748b;font-weight:400;">Minneapolis</span></div>
+          <div>UPT 1.4 — well below team avg of 2.1. Orders skewing single-item sectional only. Accent attach coaching opportunity.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:0 10px;align-items:start;padding:5px 0;">
+          <div style="font-weight:700;color:#d97706;">Marcus D.<br><span style="font-size:10px;color:#64748b;font-weight:400;">Baltimore</span></div>
+          <div>AOV $2,210 — lowest on team. Mix skewing heavily toward entry-level performance sofas with no add-ons. Worth reviewing whether clients are being shown full range.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── STORE NOTES ── -->
+  <div class="section">
+    <div class="section-label">💬 What the Stores Are Saying</div>
+    <p class="prose">
+      Chicago and Dallas both noted strong floor traffic and active pipeline building coming off the weekend.
+      NYC SoHo flagged sectional supply delays affecting their close rate — worth checking whether this is a fulfillment issue or an inventory constraint that other locations might hit.
+      Trade reps across the board mentioned productive Monday follow-ups; several noted Design Trade Show leads are still moving through the pipeline.
+    </p>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    <div class="footer-links">
+      Jump to: &nbsp;
+      <a href="#">WBR Dashboard</a> &nbsp;·&nbsp;
+      <a href="#">Conversion Dashboard</a> &nbsp;·&nbsp;
+      <a href="#">HubSpot Activity</a> &nbsp;·&nbsp;
+      <a href="#">#id-retail-closing-notes</a>
+    </div>
+    <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">Generated by Claude · Interior Define · 7:00am CT</div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+</body>
+</html>
