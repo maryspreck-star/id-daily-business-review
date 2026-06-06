@@ -9,13 +9,13 @@ _DENVER_DATE = """
 
 
 def fetch_yesterday_orders() -> dict:
-    """NBE, order count, and AOV by segment for yesterday (Denver time)."""
+    """Discounted revenue, order count, and AOV by segment for yesterday (Denver time)."""
     df = _query(f"""
         SELECT
             CUSTOMER_GROUP,
-            SUM(NET_BOOKINGS_ESTIMATED)                         AS nbe,
-            COUNT(*)                                            AS order_count,
-            SUM(NET_BOOKINGS_ESTIMATED) / NULLIF(COUNT(*), 0)  AS aov
+            SUM(subtotal - ABS(discount_amount) + shipping_amount)                         AS revenue,
+            COUNT(*)                                                                        AS order_count,
+            SUM(subtotal - ABS(discount_amount) + shipping_amount) / NULLIF(COUNT(*), 0)  AS aov
         FROM PROD.ID_WAREHOUSE.ORDERS
         WHERE {_ORDER_FILTER}
           AND {_DENVER_DATE}
@@ -25,25 +25,25 @@ def fetch_yesterday_orders() -> dict:
 
     seg = {row["customer_group"]: row for _, row in df.iterrows()}
 
-    def _nbe(g):    return float(seg[g]["nbe"])       if g in seg else 0.0
-    def _orders(g): return int(seg[g]["order_count"]) if g in seg else 0
-    def _aov(g):    return float(seg[g]["aov"])       if g in seg else 0.0
+    def _rev(g):    return float(seg[g]["revenue"])    if g in seg else 0.0
+    def _orders(g): return int(seg[g]["order_count"])  if g in seg else 0
+    def _aov(g):    return float(seg[g]["aov"])        if g in seg else 0.0
 
-    nbe_total    = _nbe("B2C") + _nbe("Trade") + _nbe("Havenly")
-    orders_total = _orders("B2C") + _orders("Trade") + _orders("Havenly")
+    revenue_total = _rev("B2C") + _rev("Trade") + _rev("Havenly")
+    orders_total  = _orders("B2C") + _orders("Trade") + _orders("Havenly")
 
     return {
-        "nbe_b2c":        _nbe("B2C"),
-        "nbe_trade":      _nbe("Trade"),
-        "nbe_havenly":    _nbe("Havenly"),
-        "nbe_total":      nbe_total,
+        "revenue_b2c":    _rev("B2C"),
+        "revenue_trade":  _rev("Trade"),
+        "revenue_havenly": _rev("Havenly"),
+        "revenue_total":  revenue_total,
         "orders_b2c":     _orders("B2C"),
         "orders_trade":   _orders("Trade"),
         "orders_havenly": _orders("Havenly"),
         "orders_total":   orders_total,
         "aov_b2c":        _aov("B2C"),
         "aov_trade":      _aov("Trade"),
-        "aov_blended":    nbe_total / orders_total if orders_total else 0.0,
+        "aov_blended":    revenue_total / orders_total if orders_total else 0.0,
     }
 
 
@@ -77,7 +77,7 @@ def fetch_yesterday_assisted() -> dict:
 
 
 def fetch_mtd_orders() -> dict:
-    """MTD NBE + order counts for TY and LY (same calendar days last year)."""
+    """MTD discounted revenue + order counts for TY and LY (same calendar days last year)."""
     _mtd_filter = f"""
         {_ORDER_FILTER}
         AND {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
@@ -93,19 +93,19 @@ def fetch_mtd_orders() -> dict:
         df = _query(f"""
             SELECT
                 CUSTOMER_GROUP,
-                SUM(NET_BOOKINGS_ESTIMATED) AS nbe,
-                COUNT(*)                    AS order_count
+                SUM(subtotal - ABS(discount_amount) + shipping_amount) AS revenue,
+                COUNT(*)                                               AS order_count
             FROM PROD.ID_WAREHOUSE.ORDERS
             WHERE {filter_clause}
             GROUP BY CUSTOMER_GROUP
         """)
         seg = {row["customer_group"]: row for _, row in df.iterrows()}
-        def _nbe(g):    return float(seg[g]["nbe"]) if g in seg else 0.0
+        def _rev(g):    return float(seg[g]["revenue"]) if g in seg else 0.0
         def _cnt(g):    return int(seg[g]["order_count"]) if g in seg else 0
-        nbe = _nbe("B2C") + _nbe("Trade") + _nbe("Havenly")
+        rev = _rev("B2C") + _rev("Trade") + _rev("Havenly")
         cnt = _cnt("B2C") + _cnt("Trade") + _cnt("Havenly")
-        return {"nbe_b2c": _nbe("B2C"), "nbe_trade": _nbe("Trade"),
-                "nbe_havenly": _nbe("Havenly"), "nbe_total": nbe,
+        return {"revenue_b2c": _rev("B2C"), "revenue_trade": _rev("Trade"),
+                "revenue_havenly": _rev("Havenly"), "revenue_total": rev,
                 "orders_total": cnt}
 
     ty = _segment_totals(_mtd_filter)
@@ -113,8 +113,8 @@ def fetch_mtd_orders() -> dict:
 
     return {
         **ty,
-        "nbe_total_ly":    ly["nbe_total"],
-        "orders_total_ly": ly["orders_total"],
+        "revenue_total_ly": ly["revenue_total"],
+        "orders_total_ly":  ly["orders_total"],
     }
 
 

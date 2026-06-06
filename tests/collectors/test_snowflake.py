@@ -19,7 +19,7 @@ def test_query_lowercases_columns():
 
 
 def test_fetch_yesterday_segments_all_groups():
-    """fetch_yesterday_orders() returns nbe/orders/aov for B2C, Trade, Havenly."""
+    """fetch_yesterday_orders() returns revenue/orders/aov for B2C, Trade, Havenly."""
     from src.collectors.snowflake import fetch_yesterday_orders
 
     rows = [
@@ -27,19 +27,19 @@ def test_fetch_yesterday_segments_all_groups():
         ("Trade",   1_900_000.0,  590, 3226.0),
         ("Havenly",   629_000.0,  205, 3068.0),
     ]
-    mock_df = pd.DataFrame(rows, columns=["customer_group", "nbe", "order_count", "aov"])
+    mock_df = pd.DataFrame(rows, columns=["customer_group", "revenue", "order_count", "aov"])
 
     with patch("src.collectors.snowflake._query", return_value=mock_df):
         result = fetch_yesterday_orders()
 
-    assert result["nbe_b2c"]     == pytest.approx(7_100_000.0)
-    assert result["nbe_trade"]   == pytest.approx(1_900_000.0)
-    assert result["nbe_havenly"] == pytest.approx(629_000.0)
-    assert result["nbe_total"]   == pytest.approx(9_629_000.0)
+    assert result["revenue_b2c"]     == pytest.approx(7_100_000.0)
+    assert result["revenue_trade"]   == pytest.approx(1_900_000.0)
+    assert result["revenue_havenly"] == pytest.approx(629_000.0)
+    assert result["revenue_total"]   == pytest.approx(9_629_000.0)
     assert result["orders_b2c"]  == 2482
     assert result["aov_b2c"]     == pytest.approx(2864.0)
     assert result["aov_trade"]   == pytest.approx(3226.0)
-    # blended AOV = total NBE / total orders
+    # blended AOV = total revenue / total orders
     assert result["aov_blended"] == pytest.approx(9_629_000.0 / 3277, rel=0.01)
 
 
@@ -51,13 +51,13 @@ def test_fetch_yesterday_orders_missing_segment():
         ("B2C",   300_000.0, 105, 2857.0),
         ("Trade",  85_000.0,  27, 3148.0),
     ]
-    mock_df = pd.DataFrame(rows, columns=["customer_group", "nbe", "order_count", "aov"])
+    mock_df = pd.DataFrame(rows, columns=["customer_group", "revenue", "order_count", "aov"])
 
     with patch("src.collectors.snowflake._query", return_value=mock_df):
         result = fetch_yesterday_orders()
 
-    assert result["nbe_havenly"]    == 0.0
-    assert result["orders_havenly"] == 0
+    assert result["revenue_havenly"] == 0.0
+    assert result["orders_havenly"]  == 0
 
 
 def test_fetch_yesterday_assisted_pct():
@@ -98,8 +98,8 @@ def test_fetch_mtd_returns_totals_and_ly():
         ("B2C",   7_800_000.0, 2700),
         ("Trade", 1_560_000.0,  504),
     ]
-    ty_df = pd.DataFrame(ty_rows, columns=["customer_group", "nbe", "order_count"])
-    ly_df = pd.DataFrame(ly_rows, columns=["customer_group", "nbe", "order_count"])
+    ty_df = pd.DataFrame(ty_rows, columns=["customer_group", "revenue", "order_count"])
+    ly_df = pd.DataFrame(ly_rows, columns=["customer_group", "revenue", "order_count"])
 
     call_count = 0
     def mock_query(sql):
@@ -110,11 +110,11 @@ def test_fetch_mtd_returns_totals_and_ly():
     with patch("src.collectors.snowflake._query", side_effect=mock_query):
         result = fetch_mtd_orders()
 
-    assert result["nbe_b2c"]        == pytest.approx(7_100_000.0)
-    assert result["nbe_total"]      == pytest.approx(9_000_000.0)
-    assert result["nbe_total_ly"]   == pytest.approx(9_360_000.0)
-    assert result["orders_total"]   == 3072
-    assert result["orders_total_ly"] == 3204
+    assert result["revenue_b2c"]      == pytest.approx(7_100_000.0)
+    assert result["revenue_total"]    == pytest.approx(9_000_000.0)
+    assert result["revenue_total_ly"] == pytest.approx(9_360_000.0)
+    assert result["orders_total"]     == 3072
+    assert result["orders_total_ly"]  == 3204
 
 
 def test_fetch_mtd_yoy_zero_ly():
@@ -122,8 +122,8 @@ def test_fetch_mtd_yoy_zero_ly():
     from src.collectors.snowflake import fetch_mtd_orders
 
     ty_df = pd.DataFrame([("B2C", 500_000.0, 175)],
-                         columns=["customer_group", "nbe", "order_count"])
-    ly_df = pd.DataFrame([], columns=["customer_group", "nbe", "order_count"])
+                         columns=["customer_group", "revenue", "order_count"])
+    ly_df = pd.DataFrame([], columns=["customer_group", "revenue", "order_count"])
 
     call_count = 0
     def mock_query(sql):
@@ -134,8 +134,8 @@ def test_fetch_mtd_yoy_zero_ly():
     with patch("src.collectors.snowflake._query", side_effect=mock_query):
         result = fetch_mtd_orders()
 
-    assert result["nbe_total_ly"]    == 0.0
-    assert result["orders_total_ly"] == 0
+    assert result["revenue_total_ly"] == 0.0
+    assert result["orders_total_ly"]  == 0
 
 
 def test_fetch_mtd_repeat_pct():
