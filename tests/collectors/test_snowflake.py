@@ -197,3 +197,39 @@ def test_fetch_engagements_no_ly_match():
 
     assert result["yesterday"]    == 287
     assert result["yesterday_ly"] == 0
+
+
+def test_fetch_engagements_weekly_rolling():
+    """fetch_engagements() weekly_rolling contains counts for 4 Monday week starts."""
+    from src.collectors.snowflake import fetch_engagements
+    import datetime
+
+    today = datetime.date.today()
+    yesterday = today - datetime.timedelta(days=1)
+    ly_date = yesterday - datetime.timedelta(days=364)
+    this_monday = today - datetime.timedelta(days=today.weekday())
+    week_starts = [this_monday - datetime.timedelta(weeks=w) for w in range(1, 5)]
+
+    # Return counts for 3 of the 4 week starts (leave one missing to test default 0)
+    rows = [
+        (yesterday, 315),
+        (ly_date,   323),
+        (week_starts[0], 341),   # most recent Monday
+        (week_starts[1], 298),
+        (week_starts[2], 312),
+        # week_starts[3] intentionally absent → should be 0
+    ]
+    mock_df = pd.DataFrame(rows, columns=["day", "engagements"])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_engagements()
+
+    rolling = result["weekly_rolling"]
+    assert len(rolling) == 4
+    # oldest first: index 0 = 4 weeks ago (week_starts[3], absent → 0)
+    assert rolling[0]["count"] == 0
+    assert rolling[1]["count"] == 312
+    assert rolling[2]["count"] == 298
+    assert rolling[3]["count"] == 341  # most recent
+    # All week_start values are datetime.date objects
+    assert all(isinstance(r["week_start"], datetime.date) for r in rolling)

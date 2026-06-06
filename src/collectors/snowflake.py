@@ -166,6 +166,13 @@ def fetch_engagements() -> dict:
     yesterday = today - datetime.timedelta(days=1)
     ly_date   = yesterday - datetime.timedelta(days=364)  # same day-of-week last year
 
+    # Compute 4 Monday-aligned week starts in Python so SQL IN clause uses exact dates
+    this_monday = today - datetime.timedelta(days=today.weekday())
+    week_starts = [this_monday - datetime.timedelta(weeks=w) for w in range(1, 5)]
+
+    all_dates = [yesterday, ly_date] + week_starts
+    dates_in = ", ".join(f"'{d}'" for d in all_dates)
+
     df = _query(f"""
         WITH engagements AS (
             SELECT * FROM PROD.ID_WAREHOUSE.STG_HUBSPOT_ENGAGEMENTS_BASE
@@ -181,27 +188,17 @@ def fetch_engagements() -> dict:
           AND e.ENGAGEMENT_DIRECTION = 'Incoming'
           AND c.CUSTOMER_GROUP = 'B2C'
           AND CONVERT_TIMEZONE('UTC', 'America/Denver', CAST(e.CREATED_AT AS TIMESTAMP_NTZ))::DATE
-              IN ('{yesterday}', '{ly_date}',
-                  -- 4 most recent Monday-aligned week starts
-                  DATEADD('day', -7,  DATE_TRUNC('week', '{yesterday}'::DATE)),
-                  DATEADD('day', -14, DATE_TRUNC('week', '{yesterday}'::DATE)),
-                  DATEADD('day', -21, DATE_TRUNC('week', '{yesterday}'::DATE)),
-                  DATEADD('day', -28, DATE_TRUNC('week', '{yesterday}'::DATE)))
+              IN ({dates_in})
         GROUP BY 1
         ORDER BY 1
     """)
 
     by_date = dict(zip(df["day"].astype(str), df["engagements"].astype(int)))
 
-    # Build 4-week rolling list (week_start = Monday of that week)
-    weekly = []
-    for weeks_ago in range(1, 5):
-        week_start = today - datetime.timedelta(days=today.weekday()) - datetime.timedelta(weeks=weeks_ago)
-        weekly.append({
-            "week_start": week_start,
-            "count": by_date.get(str(week_start), 0),
-        })
-    weekly.reverse()  # oldest first
+    weekly = [
+        {"week_start": ws, "count": by_date.get(str(ws), 0)}
+        for ws in reversed(week_starts)  # oldest first
+    ]
 
     return {
         "yesterday":      by_date.get(str(yesterday), 0),
