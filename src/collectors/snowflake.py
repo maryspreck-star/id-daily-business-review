@@ -297,3 +297,25 @@ def fetch_merch_mix() -> dict:
         "collection": _pct_list(collection_df),
         "fabric":     _pct_list(fabric_df),
     }
+
+
+def fetch_by_studio() -> list:
+    """MTD discounted revenue and order count by studio (LOCATION), sorted by revenue descending."""
+    df = _query(f"""
+        SELECT
+            LOCATION                                                         AS studio,
+            SUM(subtotal - ABS(discount_amount) + shipping_amount)          AS revenue,
+            COUNT(*)                                                         AS orders
+        FROM PROD.ID_WAREHOUSE.ORDERS
+        WHERE {_ORDER_FILTER}
+          AND {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+          AND {_DENVER_DATE} <  CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE
+          AND LOCATION IS NOT NULL
+        GROUP BY LOCATION
+        ORDER BY revenue DESC
+    """)
+
+    return [
+        {"studio": row["studio"], "revenue": float(row["revenue"]), "orders": int(row["orders"])}
+        for _, row in df.iterrows()
+    ]

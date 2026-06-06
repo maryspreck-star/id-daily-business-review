@@ -341,3 +341,34 @@ def test_fetch_merch_mix_fabric_pcts_sum_to_1():
 
     fabric_total = sum(item["pct"] for item in result["fabric"])
     assert fabric_total == pytest.approx(1.0, abs=0.001)
+
+
+def test_fetch_by_studio_sorted_by_revenue():
+    """fetch_by_studio() returns list sorted highest revenue first."""
+    from src.collectors.snowflake import fetch_by_studio
+
+    rows = [
+        ("Chicago",     820_000.0, 290),
+        ("Los Angeles", 650_000.0, 230),
+        ("New York",    580_000.0, 205),
+    ]
+    mock_df = pd.DataFrame(rows, columns=["studio", "revenue", "orders"])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_by_studio()
+
+    assert result[0]["studio"]  == "Chicago"
+    assert result[0]["revenue"] == pytest.approx(820_000.0)
+    assert result[2]["studio"]  == "New York"
+
+
+def test_fetch_by_studio_empty():
+    """fetch_by_studio() returns empty list when no data."""
+    from src.collectors.snowflake import fetch_by_studio
+
+    mock_df = pd.DataFrame([], columns=["studio", "revenue", "orders"])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_by_studio()
+
+    assert result == []
