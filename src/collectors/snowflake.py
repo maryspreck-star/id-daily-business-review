@@ -319,3 +319,32 @@ def fetch_by_studio() -> list:
         {"studio": row["studio"], "revenue": float(row["revenue"]), "orders": int(row["orders"])}
         for _, row in df.iterrows()
     ]
+
+
+def fetch_all() -> dict:
+    """Run all collectors and return the full data contract for the email report."""
+    import datetime
+
+    today = datetime.date.today()
+    yesterday = today - datetime.timedelta(days=1)
+
+    orders   = fetch_yesterday_orders()
+    assisted = fetch_yesterday_assisted()
+    mtd      = fetch_mtd_orders()
+    repeat   = fetch_mtd_repeat_pct()
+
+    return {
+        "report_date": yesterday,
+        "yesterday": {
+            **orders,
+            **assisted,
+        },
+        "mtd": {
+            **mtd,
+            "repeat_pct": repeat,
+        },
+        "engagements": fetch_engagements(),
+        "swatches":    fetch_swatches(),
+        "merch_mix":   fetch_merch_mix(),
+        "by_studio":   fetch_by_studio(),
+    }

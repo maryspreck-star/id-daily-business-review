@@ -372,3 +372,45 @@ def test_fetch_by_studio_empty():
         result = fetch_by_studio()
 
     assert result == []
+
+
+def test_fetch_all_returns_full_contract():
+    """fetch_all() returns a dict with all required top-level keys."""
+    from src.collectors.snowflake import fetch_all
+    import datetime
+
+    stubs = {
+        "src.collectors.snowflake.fetch_yesterday_orders":   {
+            "revenue_total": 300_000.0, "orders_total": 105,
+            "revenue_b2c": 220_000.0, "revenue_trade": 70_000.0, "revenue_havenly": 10_000.0,
+            "orders_b2c": 77, "orders_trade": 22, "orders_havenly": 6,
+            "aov_b2c": 2857.0, "aov_trade": 3182.0, "aov_blended": 2857.0,
+        },
+        "src.collectors.snowflake.fetch_yesterday_assisted":  {"assisted_pct": 0.67, "upt": 2.15},
+        "src.collectors.snowflake.fetch_mtd_orders":          {
+            "revenue_total": 5_000_000.0, "revenue_b2c": 3_700_000.0,
+            "revenue_trade": 900_000.0, "revenue_havenly": 400_000.0,
+            "orders_total": 1750, "revenue_total_ly": 5_400_000.0, "orders_total_ly": 1900,
+        },
+        "src.collectors.snowflake.fetch_mtd_repeat_pct":      0.316,
+        "src.collectors.snowflake.fetch_engagements":         {"yesterday": 315, "yesterday_ly": 323, "weekly_rolling": []},
+        "src.collectors.snowflake.fetch_swatches":            {"mtd_orders": 8200, "mtd_customers": 6900, "monthly_rolling": []},
+        "src.collectors.snowflake.fetch_merch_mix":           {"collection": [], "fabric": []},
+        "src.collectors.snowflake.fetch_by_studio":           [],
+    }
+
+    patches = [patch(k, return_value=v) for k, v in stubs.items()]
+    for p in patches:
+        p.start()
+
+    result = fetch_all()
+
+    for p in patches:
+        p.stop()
+
+    required_keys = {"report_date", "yesterday", "mtd", "engagements", "swatches", "merch_mix", "by_studio"}
+    assert required_keys <= set(result.keys())
+    assert isinstance(result["report_date"], datetime.date)
+    assert "assisted_pct" in result["yesterday"]
+    assert "repeat_pct"   in result["mtd"]
+    assert result["mtd"]["repeat_pct"] == pytest.approx(0.316)
