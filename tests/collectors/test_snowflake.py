@@ -136,3 +136,27 @@ def test_fetch_mtd_yoy_zero_ly():
 
     assert result["nbe_total_ly"]    == 0.0
     assert result["orders_total_ly"] == 0
+
+
+def test_fetch_mtd_repeat_pct():
+    """fetch_mtd_repeat_pct() returns fraction of MTD orders from returning customers."""
+    from src.collectors.snowflake import fetch_mtd_repeat_pct
+
+    mock_df = pd.DataFrame([{"total_orders": 1000, "repeat_orders": 316}])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_mtd_repeat_pct()
+
+    assert result == pytest.approx(0.316)
+
+
+def test_fetch_mtd_repeat_pct_zero():
+    """fetch_mtd_repeat_pct() returns 0.0 when no orders."""
+    from src.collectors.snowflake import fetch_mtd_repeat_pct
+
+    mock_df = pd.DataFrame([{"total_orders": 0, "repeat_orders": 0}])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_mtd_repeat_pct()
+
+    assert result == 0.0

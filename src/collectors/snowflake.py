@@ -116,3 +116,34 @@ def fetch_mtd_orders() -> dict:
         "nbe_total_ly":    ly["nbe_total"],
         "orders_total_ly": ly["orders_total"],
     }
+
+
+def fetch_mtd_repeat_pct() -> float:
+    """Fraction of MTD orders from customers who ordered before the current month."""
+    df = _query(f"""
+        WITH mtd_orders AS (
+            SELECT ORDER_ID, CUSTOMER_ID
+            FROM PROD.ID_WAREHOUSE.ORDERS
+            WHERE {_ORDER_FILTER}
+              AND {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+              AND {_DENVER_DATE} <  CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE
+        ),
+        first_order_dates AS (
+            SELECT CUSTOMER_ID,
+                   MIN({_DENVER_DATE}) AS first_order_date
+            FROM PROD.ID_WAREHOUSE.ORDERS
+            WHERE {_ORDER_FILTER}
+            GROUP BY CUSTOMER_ID
+        )
+        SELECT
+            COUNT(*)  AS total_orders,
+            SUM(CASE WHEN fo.first_order_date
+                          < DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+                     THEN 1 ELSE 0 END) AS repeat_orders
+        FROM mtd_orders mo
+        JOIN first_order_dates fo ON mo.CUSTOMER_ID = fo.CUSTOMER_ID
+    """)
+
+    row = df.iloc[0]
+    total = int(row["total_orders"])
+    return int(row["repeat_orders"]) / total if total else 0.0
