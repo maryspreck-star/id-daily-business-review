@@ -205,3 +205,47 @@ def fetch_engagements() -> dict:
         "yesterday_ly":   by_date.get(str(ly_date), 0),
         "weekly_rolling": weekly,
     }
+
+
+def fetch_swatches() -> dict:
+    """MTD swatch order count + unique customers. Rolling 6-month monthly volumes."""
+    import datetime
+
+    today = datetime.date.today()
+    month_start = today.replace(day=1)
+
+    df = _query(f"""
+        SELECT
+            DATE_TRUNC('month', so.CREATED_AT)::DATE AS month,
+            COUNT(*)                                  AS swatch_orders,
+            COUNT(DISTINCT so.EMAIL)                  AS swatch_customers
+        FROM PROD.ID_WAREHOUSE.SWATCH_ORDERS so
+        JOIN PROD.ID_WAREHOUSE.STG_CONTACTS c
+            ON LOWER(so.EMAIL) = LOWER(c.CONTACT_EMAIL)
+        WHERE c.CUSTOMER_GROUP = 'B2C'
+          AND so.CREATED_AT >= DATEADD('month', -6, '{month_start}')
+          AND so.CREATED_AT < CURRENT_DATE()
+        GROUP BY 1
+        ORDER BY 1
+    """)
+
+    by_month = {str(row["month"]): row for _, row in df.iterrows()}
+    current  = by_month.get(str(month_start))
+
+    # 6 prior complete months, oldest first
+    rolling = []
+    m = month_start
+    for _ in range(6):
+        m = (m - datetime.timedelta(days=1)).replace(day=1)
+        row = by_month.get(str(m), {})
+        rolling.append({
+            "month":  m,
+            "orders": int(row.get("swatch_orders", 0)),
+        })
+    rolling.reverse()
+
+    return {
+        "mtd_orders":      int(current["swatch_orders"])    if current is not None else 0,
+        "mtd_customers":   int(current["swatch_customers"]) if current is not None else 0,
+        "monthly_rolling": rolling,
+    }

@@ -233,3 +233,49 @@ def test_fetch_engagements_weekly_rolling():
     assert rolling[3]["count"] == 341  # most recent
     # All week_start values are datetime.date objects
     assert all(isinstance(r["week_start"], datetime.date) for r in rolling)
+
+
+def test_fetch_swatches_mtd_and_rolling():
+    """fetch_swatches() returns MTD counts and 6-month rolling list."""
+    from src.collectors.snowflake import fetch_swatches
+    import datetime
+
+    today = datetime.date.today()
+    month_start = today.replace(day=1)
+
+    # Build 6 prior complete months + current partial month
+    def prior_month(n):
+        d = month_start
+        for _ in range(n):
+            d = (d - datetime.timedelta(days=1)).replace(day=1)
+        return d
+
+    rows = [(prior_month(i), 100 + i * 20, 90 + i * 18) for i in range(6, 0, -1)]
+    rows.append((month_start, 250, 210))  # current month
+    mock_df = pd.DataFrame(rows, columns=["month", "swatch_orders", "swatch_customers"])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_swatches()
+
+    assert result["mtd_orders"]    == 250
+    assert result["mtd_customers"] == 210
+    assert len(result["monthly_rolling"]) == 6
+
+
+def test_fetch_swatches_no_mtd():
+    """fetch_swatches() returns 0 for MTD when current month has no data."""
+    from src.collectors.snowflake import fetch_swatches
+    import datetime
+
+    today = datetime.date.today()
+    last_month = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+    mock_df = pd.DataFrame(
+        [(last_month, 500, 430)],
+        columns=["month", "swatch_orders", "swatch_customers"]
+    )
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_swatches()
+
+    assert result["mtd_orders"]    == 0
+    assert result["mtd_customers"] == 0
