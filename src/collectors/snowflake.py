@@ -249,3 +249,51 @@ def fetch_swatches() -> dict:
         "mtd_customers":   int(current["swatch_customers"]) if current is not None else 0,
         "monthly_rolling": rolling,
     }
+
+
+def fetch_merch_mix() -> dict:
+    """MTD collection and fabric mix as % of item revenue."""
+    _mtd_order_where = f"""
+        o.ORDER_TYPE = 'standard' AND o.CANCELLATION = 'F'
+        AND CONVERT_TIMEZONE('UTC', 'America/Denver', CAST(o.ORDER_CREATED_AT AS TIMESTAMP_NTZ))::DATE
+            >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+        AND CONVERT_TIMEZONE('UTC', 'America/Denver', CAST(o.ORDER_CREATED_AT AS TIMESTAMP_NTZ))::DATE
+            <  CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE
+    """
+
+    def _pct_list(df) -> list:
+        total = df["item_revenue"].sum()
+        if total == 0:
+            return []
+        return [
+            {"name": row["category"], "pct": float(row["item_revenue"]) / total}
+            for _, row in df.sort_values("item_revenue", ascending=False).iterrows()
+        ]
+
+    collection_df = _query(f"""
+        SELECT
+            p.COLLECTION  AS category,
+            SUM(oi.PRICE) AS item_revenue
+        FROM PROD.ID_WAREHOUSE.ORDER_ITEMS oi
+        JOIN PROD.ID_WAREHOUSE.PRODUCTS p    ON oi.CATALOG_PRODUCT_ID = p.CATALOG_PRODUCT_ID
+        JOIN PROD.ID_WAREHOUSE.ORDERS o      ON oi.ORDER_ID = o.ORDER_ID
+        WHERE {_mtd_order_where}
+        GROUP BY p.COLLECTION
+    """)
+
+    fabric_df = _query(f"""
+        SELECT
+            p.FABRIC_FAMILY AS category,
+            SUM(oi.PRICE)   AS item_revenue
+        FROM PROD.ID_WAREHOUSE.ORDER_ITEMS oi
+        JOIN PROD.ID_WAREHOUSE.PRODUCTS p    ON oi.CATALOG_PRODUCT_ID = p.CATALOG_PRODUCT_ID
+        JOIN PROD.ID_WAREHOUSE.ORDERS o      ON oi.ORDER_ID = o.ORDER_ID
+        WHERE {_mtd_order_where}
+          AND p.FABRIC_FAMILY IS NOT NULL
+        GROUP BY p.FABRIC_FAMILY
+    """)
+
+    return {
+        "collection": _pct_list(collection_df),
+        "fabric":     _pct_list(fabric_df),
+    }

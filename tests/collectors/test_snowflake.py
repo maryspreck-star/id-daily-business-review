@@ -279,3 +279,65 @@ def test_fetch_swatches_no_mtd():
 
     assert result["mtd_orders"]    == 0
     assert result["mtd_customers"] == 0
+
+
+def test_fetch_merch_mix_collection_pcts_sum_to_1():
+    """fetch_merch_mix() collection percentages sum to ~1.0."""
+    from src.collectors.snowflake import fetch_merch_mix
+
+    collection_rows = [
+        ("Sectionals", 3_920_000.0),
+        ("Sofas",      2_360_000.0),
+        ("Chairs",     1_350_000.0),
+        ("Dining",     1_040_000.0),
+        ("Other",        710_000.0),
+    ]
+    fabric_rows = [
+        ("Velvet",      5_370_000.0),
+        ("Performance", 3_170_000.0),
+        ("Leather",       740_000.0),
+        ("Other",         720_000.0),
+    ]
+
+    call_count = 0
+    def mock_query(sql):
+        nonlocal call_count
+        call_count += 1
+        cols = ["category", "item_revenue"]
+        return (pd.DataFrame(collection_rows, columns=cols)
+                if call_count == 1
+                else pd.DataFrame(fabric_rows, columns=cols))
+
+    with patch("src.collectors.snowflake._query", side_effect=mock_query):
+        result = fetch_merch_mix()
+
+    total_pct = sum(item["pct"] for item in result["collection"])
+    assert total_pct == pytest.approx(1.0, abs=0.001)
+    assert any(item["name"] == "Sectionals" for item in result["collection"])
+
+
+def test_fetch_merch_mix_fabric_pcts_sum_to_1():
+    """fetch_merch_mix() fabric percentages sum to ~1.0."""
+    from src.collectors.snowflake import fetch_merch_mix
+
+    collection_rows = [("Sofas", 1_000_000.0)]
+    fabric_rows = [
+        ("Velvet",      530_000.0),
+        ("Performance", 310_000.0),
+        ("Leather",     160_000.0),
+    ]
+
+    call_count = 0
+    def mock_query(sql):
+        nonlocal call_count
+        call_count += 1
+        cols = ["category", "item_revenue"]
+        return (pd.DataFrame(collection_rows, columns=cols)
+                if call_count == 1
+                else pd.DataFrame(fabric_rows, columns=cols))
+
+    with patch("src.collectors.snowflake._query", side_effect=mock_query):
+        result = fetch_merch_mix()
+
+    fabric_total = sum(item["pct"] for item in result["fabric"])
+    assert fabric_total == pytest.approx(1.0, abs=0.001)
