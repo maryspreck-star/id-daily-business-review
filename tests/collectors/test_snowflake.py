@@ -19,45 +19,44 @@ def test_query_lowercases_columns():
 
 
 def test_fetch_yesterday_segments_all_groups():
-    """fetch_yesterday_orders() returns revenue/orders/aov for B2C, Trade, Havenly."""
+    """fetch_yesterday_orders() returns revenue/orders/aov for B2C, Trade, B2B."""
     from src.collectors.snowflake import fetch_yesterday_orders
 
     rows = [
-        ("B2C",     7_100_000.0, 2482, 2864.0),
-        ("Trade",   1_900_000.0,  590, 3226.0),
-        ("Havenly",   629_000.0,  205, 3068.0),
+        ("B2C",   7_100_000.0, 2482, 2864.0),
+        ("Trade", 1_900_000.0,  590, 3226.0),
+        ("B2B",     629_000.0,  205, 3068.0),
     ]
-    mock_df = pd.DataFrame(rows, columns=["customer_group", "revenue", "order_count", "aov"])
+    mock_df = pd.DataFrame(rows, columns=["segment", "revenue", "order_count", "aov"])
 
     with patch("src.collectors.snowflake._query", return_value=mock_df):
         result = fetch_yesterday_orders()
 
-    assert result["revenue_b2c"]     == pytest.approx(7_100_000.0)
-    assert result["revenue_trade"]   == pytest.approx(1_900_000.0)
-    assert result["revenue_havenly"] == pytest.approx(629_000.0)
-    assert result["revenue_total"]   == pytest.approx(9_629_000.0)
-    assert result["orders_b2c"]  == 2482
-    assert result["aov_b2c"]     == pytest.approx(2864.0)
-    assert result["aov_trade"]   == pytest.approx(3226.0)
-    # blended AOV = total revenue / total orders
-    assert result["aov_blended"] == pytest.approx(9_629_000.0 / 3277, rel=0.01)
+    assert result["revenue_b2c"]   == pytest.approx(7_100_000.0)
+    assert result["revenue_trade"] == pytest.approx(1_900_000.0)
+    assert result["revenue_b2b"]   == pytest.approx(629_000.0)
+    assert result["revenue_total"] == pytest.approx(9_629_000.0)
+    assert result["orders_b2c"]    == 2482
+    assert result["aov_b2c"]       == pytest.approx(2864.0)
+    assert result["aov_trade"]     == pytest.approx(3226.0)
+    assert result["aov_blended"]   == pytest.approx(9_629_000.0 / 3277, rel=0.01)
 
 
 def test_fetch_yesterday_orders_missing_segment():
-    """fetch_yesterday_orders() returns 0 for a missing segment (e.g. no Havenly orders)."""
+    """fetch_yesterday_orders() returns 0 for a missing segment (e.g. no B2B orders)."""
     from src.collectors.snowflake import fetch_yesterday_orders
 
     rows = [
         ("B2C",   300_000.0, 105, 2857.0),
         ("Trade",  85_000.0,  27, 3148.0),
     ]
-    mock_df = pd.DataFrame(rows, columns=["customer_group", "revenue", "order_count", "aov"])
+    mock_df = pd.DataFrame(rows, columns=["segment", "revenue", "order_count", "aov"])
 
     with patch("src.collectors.snowflake._query", return_value=mock_df):
         result = fetch_yesterday_orders()
 
-    assert result["revenue_havenly"] == 0.0
-    assert result["orders_havenly"]  == 0
+    assert result["revenue_b2b"] == 0.0
+    assert result["orders_b2b"]  == 0
 
 
 def test_fetch_yesterday_assisted_pct():
@@ -98,8 +97,8 @@ def test_fetch_mtd_returns_totals_and_ly():
         ("B2C",   7_800_000.0, 2700),
         ("Trade", 1_560_000.0,  504),
     ]
-    ty_df = pd.DataFrame(ty_rows, columns=["customer_group", "revenue", "order_count"])
-    ly_df = pd.DataFrame(ly_rows, columns=["customer_group", "revenue", "order_count"])
+    ty_df = pd.DataFrame(ty_rows, columns=["segment", "revenue", "order_count"])
+    ly_df = pd.DataFrame(ly_rows, columns=["segment", "revenue", "order_count"])
 
     call_count = 0
     def mock_query(sql):
@@ -122,8 +121,8 @@ def test_fetch_mtd_yoy_zero_ly():
     from src.collectors.snowflake import fetch_mtd_orders
 
     ty_df = pd.DataFrame([("B2C", 500_000.0, 175)],
-                         columns=["customer_group", "revenue", "order_count"])
-    ly_df = pd.DataFrame([], columns=["customer_group", "revenue", "order_count"])
+                         columns=["segment", "revenue", "order_count"])
+    ly_df = pd.DataFrame([], columns=["segment", "revenue", "order_count"])
 
     call_count = 0
     def mock_query(sql):
@@ -281,46 +280,43 @@ def test_fetch_swatches_no_mtd():
     assert result["mtd_customers"] == 0
 
 
-def test_fetch_merch_mix_collection_pcts_sum_to_1():
-    """fetch_merch_mix() collection percentages sum to ~1.0."""
+def test_fetch_merch_mix_product_contribution_pcts_sum_to_1():
+    """fetch_merch_mix() product_contribution percentages sum to ~1.0."""
     from src.collectors.snowflake import fetch_merch_mix
 
-    collection_rows = [
+    class_rows = [
         ("Sectionals", 3_920_000.0),
         ("Sofas",      2_360_000.0),
         ("Chairs",     1_350_000.0),
-        ("Dining",     1_040_000.0),
-        ("Other",        710_000.0),
     ]
-    fabric_rows = [
-        ("Velvet",      5_370_000.0),
-        ("Performance", 3_170_000.0),
-        ("Leather",       740_000.0),
-        ("Other",         720_000.0),
-    ]
+    collection_rows = [("Sloan", 2_000_000.0), ("James", 1_500_000.0)]
+    fabric_rows = [("Velvet", 5_370_000.0), ("Performance", 3_170_000.0)]
 
     call_count = 0
     def mock_query(sql):
         nonlocal call_count
         call_count += 1
         cols = ["category", "item_revenue"]
-        return (pd.DataFrame(collection_rows, columns=cols)
-                if call_count == 1
-                else pd.DataFrame(fabric_rows, columns=cols))
+        if call_count == 1: return pd.DataFrame(class_rows, columns=cols)
+        if call_count == 2: return pd.DataFrame(collection_rows, columns=cols)
+        return pd.DataFrame(fabric_rows, columns=cols)
 
     with patch("src.collectors.snowflake._query", side_effect=mock_query):
         result = fetch_merch_mix()
 
-    total_pct = sum(item["pct"] for item in result["collection"])
+    total_pct = sum(item["pct"] for item in result["product_contribution"])
     assert total_pct == pytest.approx(1.0, abs=0.001)
-    assert any(item["name"] == "Sectionals" for item in result["collection"])
+    assert any(item["name"] == "Sectionals" for item in result["product_contribution"])
+    assert "collection" in result
+    assert "fabric" in result
 
 
 def test_fetch_merch_mix_fabric_pcts_sum_to_1():
     """fetch_merch_mix() fabric percentages sum to ~1.0."""
     from src.collectors.snowflake import fetch_merch_mix
 
-    collection_rows = [("Sofas", 1_000_000.0)]
+    class_rows = [("Sectionals", 1_000_000.0)]
+    collection_rows = [("Sloan", 800_000.0)]
     fabric_rows = [
         ("Velvet",      530_000.0),
         ("Performance", 310_000.0),
@@ -332,9 +328,9 @@ def test_fetch_merch_mix_fabric_pcts_sum_to_1():
         nonlocal call_count
         call_count += 1
         cols = ["category", "item_revenue"]
-        return (pd.DataFrame(collection_rows, columns=cols)
-                if call_count == 1
-                else pd.DataFrame(fabric_rows, columns=cols))
+        if call_count == 1: return pd.DataFrame(class_rows, columns=cols)
+        if call_count == 2: return pd.DataFrame(collection_rows, columns=cols)
+        return pd.DataFrame(fabric_rows, columns=cols)
 
     with patch("src.collectors.snowflake._query", side_effect=mock_query):
         result = fetch_merch_mix()
@@ -380,22 +376,22 @@ def test_fetch_all_returns_full_contract():
     import datetime
 
     stubs = {
-        "src.collectors.snowflake.fetch_yesterday_orders":   {
+        "src.collectors.snowflake.fetch_yesterday_orders": {
             "revenue_total": 300_000.0, "orders_total": 105,
-            "revenue_b2c": 220_000.0, "revenue_trade": 70_000.0, "revenue_havenly": 10_000.0,
-            "orders_b2c": 77, "orders_trade": 22, "orders_havenly": 6,
+            "revenue_b2c": 220_000.0, "revenue_trade": 70_000.0, "revenue_b2b": 10_000.0,
+            "orders_b2c": 77, "orders_trade": 22, "orders_b2b": 6,
             "aov_b2c": 2857.0, "aov_trade": 3182.0, "aov_blended": 2857.0,
         },
         "src.collectors.snowflake.fetch_yesterday_assisted":  {"assisted_pct": 0.67, "upt": 2.15},
         "src.collectors.snowflake.fetch_mtd_orders":          {
             "revenue_total": 5_000_000.0, "revenue_b2c": 3_700_000.0,
-            "revenue_trade": 900_000.0, "revenue_havenly": 400_000.0,
+            "revenue_trade": 900_000.0, "revenue_b2b": 400_000.0,
             "orders_total": 1750, "revenue_total_ly": 5_400_000.0, "orders_total_ly": 1900,
         },
         "src.collectors.snowflake.fetch_mtd_repeat_pct":      0.316,
         "src.collectors.snowflake.fetch_engagements":         {"yesterday": 315, "yesterday_ly": 323, "weekly_rolling": []},
         "src.collectors.snowflake.fetch_swatches":            {"mtd_orders": 8200, "mtd_customers": 6900, "monthly_rolling": []},
-        "src.collectors.snowflake.fetch_merch_mix":           {"collection": [], "fabric": []},
+        "src.collectors.snowflake.fetch_merch_mix":           {"product_contribution": [], "collection": [], "fabric": []},
         "src.collectors.snowflake.fetch_by_studio":           [],
     }
 

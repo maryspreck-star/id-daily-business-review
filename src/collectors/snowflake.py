@@ -9,41 +9,43 @@ _DENVER_DATE = """
 
 
 def fetch_yesterday_orders() -> dict:
-    """Discounted revenue, order count, and AOV by segment for yesterday (Denver time)."""
+    """Discounted revenue, order count, and AOV by customer segment for yesterday (Denver time)."""
     df = _query(f"""
         SELECT
-            CUSTOMER_GROUP,
-            SUM(subtotal - ABS(discount_amount) + shipping_amount)                         AS revenue,
-            COUNT(*)                                                                        AS order_count,
-            SUM(subtotal - ABS(discount_amount) + shipping_amount) / NULLIF(COUNT(*), 0)  AS aov
-        FROM PROD.ID_WAREHOUSE.ORDERS
+            COALESCE(c.CUSTOMER_GROUP_CLASS, 'Other')                                  AS segment,
+            SUM(o.subtotal - ABS(o.discount_amount) + o.shipping_amount)               AS revenue,
+            COUNT(*)                                                                    AS order_count,
+            SUM(o.subtotal - ABS(o.discount_amount) + o.shipping_amount)
+                / NULLIF(COUNT(*), 0)                                                  AS aov
+        FROM PROD.ID_WAREHOUSE.ORDERS o
+        LEFT JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
         WHERE {_ORDER_FILTER}
           AND {_DENVER_DATE}
               = DATEADD('day', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
-        GROUP BY CUSTOMER_GROUP
+        GROUP BY segment
     """)
 
-    seg = {row["customer_group"]: row for _, row in df.iterrows()}
+    seg = {row["segment"]: row for _, row in df.iterrows()}
 
-    def _rev(g):    return float(seg[g]["revenue"])    if g in seg else 0.0
-    def _orders(g): return int(seg[g]["order_count"])  if g in seg else 0
-    def _aov(g):    return float(seg[g]["aov"])        if g in seg else 0.0
+    def _rev(g):    return float(seg[g]["revenue"])      if g in seg else 0.0
+    def _orders(g): return int(seg[g]["order_count"])    if g in seg else 0
+    def _aov(g):    return float(seg[g]["aov"])          if g in seg else 0.0
 
-    revenue_total = _rev("B2C") + _rev("Trade") + _rev("Havenly")
-    orders_total  = _orders("B2C") + _orders("Trade") + _orders("Havenly")
+    revenue_total = sum(float(row["revenue"]) for _, row in df.iterrows())
+    orders_total  = sum(int(row["order_count"]) for _, row in df.iterrows())
 
     return {
-        "revenue_b2c":    _rev("B2C"),
-        "revenue_trade":  _rev("Trade"),
-        "revenue_havenly": _rev("Havenly"),
-        "revenue_total":  revenue_total,
-        "orders_b2c":     _orders("B2C"),
-        "orders_trade":   _orders("Trade"),
-        "orders_havenly": _orders("Havenly"),
-        "orders_total":   orders_total,
-        "aov_b2c":        _aov("B2C"),
-        "aov_trade":      _aov("Trade"),
-        "aov_blended":    revenue_total / orders_total if orders_total else 0.0,
+        "revenue_b2c":   _rev("B2C"),
+        "revenue_trade": _rev("Trade"),
+        "revenue_b2b":   _rev("B2B"),
+        "revenue_total": revenue_total,
+        "orders_b2c":    _orders("B2C"),
+        "orders_trade":  _orders("Trade"),
+        "orders_b2b":    _orders("B2B"),
+        "orders_total":  orders_total,
+        "aov_b2c":       _aov("B2C"),
+        "aov_trade":     _aov("Trade"),
+        "aov_blended":   revenue_total / orders_total if orders_total else 0.0,
     }
 
 
@@ -92,21 +94,26 @@ def fetch_mtd_orders() -> dict:
     def _segment_totals(filter_clause) -> dict:
         df = _query(f"""
             SELECT
-                CUSTOMER_GROUP,
-                SUM(subtotal - ABS(discount_amount) + shipping_amount) AS revenue,
-                COUNT(*)                                               AS order_count
-            FROM PROD.ID_WAREHOUSE.ORDERS
+                COALESCE(c.CUSTOMER_GROUP_CLASS, 'Other') AS segment,
+                SUM(o.subtotal - ABS(o.discount_amount) + o.shipping_amount) AS revenue,
+                COUNT(*) AS order_count
+            FROM PROD.ID_WAREHOUSE.ORDERS o
+            LEFT JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
             WHERE {filter_clause}
-            GROUP BY CUSTOMER_GROUP
+            GROUP BY segment
         """)
-        seg = {row["customer_group"]: row for _, row in df.iterrows()}
-        def _rev(g):    return float(seg[g]["revenue"]) if g in seg else 0.0
-        def _cnt(g):    return int(seg[g]["order_count"]) if g in seg else 0
-        rev = _rev("B2C") + _rev("Trade") + _rev("Havenly")
-        cnt = _cnt("B2C") + _cnt("Trade") + _cnt("Havenly")
-        return {"revenue_b2c": _rev("B2C"), "revenue_trade": _rev("Trade"),
-                "revenue_havenly": _rev("Havenly"), "revenue_total": rev,
-                "orders_total": cnt}
+        seg = {row["segment"]: row for _, row in df.iterrows()}
+        def _rev(g): return float(seg[g]["revenue"]) if g in seg else 0.0
+        def _cnt(g): return int(seg[g]["order_count"]) if g in seg else 0
+        revenue = sum(float(row["revenue"]) for _, row in df.iterrows())
+        cnt     = sum(int(row["order_count"]) for _, row in df.iterrows())
+        return {
+            "revenue_b2c":   _rev("B2C"),
+            "revenue_trade": _rev("Trade"),
+            "revenue_b2b":   _rev("B2B"),
+            "revenue_total": revenue,
+            "orders_total":  cnt,
+        }
 
     ty = _segment_totals(_mtd_filter)
     ly = _segment_totals(_ly_filter)
@@ -252,7 +259,7 @@ def fetch_swatches() -> dict:
 
 
 def fetch_merch_mix() -> dict:
-    """MTD collection and fabric mix as % of item revenue."""
+    """MTD product contribution (by class), collection performance (by name), and fabric mix."""
     _mtd_order_where = f"""
         o.ORDER_TYPE = 'standard' AND o.CANCELLATION = 'F'
         AND CONVERT_TIMEZONE('UTC', 'America/Denver', CAST(o.ORDER_CREATED_AT AS TIMESTAMP_NTZ))::DATE
@@ -268,34 +275,41 @@ def fetch_merch_mix() -> dict:
         return [
             {"name": row["category"], "pct": float(row["item_revenue"]) / total}
             for _, row in df.sort_values("item_revenue", ascending=False).iterrows()
+            if row["category"] is not None
         ]
 
-    collection_df = _query(f"""
-        SELECT
-            p.COLLECTION  AS category,
-            SUM(oi.PRICE) AS item_revenue
+    _item_base = f"""
         FROM PROD.ID_WAREHOUSE.ORDER_ITEMS oi
-        JOIN PROD.ID_WAREHOUSE.PRODUCTS p    ON oi.CATALOG_PRODUCT_ID = p.CATALOG_PRODUCT_ID
-        JOIN PROD.ID_WAREHOUSE.ORDERS o      ON oi.ORDER_ID = o.ORDER_ID
+        JOIN PROD.ID_WAREHOUSE.PRODUCTS p ON oi.CATALOG_PRODUCT_ID = p.CATALOG_PRODUCT_ID
+        JOIN PROD.ID_WAREHOUSE.ORDERS o   ON oi.SALES_ORDER_ID = o.SALES_ORDER_ID
         WHERE {_mtd_order_where}
+    """
+
+    product_contribution_df = _query(f"""
+        SELECT p.CLASS          AS category, SUM(oi.PRICE) AS item_revenue
+        {_item_base}
+          AND p.CLASS IS NOT NULL
+        GROUP BY p.CLASS
+    """)
+
+    collection_df = _query(f"""
+        SELECT p.COLLECTION     AS category, SUM(oi.PRICE) AS item_revenue
+        {_item_base}
+          AND p.COLLECTION IS NOT NULL
         GROUP BY p.COLLECTION
     """)
 
     fabric_df = _query(f"""
-        SELECT
-            p.FABRIC_FAMILY AS category,
-            SUM(oi.PRICE)   AS item_revenue
-        FROM PROD.ID_WAREHOUSE.ORDER_ITEMS oi
-        JOIN PROD.ID_WAREHOUSE.PRODUCTS p    ON oi.CATALOG_PRODUCT_ID = p.CATALOG_PRODUCT_ID
-        JOIN PROD.ID_WAREHOUSE.ORDERS o      ON oi.ORDER_ID = o.ORDER_ID
-        WHERE {_mtd_order_where}
+        SELECT p.FABRIC_FAMILY  AS category, SUM(oi.PRICE) AS item_revenue
+        {_item_base}
           AND p.FABRIC_FAMILY IS NOT NULL
         GROUP BY p.FABRIC_FAMILY
     """)
 
     return {
-        "collection": _pct_list(collection_df),
-        "fabric":     _pct_list(fabric_df),
+        "product_contribution": _pct_list(product_contribution_df),
+        "collection":           _pct_list(collection_df),
+        "fabric":               _pct_list(fabric_df),
     }
 
 
