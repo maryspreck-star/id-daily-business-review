@@ -147,3 +147,64 @@ def fetch_mtd_repeat_pct() -> float:
     row = df.iloc[0]
     total = int(row["total_orders"])
     return int(row["repeat_orders"]) / total if total else 0.0
+
+
+_EXCLUDED_STUDIOS = "('The Inside', 'Burrow', 'General Managers', 'Remote Sales')"
+
+
+def fetch_engagements() -> dict:
+    """Daily B2C inbound engagement counts.
+
+    Matches Looker 1156 'Daily Inbound Engagement' tile:
+    - Excludes NOTE and TASK engagement types
+    - Uses Denver timezone for day boundaries
+    - Returns yesterday + same-DOW last year + rolling 4-week Monday aggregates
+    """
+    import datetime
+
+    today     = datetime.date.today()
+    yesterday = today - datetime.timedelta(days=1)
+    ly_date   = yesterday - datetime.timedelta(days=364)  # same day-of-week last year
+
+    df = _query(f"""
+        WITH engagements AS (
+            SELECT * FROM PROD.ID_WAREHOUSE.STG_HUBSPOT_ENGAGEMENTS_BASE
+            WHERE ENGAGEMENT_TYPE <> 'NOTE' AND ENGAGEMENT_TYPE <> 'TASK'
+        )
+        SELECT
+            CONVERT_TIMEZONE('UTC', 'America/Denver', CAST(e.CREATED_AT AS TIMESTAMP_NTZ))::DATE AS day,
+            COUNT(DISTINCT c.PRIMARY_HUBSPOT_ID) AS engagements
+        FROM engagements e
+        JOIN PROD.ID_WAREHOUSE.STG_CONTACTS c
+            ON e.CONTACT_ID = c.PRIMARY_HUBSPOT_ID
+        WHERE (c.STUDIO_NAME NOT IN {_EXCLUDED_STUDIOS} OR c.STUDIO_NAME IS NULL)
+          AND e.ENGAGEMENT_DIRECTION = 'Incoming'
+          AND c.CUSTOMER_GROUP = 'B2C'
+          AND CONVERT_TIMEZONE('UTC', 'America/Denver', CAST(e.CREATED_AT AS TIMESTAMP_NTZ))::DATE
+              IN ('{yesterday}', '{ly_date}',
+                  -- 4 most recent Monday-aligned week starts
+                  DATEADD('day', -7,  DATE_TRUNC('week', '{yesterday}'::DATE)),
+                  DATEADD('day', -14, DATE_TRUNC('week', '{yesterday}'::DATE)),
+                  DATEADD('day', -21, DATE_TRUNC('week', '{yesterday}'::DATE)),
+                  DATEADD('day', -28, DATE_TRUNC('week', '{yesterday}'::DATE)))
+        GROUP BY 1
+        ORDER BY 1
+    """)
+
+    by_date = dict(zip(df["day"].astype(str), df["engagements"].astype(int)))
+
+    # Build 4-week rolling list (week_start = Monday of that week)
+    weekly = []
+    for weeks_ago in range(1, 5):
+        week_start = today - datetime.timedelta(days=today.weekday()) - datetime.timedelta(weeks=weeks_ago)
+        weekly.append({
+            "week_start": week_start,
+            "count": by_date.get(str(week_start), 0),
+        })
+    weekly.reverse()  # oldest first
+
+    return {
+        "yesterday":      by_date.get(str(yesterday), 0),
+        "yesterday_ly":   by_date.get(str(ly_date), 0),
+        "weekly_rolling": weekly,
+    }

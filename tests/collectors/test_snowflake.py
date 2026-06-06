@@ -160,3 +160,40 @@ def test_fetch_mtd_repeat_pct_zero():
         result = fetch_mtd_repeat_pct()
 
     assert result == 0.0
+
+
+def test_fetch_engagements_yesterday_and_ly():
+    """fetch_engagements() returns yesterday count and same-DOW LY count."""
+    from src.collectors.snowflake import fetch_engagements
+    import datetime
+
+    today = datetime.date.today()
+    yesterday = today - datetime.timedelta(days=1)
+    ly_date = yesterday - datetime.timedelta(days=364)  # same DOW last year
+
+    rows = [
+        (ly_date, 323),
+        (yesterday, 315),
+    ]
+    mock_df = pd.DataFrame(rows, columns=["day", "engagements"])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_engagements()
+
+    assert result["yesterday"]    == 315
+    assert result["yesterday_ly"] == 323
+
+
+def test_fetch_engagements_no_ly_match():
+    """fetch_engagements() returns 0 for LY when no matching date exists."""
+    from src.collectors.snowflake import fetch_engagements
+    import datetime
+
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    mock_df = pd.DataFrame([(yesterday, 287)], columns=["day", "engagements"])
+
+    with patch("src.collectors.snowflake._query", return_value=mock_df):
+        result = fetch_engagements()
+
+    assert result["yesterday"]    == 287
+    assert result["yesterday_ly"] == 0
