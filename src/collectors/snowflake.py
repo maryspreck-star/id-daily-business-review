@@ -9,19 +9,23 @@ _DENVER_DATE = """
 
 
 def fetch_yesterday_orders() -> dict:
-    """Discounted revenue, order count, and AOV by customer segment for yesterday (Denver time)."""
+    """Discounted revenue, order count, and AOV by customer segment for yesterday (Denver time).
+    Segments: B2C, Trade, Havenly, B2B. Excludes staff (@interiordefine.com) orders.
+    """
     df = _query(f"""
         SELECT
-            COALESCE(c.CUSTOMER_GROUP_CLASS, 'Other')                                  AS segment,
+            CASE WHEN c.CUSTOMER_ID = 20 THEN 'Havenly'
+                 ELSE c.CUSTOMER_GROUP_CLASS END          AS segment,
             SUM(o.subtotal - ABS(o.discount_amount) + o.shipping_amount)               AS revenue,
             COUNT(*)                                                                    AS order_count,
             SUM(o.subtotal - ABS(o.discount_amount) + o.shipping_amount)
                 / NULLIF(COUNT(*), 0)                                                  AS aov
         FROM PROD.ID_WAREHOUSE.ORDERS o
-        LEFT JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
+        INNER JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
         WHERE {_ORDER_FILTER}
           AND {_DENVER_DATE}
               = DATEADD('day', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+          AND (c.EMAIL NOT LIKE '%@interiordefine.com%' OR c.EMAIL IS NULL)
         GROUP BY segment
     """)
 
@@ -35,17 +39,19 @@ def fetch_yesterday_orders() -> dict:
     orders_total  = sum(int(row["order_count"]) for _, row in df.iterrows())
 
     return {
-        "revenue_b2c":   _rev("B2C"),
-        "revenue_trade": _rev("Trade"),
-        "revenue_b2b":   _rev("B2B"),
-        "revenue_total": revenue_total,
-        "orders_b2c":    _orders("B2C"),
-        "orders_trade":  _orders("Trade"),
-        "orders_b2b":    _orders("B2B"),
-        "orders_total":  orders_total,
-        "aov_b2c":       _aov("B2C"),
-        "aov_trade":     _aov("Trade"),
-        "aov_blended":   revenue_total / orders_total if orders_total else 0.0,
+        "revenue_b2c":     _rev("B2C"),
+        "revenue_trade":   _rev("Trade"),
+        "revenue_havenly": _rev("Havenly"),
+        "revenue_b2b":     _rev("B2B"),
+        "revenue_total":   revenue_total,
+        "orders_b2c":      _orders("B2C"),
+        "orders_trade":    _orders("Trade"),
+        "orders_havenly":  _orders("Havenly"),
+        "orders_b2b":      _orders("B2B"),
+        "orders_total":    orders_total,
+        "aov_b2c":         _aov("B2C"),
+        "aov_trade":       _aov("Trade"),
+        "aov_blended":     revenue_total / orders_total if orders_total else 0.0,
     }
 
 
@@ -79,7 +85,9 @@ def fetch_yesterday_assisted() -> dict:
 
 
 def fetch_mtd_orders() -> dict:
-    """MTD discounted revenue + order counts for TY and LY (same calendar days last year)."""
+    """MTD discounted revenue + order counts for TY and LY (same calendar days last year).
+    Segments: B2C, Trade, Havenly, B2B. Excludes staff (@interiordefine.com) orders.
+    """
     _mtd_filter = f"""
         {_ORDER_FILTER}
         AND {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
@@ -94,12 +102,14 @@ def fetch_mtd_orders() -> dict:
     def _segment_totals(filter_clause) -> dict:
         df = _query(f"""
             SELECT
-                COALESCE(c.CUSTOMER_GROUP_CLASS, 'Other') AS segment,
+                CASE WHEN c.CUSTOMER_ID = 20 THEN 'Havenly'
+                     ELSE c.CUSTOMER_GROUP_CLASS END AS segment,
                 SUM(o.subtotal - ABS(o.discount_amount) + o.shipping_amount) AS revenue,
                 COUNT(*) AS order_count
             FROM PROD.ID_WAREHOUSE.ORDERS o
-            LEFT JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
+            INNER JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
             WHERE {filter_clause}
+              AND (c.EMAIL NOT LIKE '%@interiordefine.com%' OR c.EMAIL IS NULL)
             GROUP BY segment
         """)
         seg = {row["segment"]: row for _, row in df.iterrows()}
@@ -108,11 +118,12 @@ def fetch_mtd_orders() -> dict:
         revenue = sum(float(row["revenue"]) for _, row in df.iterrows())
         cnt     = sum(int(row["order_count"]) for _, row in df.iterrows())
         return {
-            "revenue_b2c":   _rev("B2C"),
-            "revenue_trade": _rev("Trade"),
-            "revenue_b2b":   _rev("B2B"),
-            "revenue_total": revenue,
-            "orders_total":  cnt,
+            "revenue_b2c":     _rev("B2C"),
+            "revenue_trade":   _rev("Trade"),
+            "revenue_havenly": _rev("Havenly"),
+            "revenue_b2b":     _rev("B2B"),
+            "revenue_total":   revenue,
+            "orders_total":    cnt,
         }
 
     ty = _segment_totals(_mtd_filter)

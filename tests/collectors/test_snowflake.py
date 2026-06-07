@@ -19,31 +19,33 @@ def test_query_lowercases_columns():
 
 
 def test_fetch_yesterday_segments_all_groups():
-    """fetch_yesterday_orders() returns revenue/orders/aov for B2C, Trade, B2B."""
+    """fetch_yesterday_orders() returns revenue/orders/aov for B2C, Trade, Havenly, B2B."""
     from src.collectors.snowflake import fetch_yesterday_orders
 
     rows = [
-        ("B2C",   7_100_000.0, 2482, 2864.0),
-        ("Trade", 1_900_000.0,  590, 3226.0),
-        ("B2B",     629_000.0,  205, 3068.0),
+        ("B2C",     7_100_000.0, 2482, 2864.0),
+        ("Trade",   1_900_000.0,  590, 3226.0),
+        ("Havenly",   629_000.0,  205, 3068.0),
+        ("B2B",        50_000.0,   15, 3333.0),
     ]
     mock_df = pd.DataFrame(rows, columns=["segment", "revenue", "order_count", "aov"])
 
     with patch("src.collectors.snowflake._query", return_value=mock_df):
         result = fetch_yesterday_orders()
 
-    assert result["revenue_b2c"]   == pytest.approx(7_100_000.0)
-    assert result["revenue_trade"] == pytest.approx(1_900_000.0)
-    assert result["revenue_b2b"]   == pytest.approx(629_000.0)
-    assert result["revenue_total"] == pytest.approx(9_629_000.0)
-    assert result["orders_b2c"]    == 2482
-    assert result["aov_b2c"]       == pytest.approx(2864.0)
-    assert result["aov_trade"]     == pytest.approx(3226.0)
-    assert result["aov_blended"]   == pytest.approx(9_629_000.0 / 3277, rel=0.01)
+    assert result["revenue_b2c"]     == pytest.approx(7_100_000.0)
+    assert result["revenue_trade"]   == pytest.approx(1_900_000.0)
+    assert result["revenue_havenly"] == pytest.approx(629_000.0)
+    assert result["revenue_b2b"]     == pytest.approx(50_000.0)
+    assert result["revenue_total"]   == pytest.approx(9_679_000.0)
+    assert result["orders_b2c"]      == 2482
+    assert result["aov_b2c"]         == pytest.approx(2864.0)
+    assert result["aov_trade"]       == pytest.approx(3226.0)
+    assert result["aov_blended"]     == pytest.approx(9_679_000.0 / 3292, rel=0.01)
 
 
 def test_fetch_yesterday_orders_missing_segment():
-    """fetch_yesterday_orders() returns 0 for a missing segment (e.g. no B2B orders)."""
+    """fetch_yesterday_orders() returns 0 for a missing segment."""
     from src.collectors.snowflake import fetch_yesterday_orders
 
     rows = [
@@ -55,8 +57,9 @@ def test_fetch_yesterday_orders_missing_segment():
     with patch("src.collectors.snowflake._query", return_value=mock_df):
         result = fetch_yesterday_orders()
 
-    assert result["revenue_b2b"] == 0.0
-    assert result["orders_b2b"]  == 0
+    assert result["revenue_havenly"] == 0.0
+    assert result["revenue_b2b"]     == 0.0
+    assert result["orders_b2b"]      == 0
 
 
 def test_fetch_yesterday_assisted_pct():
@@ -90,8 +93,9 @@ def test_fetch_mtd_returns_totals_and_ly():
     from src.collectors.snowflake import fetch_mtd_orders
 
     ty_rows = [
-        ("B2C",   7_100_000.0, 2482),
-        ("Trade", 1_900_000.0,  590),
+        ("B2C",     7_100_000.0, 2482),
+        ("Trade",   1_900_000.0,  590),
+        ("Havenly",   500_000.0,  160),
     ]
     ly_rows = [
         ("B2C",   7_800_000.0, 2700),
@@ -110,9 +114,10 @@ def test_fetch_mtd_returns_totals_and_ly():
         result = fetch_mtd_orders()
 
     assert result["revenue_b2c"]      == pytest.approx(7_100_000.0)
-    assert result["revenue_total"]    == pytest.approx(9_000_000.0)
+    assert result["revenue_havenly"]  == pytest.approx(500_000.0)
+    assert result["revenue_total"]    == pytest.approx(9_500_000.0)
     assert result["revenue_total_ly"] == pytest.approx(9_360_000.0)
-    assert result["orders_total"]     == 3072
+    assert result["orders_total"]     == 3232
     assert result["orders_total_ly"]  == 3204
 
 
@@ -378,14 +383,15 @@ def test_fetch_all_returns_full_contract():
     stubs = {
         "src.collectors.snowflake.fetch_yesterday_orders": {
             "revenue_total": 300_000.0, "orders_total": 105,
-            "revenue_b2c": 220_000.0, "revenue_trade": 70_000.0, "revenue_b2b": 10_000.0,
-            "orders_b2c": 77, "orders_trade": 22, "orders_b2b": 6,
+            "revenue_b2c": 220_000.0, "revenue_trade": 70_000.0,
+            "revenue_havenly": 8_000.0, "revenue_b2b": 2_000.0,
+            "orders_b2c": 77, "orders_trade": 22, "orders_havenly": 4, "orders_b2b": 2,
             "aov_b2c": 2857.0, "aov_trade": 3182.0, "aov_blended": 2857.0,
         },
         "src.collectors.snowflake.fetch_yesterday_assisted":  {"assisted_pct": 0.67, "upt": 2.15},
         "src.collectors.snowflake.fetch_mtd_orders":          {
             "revenue_total": 5_000_000.0, "revenue_b2c": 3_700_000.0,
-            "revenue_trade": 900_000.0, "revenue_b2b": 400_000.0,
+            "revenue_trade": 900_000.0, "revenue_havenly": 400_000.0, "revenue_b2b": 0.0,
             "orders_total": 1750, "revenue_total_ly": 5_400_000.0, "orders_total_ly": 1900,
         },
         "src.collectors.snowflake.fetch_mtd_repeat_pct":      0.316,
