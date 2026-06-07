@@ -22,8 +22,7 @@ def fetch_yesterday_orders() -> dict:
                 / NULLIF(COUNT(*), 0)                                                  AS aov
         FROM PROD.ID_WAREHOUSE.ORDERS o
         INNER JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID
-        WHERE {_ORDER_FILTER}
-          AND {_DENVER_DATE}
+        WHERE {_DENVER_DATE}
               = DATEADD('day', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
           AND (c.EMAIL NOT LIKE '%@interiordefine.com%' OR c.EMAIL IS NULL)
         GROUP BY segment
@@ -89,13 +88,11 @@ def fetch_mtd_orders() -> dict:
     Segments: B2C, Trade, Havenly, B2B. Excludes staff (@interiordefine.com) orders.
     """
     _mtd_filter = f"""
-        {_ORDER_FILTER}
-        AND {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
+        {_DENVER_DATE} >= DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
         AND {_DENVER_DATE} <  CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE
     """
     _ly_filter = f"""
-        {_ORDER_FILTER}
-        AND {_DENVER_DATE} >= DATEADD('year', -1, DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE))
+        {_DENVER_DATE} >= DATEADD('year', -1, DATE_TRUNC('month', CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE))
         AND {_DENVER_DATE} <  DATEADD('year', -1, CONVERT_TIMEZONE('UTC', 'America/Denver', CURRENT_TIMESTAMP())::DATE)
     """
 
