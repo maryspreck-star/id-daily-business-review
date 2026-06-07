@@ -227,7 +227,6 @@ def _render_total_business(data: dict) -> str:
 # ── Tab 2: Sales Team ──────────────────────────────────────────────────────
 
 def _render_sales_team(data: dict, narrative: dict, is_monday: bool) -> str:
-    d           = data["yesterday"]
     deals       = data.get("deals", {})
     report_date = data["report_date"]
     date_str    = report_date.strftime("%b %-d, %Y") if hasattr(report_date, "strftime") else str(report_date)
