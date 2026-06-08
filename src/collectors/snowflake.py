@@ -370,3 +370,33 @@ def fetch_all() -> dict:
         "merch_mix":   fetch_merch_mix(),
         "by_studio":   fetch_by_studio(),
     }
+
+
+def fetch_forecast(dates: list) -> dict:
+    """Pull daily forecast from FIVETRAN_DB.UPLOADS.ALL_COMPANY_DAILY_FORECAST.
+
+    Used by the Total Business tab (matches Looker's FwUaEg4OKq7RHaff4IXB5A source).
+    Sales Team tab uses the Google Sheet forecast instead.
+
+    Args:
+        dates: list of 'YYYY-MM-DD' strings to fetch
+
+    Returns:
+        {date_str: forecast_amount} for each requested date,
+        plus 'yesterday', 'mtd', 'last_week' convenience keys.
+    """
+    if not dates:
+        return {}
+
+    quoted = ", ".join(f"'{d}'" for d in dates)
+    df = _query(f"""
+        SELECT TO_DATE(Date) AS day, ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS AS forecast
+        FROM FIVETRAN_DB.UPLOADS.ALL_COMPANY_DAILY_FORECAST
+        WHERE TO_DATE(Date) IN ({quoted})
+        ORDER BY 1
+    """)
+
+    result = {str(row["day"]): float(row["forecast"]) for _, row in df.iterrows()}
+    result["mtd"]       = sum(result.get(d, 0) for d in dates)
+    result["last_week"] = result["mtd"]  # convenience alias
+    return result
