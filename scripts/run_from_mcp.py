@@ -170,62 +170,69 @@ td:first-child{text-align:left;font-weight:500}
 .badge-behind{background:#ffedd5;color:#ea580c}
 .badge-risk{background:#fee2e2;color:#dc2626}
 .footer{padding:14px 28px;background:#f8fafc;text-align:center;font-size:12px;color:#64748b}
+@media print{
+  .tab-radio,.tab-bar{display:none!important}
+  .tab-content{display:block!important}
+  #content-sales{page-break-before:always}
+  body{background:#fff}
+  .email-wrap{box-shadow:none;margin-bottom:0}
+}
 """
 
 
 # ── DATA — Total Business tab validated against Looker dashboard 1156 ─────────
 
-# Yesterday Jun 13, 2026 — Looker (employee excluded, no type/cancel filter)
-YD_B2C_REV, YD_B2C_ORD = 69_237.23, 22
-YD_TR_REV,  YD_TR_ORD  = 14_483.00,  4
-YD_HV_REV,  YD_HV_ORD  =    489.00,  1
-YD_TOT_REV, YD_TOT_ORD = 84_209.23, 26
-YD_BLENDED_AOV = 3_238.35   # Looker AOV Yesterday tile (calendar pivot)
-YD_B2C_AOV     = 3_270.22   # Looker orders.average_order_value by segment
-YD_TR_AOV      = 3_746.13
-YD_ASSISTED_REV = 61_612.48   # MC=Yes revenue (Looker) — 73.2% of total
-YD_INBOUND, YD_INBOUND_LY     = 225, 257   # LY = same calendar date Jun 13, 2025
-MTD_INBOUND, MTD_INBOUND_LY  = 2_632, 2_565  # Looker hubspot_contacts, Jun 1-13
-YD_FCST_SNOWFLAKE   = 164_862
-YD_REV_FOR_FCST     = 84_279.91   # unfiltered (Looker "v. Yesterday's Forecast" tile)
-MTD_REV_FOR_FCST    = 2_752_859.82  # unfiltered (Looker "v. MTD Forecast" tile → -17.4%)
+# Yesterday Jun 14, 2026 (Sunday) — Snowflake
+YD_B2C_REV, YD_B2C_ORD = 82_413.00, 31
+YD_TR_REV,  YD_TR_ORD  =  4_869.25,  2
+YD_HV_REV,  YD_HV_ORD  =      0.00,  0
+YD_TOT_REV, YD_TOT_ORD = 87_282.25, 33
+YD_BLENDED_AOV = YD_TOT_REV / YD_TOT_ORD
+YD_B2C_AOV     = YD_B2C_REV / YD_B2C_ORD
+YD_TR_AOV      = YD_TR_REV  / max(YD_TR_ORD, 1)
+YD_ASSISTED_REV = 42_088.75   # MC=Yes revenue STG_DEAL Jun 14
+YD_INBOUND, YD_INBOUND_LY     = 196, 189
+MTD_INBOUND, MTD_INBOUND_LY  = 2_784, 2_565
+YD_FCST_SNOWFLAKE   = 106_453
+YD_REV_FOR_FCST     = 87_282.25
+MTD_REV_FOR_FCST    = 2_840_142.07
 
-# Yesterday LY Jun 13, 2025 — Looker
-YD_B2C_REV_LY, YD_B2C_ORD_LY = 76_120.12, 31
-YD_TR_REV_LY,  YD_TR_ORD_LY  = 24_356.47, 11
-YD_HV_REV_LY                  =  5_245.74
-YD_TOT_REV_LY, YD_TOT_ORD_LY = 105_722.33, 46
-YD_BLENDED_AOV_LY = 2_581.87   # Looker orders.average_order_value LY
-YD_B2C_AOV_LY     = 2_571.48
-YD_TR_AOV_LY      = 2_560.39
+# Yesterday LY Jun 14, 2025
+YD_B2C_REV_LY, YD_B2C_ORD_LY = 123_737.70, 40
+YD_TR_REV_LY,  YD_TR_ORD_LY  =   7_415.50,  2
+YD_HV_REV_LY                  =   6_232.00
+YD_TOT_REV_LY, YD_TOT_ORD_LY = 137_385.20, 45
+YD_BLENDED_AOV_LY = YD_TOT_REV_LY / YD_TOT_ORD_LY
+YD_B2C_AOV_LY     = YD_B2C_REV_LY / YD_B2C_ORD_LY
+YD_TR_AOV_LY      = YD_TR_REV_LY  / max(YD_TR_ORD_LY, 1)
 
-# MTD Jun 1-13, 2026 — Looker
-MTD_B2C_REV, MTD_B2C_ORD = 1_809_507.41, 670
-MTD_TR_REV,  MTD_TR_ORD  =   564_018.69, 198
-MTD_HV_REV,  MTD_HV_ORD  =   116_611.25,  46
+# MTD Jun 1-14, 2026 — Snowflake
+MTD_B2C_REV, MTD_B2C_ORD = 2_022_392.89, 766
+MTD_TR_REV,  MTD_TR_ORD  =   593_376.44, 210
+MTD_HV_REV,  MTD_HV_ORD  =   122_055.25,  49
 MTD_B2B_REV, MTD_B2B_ORD =    92_175.49,  23
-MTD_TOT_REV, MTD_TOT_ORD = 2_582_312.84, 937
-MTD_BLENDED_AOV = 2_802.65   # Looker AOV MTD tile (calendar pivot, this month)
-MTD_B2C_AOV     = 2_740.62   # Looker orders.average_order_value by segment
-MTD_TR_AOV      = 2_929.23
-MTD_REPEAT_PCT  = 334 / 937          # Looker: 334 repeat orders / 937 total
-MTD_ASSISTED_REV = 1_826_096.79    # MC=Yes revenue (Looker) — 70.7% of total
-MTD_SNOWFLAKE_FCST = 3_334_490
+MTD_TOT_REV, MTD_TOT_ORD = 2_830_000.07, 1_048
+MTD_BLENDED_AOV = MTD_TOT_REV / MTD_TOT_ORD
+MTD_B2C_AOV     = MTD_B2C_REV / MTD_B2C_ORD
+MTD_TR_AOV      = MTD_TR_REV  / MTD_TR_ORD
+MTD_REPEAT_PCT  = 327 / 965
+MTD_ASSISTED_REV = 1_812_173.46
+MTD_SNOWFLAKE_FCST = 3_440_943
 
-# MTD LY Jun 1-13, 2025 — Looker
-MTD_B2C_REV_LY = 1_881_801.77;  MTD_B2C_ORD_LY = 682
-MTD_TR_REV_LY  =   460_359.76;  MTD_TR_ORD_LY  = 162
-MTD_HV_REV_LY  =   143_077.74;  MTD_HV_ORD_LY  =  52
+# MTD LY Jun 1-14, 2025 — Snowflake
+MTD_B2C_REV_LY = 2_151_597.62;  MTD_B2C_ORD_LY = 802
+MTD_TR_REV_LY  =   488_485.60;  MTD_TR_ORD_LY  = 179
+MTD_HV_REV_LY  =   165_950.99;  MTD_HV_ORD_LY  =  65
 MTD_B2B_REV_LY =    36_436.75;  MTD_B2B_ORD_LY =  10
-MTD_TOT_REV_LY  = 2_540_451.77  # includes null segment ($18,776)
-MTD_TOT_ORD_LY  = 913
+MTD_TOT_REV_LY  = 2_861_246.71
+MTD_TOT_ORD_LY  = 1_063
 
-MTD_BLENDED_AOV_LY = 2_772.84   # Looker orders.average_order_value LY
-MTD_B2C_AOV_LY     = 2_762.81
-MTD_TR_AOV_LY      = 2_813.49
+MTD_BLENDED_AOV_LY = MTD_TOT_REV_LY / MTD_TOT_ORD_LY
+MTD_B2C_AOV_LY     = MTD_B2C_REV_LY / MTD_B2C_ORD_LY
+MTD_TR_AOV_LY      = MTD_TR_REV_LY  / MTD_TR_ORD_LY
 
-# Swatch — Looker (B2C+Trade, active status filter, this month)
-SW_MTD_ORD,  SW_MTD_CUST  = 4_663, 4_052
+# Swatch — Jun 1-14
+SW_MTD_ORD,  SW_MTD_CUST  = 4_748, 4_132
 SW_LY_ORD,   SW_LY_CUST   = 4_003, 3_435
 
 # Merch — Looker (Merchandise item_classification, MTO+QS, Jun 1-13)
@@ -312,8 +319,8 @@ YD_BY_STUDIO = [
     {"name": "Charlotte",     "rev":  1_632.00},
     {"name": "Boston",        "rev":    442.50},
 ]
-YD_HS_TOTAL    = 56_915.24   # HubSpot API total (MC=Yes + Closed Won, Jun 13 2026)
-YD_HS_LY_TOTAL = 97_390.33   # Snowflake pre-Aug methodology (stage dates, Jun 13 2025)
+YD_HS_TOTAL    = 42_088.75   # STG_DEAL MC=Yes Jun 14 2026
+YD_HS_LY_TOTAL = 0.0         # Jun 14 2025 LY — no closed-won deals that day
 
 # Yesterday top reps — HubSpot API
 YD_TOP_REPS = [
@@ -324,23 +331,23 @@ YD_TOP_REPS = [
     {"name": "Sameera Tanveer",   "studio": "Washington DC", "rev":  5_643.99},
 ]
 
-# MTD (Jun 1-13) by studio — exact from HubSpot dashboard (qid=10022704, Jun 1–13 filter)
+# MTD (Jun 1-14) by studio — STG_DEAL
 MTD_BY_STUDIO = [
-    {"name": "New York",      "rev": 207_901.57},
-    {"name": "Dallas",        "rev": 170_978.33},
-    {"name": "Washington DC", "rev": 155_611.44},
-    {"name": "Minneapolis",   "rev": 148_939.66},
-    {"name": "Denver",        "rev": 143_673.77},
-    {"name": "Chicago",       "rev": 134_912.16},
-    {"name": "Seattle",       "rev": 132_718.24},
-    {"name": "Charlotte",     "rev": 131_823.25},
-    {"name": "Boston",        "rev": 125_061.97},
-    {"name": "Los Angeles",   "rev": 122_103.36},
-    {"name": "San Francisco", "rev": 114_972.48},
-    {"name": "Baltimore",     "rev":  84_176.49},
-    {"name": "Philadelphia",  "rev":  56_511.75},
+    {"name": "New York",      "rev": 238_330.32},
+    {"name": "Dallas",        "rev": 202_949.58},
+    {"name": "Washington DC", "rev": 171_184.19},
+    {"name": "Chicago",       "rev": 164_282.16},
+    {"name": "Minneapolis",   "rev": 163_119.41},
+    {"name": "Seattle",       "rev": 160_782.19},
+    {"name": "Denver",        "rev": 154_759.95},
+    {"name": "Charlotte",     "rev": 149_713.25},
+    {"name": "Boston",        "rev": 144_843.97},
+    {"name": "Los Angeles",   "rev": 144_408.84},
+    {"name": "San Francisco", "rev": 121_578.74},
+    {"name": "Baltimore",     "rev":  85_468.49},
+    {"name": "Philadelphia",  "rev":  66_037.50},
 ]
-MTD_HS_TOTAL = 1_729_384.47  # exact HubSpot dashboard total Jun 1–13
+MTD_HS_TOTAL = 1_967_458.59  # STG_DEAL Jun 1-14
 
 # MTD LY (Jun 1-13, 2025) — HubSpot API (same filters, same methodology)
 MTD_LY_BY_STUDIO = {
@@ -352,7 +359,7 @@ MTD_LY_BY_STUDIO = {
     "Charlotte":      15_656.75, "Philadelphia":    13_921.38,
     "Dallas":              0.00,  # no closed-won deals Jun 1-13, 2025
 }
-MTD_HS_LY_TOTAL = 1_400_246.87  # Snowflake pre-Aug methodology (stage dates, Jun 1-13 2025)
+MTD_HS_LY_TOTAL = 1_468_895.08  # Snowflake pre-Aug methodology (stage dates, Jun 1-14 2025)
 
 # MTD all reps (Jun 1-13) — exact from HubSpot API (MC=Yes + Closed Won + studio team)
 # email_prefix: (display_name, studio, revenue)
@@ -547,7 +554,7 @@ def tab1():
         merch += _merch_bar(m["cat"], m["rev"], m["units"], m["aur"], MERCH_TOTAL)
     yd_sec = (
         '<div class="section">'
-        '<div class="section-label">📈 Yesterday — Sat Jun 13</div>'
+        '<div class="section-label">📈 Yesterday — Sun Jun 14</div>'
         + row1 + row2 + segs + merch + '</div>'
     )
 
@@ -738,12 +745,12 @@ def tab1():
         + legend
         + f'<div style="overflow-x:auto">{svg}</div>'
         + '<p class="note">Bars = inbound contacts (left scale). Lines = % who ordered within 14/30/60/90 days of first contact. '
-        '*Jun in-progress (Jun 1–13) — lines excluded. 90D label shown above each dot.</p>'
+        '*Jun in-progress (Jun 1–14) — lines excluded. 90D label shown above each dot.</p>'
     )
 
     mtd_sec = (
         '<div class="section">'
-        '<div class="section-label">📅 MTD — Jun 1–13 · Forecast: Looker/Snowflake</div>'
+        '<div class="section-label">📅 MTD — Jun 1–14 · Forecast: Looker/Snowflake</div>'
         + mtd_row1 + mtd_row2 + mtd_segs + swatches + mtd_merch + studio_tbl + '</div>'
     )
 
@@ -754,11 +761,11 @@ def tab1():
     )
 
     return f"""
-<div class="page-label">Interior Define · Total Business · Sat Jun 13, 2026</div>
+<div class="page-label">Interior Define · Total Business · Sun Jun 14, 2026</div>
 <div class="email-wrap">
   <div class="hdr">
     <div class="hdr-brand">Interior Define <span class="hdr-badge">Total Business</span></div>
-    <div class="hdr-meta">Daily Business Review · Sat Jun 13, 2026 · Forecast source: Looker (ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS)</div>
+    <div class="hdr-meta">Daily Business Review · Sun Jun 14, 2026 · Forecast source: Looker (ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS)</div>
   </div>
   {yd_sec}
   {mtd_sec}
@@ -798,7 +805,7 @@ def tab2():
 
     yd_notes = (
         '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px 16px;margin-top:12px">'
-        '<div class="sub-label" style="color:#b45309;margin-bottom:10px">📝 Closing Notes — Sat Jun 13</div>'
+        '<div class="sub-label" style="color:#b45309;margin-bottom:10px">📝 Closing Notes — Sun Jun 14</div>'
         + _nl("Light traffic system-wide.", "World Cup events and Camden Commons closure (Charlotte) kept foot traffic down. Most studios described it as slower than a typical Saturday — but high-intent walk-ins continued.")
         + _nl("NYC led in revenue ($14.6K)", "despite slow traffic. No pushback on 16-week lead times. WDC strong with 8 walk-ins, multiple Havenly clients engaged on Ella, Scarlett, and Tatum.")
         + _nl("Dallas ($3.7K) and Chicago ($3.8K)", "had productive days with re-engagements and trade assists. Charlotte hit 39% MTD to goal after today. Minneapolis team generated 11 new leads with $0 sales — clients explicitly waiting for sale.")
@@ -811,7 +818,7 @@ def tab2():
 
     yd_sec = (
         '<div class="section">'
-        '<div class="section-label">📈 Yesterday — Sat Jun 13</div>'
+        '<div class="section-label">📈 Yesterday — Sun Jun 14</div>'
         + yd_net
         + '<div class="two-col">'
         + f'<div><div class="sub-label">Top 5 Studios</div>{yd_s_bars}</div>'
@@ -935,7 +942,7 @@ def tab2():
     )
     inbound_cvr_sec = (
         '<div class="section">'
-        '<div class="section-label">📈 Inbound CVR — MTD Jun 1–13 (B2C, apples-to-apples)</div>'
+        '<div class="section-label">📈 Inbound CVR — MTD Jun 1–14 (B2C, apples-to-apples)</div>'
         '<div class="table-wrap"><table>'
         '<tr><th>Metric</th>'
         '<th>2026 (Contacts/Inbound)</th><th>2026 CVR</th>'
@@ -1032,18 +1039,18 @@ def tab2():
     s_bars += '</div>'
 
     studio_cvr_tbl = (
-        '<div class="sub-label">Inbound → Order CVR by Studio MTD (Jun 1–13)</div>'
+        '<div class="sub-label">Inbound → Order CVR by Studio MTD (Jun 1–14)</div>'
         + s_bars
         + f'<p class="note">Sorted by CVR. Gray line = avg {avg_cvr:.1f}%. '
           f'<span style="color:#16a34a">●</span> well above avg '
           f'<span style="color:#0d9488">●</span> near avg '
           f'<span style="color:#dc2626">●</span> below avg. '
-          f'B2C contacts with first inbound Jun 1–13 who ordered on/after first contact.</p>'
+          f'B2C contacts with first inbound Jun 1–14 who ordered on/after first contact.</p>'
     )
 
     mtd_sec = (
         '<div class="section">'
-        '<div class="section-label">📊 MTD — Jun 1–13</div>'
+        '<div class="section-label">📊 MTD — Jun 1–14</div>'
         + mtd_net + pacing_note
         + week_notes_html
         + '<div class="two-col">'
@@ -1054,11 +1061,11 @@ def tab2():
     )
 
     return f"""
-<div class="page-label">Interior Define · Sales Team · Sat Jun 13, 2026</div>
+<div class="page-label">Interior Define · Sales Team · Sun Jun 14, 2026</div>
 <div class="email-wrap">
   <div class="hdr">
     <div class="hdr-brand">Interior Define · Sales Team</div>
-    <div class="hdr-meta">Sat Jun 13, 2026 · Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won)</div>
+    <div class="hdr-meta">Sun Jun 14, 2026 · Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won)</div>
   </div>
   {yd_sec}
   {mtd_sec}
@@ -1073,7 +1080,7 @@ html = f"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Interior Define — Daily Business Review · Sat Jun 13</title>
+<title>Interior Define — Daily Business Review · Sun Jun 14</title>
 <style>{CSS}</style>
 </head>
 <body>
