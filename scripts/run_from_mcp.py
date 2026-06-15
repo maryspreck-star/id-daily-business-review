@@ -345,23 +345,23 @@ YD_TOP_REPS = [
     {"name": "Heaven Chartier",   "studio": "Boston",       "rev":  3_450.00},
 ]
 
-# MTD (Jun 1-14) by studio — STG_DEAL
+# MTD (Jun 1-14) by studio — STG_DEAL MC=Yes, IS_CONVERTED=TRUE
 MTD_BY_STUDIO = [
-    {"name": "New York",      "rev": 238_330.32},
-    {"name": "Dallas",        "rev": 202_949.58},
-    {"name": "Washington DC", "rev": 171_184.19},
-    {"name": "Chicago",       "rev": 164_282.16},
-    {"name": "Minneapolis",   "rev": 163_119.41},
-    {"name": "Seattle",       "rev": 160_782.19},
-    {"name": "Denver",        "rev": 154_759.95},
-    {"name": "Charlotte",     "rev": 149_713.25},
-    {"name": "Boston",        "rev": 144_843.97},
-    {"name": "Los Angeles",   "rev": 144_408.84},
-    {"name": "San Francisco", "rev": 121_578.74},
+    {"name": "New York",      "rev": 210_253.57},
+    {"name": "Dallas",        "rev": 184_898.08},
+    {"name": "Washington DC", "rev": 165_701.94},
+    {"name": "Chicago",       "rev": 151_908.66},
+    {"name": "Minneapolis",   "rev": 147_997.41},
+    {"name": "Denver",        "rev": 147_843.52},
+    {"name": "Seattle",       "rev": 147_151.99},
+    {"name": "Charlotte",     "rev": 131_823.25},
+    {"name": "Los Angeles",   "rev": 131_505.34},
+    {"name": "Boston",        "rev": 128_511.97},
+    {"name": "San Francisco", "rev": 114_485.49},
     {"name": "Baltimore",     "rev":  85_468.49},
-    {"name": "Philadelphia",  "rev":  66_037.50},
+    {"name": "Philadelphia",  "rev":  64_623.75},
 ]
-MTD_HS_TOTAL = 1_967_458.59  # STG_DEAL Jun 1-14
+MTD_HS_TOTAL = 1_786_366.71  # HubSpot dashboard Jun 1-14 (MC=Yes + Closed Won)
 
 # MTD LY (Jun 1-13, 2025) — HubSpot API (same filters, same methodology)
 MTD_LY_BY_STUDIO = {
