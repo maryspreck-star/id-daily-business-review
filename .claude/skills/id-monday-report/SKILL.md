@@ -77,7 +77,9 @@ WHERE TO_DATE(Date)='[YD]'
 
 **Step 3: Update the script and generate report**
 ```bash
-cd /Users/mc.spreck/mary-claire-daily-business-review
+# Navigate to wherever you cloned the repo on your machine, e.g.:
+# cd ~/id-daily-business-review   (Matthew/Leeanne)
+# cd /Users/mc.spreck/mary-claire-daily-business-review   (MC's machine)
 source venv/bin/activate
 # Update data variables in scripts/run_from_mcp.py (see HOW TO EDIT below)
 python scripts/run_from_mcp.py
@@ -85,17 +87,21 @@ python scripts/run_from_mcp.py
 
 **Step 4: Generate PDF**
 ```python
-import asyncio
+import asyncio, os, pathlib
 from playwright.async_api import async_playwright
+
+# Works from any machine — uses the repo root, not a hardcoded path
+REPO = pathlib.Path(__file__).parent.parent if '__file__' in dir() else pathlib.Path.cwd()
+HTML = (REPO / 'output' / 'report.html').resolve()
+PDF  = (REPO / 'output' / 'report.pdf').resolve()
 
 async def gen():
     async with async_playwright() as p:
         b = await p.chromium.launch()
         pg = await b.new_page()
-        await pg.goto('file:///Users/mc.spreck/mary-claire-daily-business-review/output/report.html')
+        await pg.goto(f'file://{HTML}')
         await pg.wait_for_load_state('networkidle')
-        await pg.pdf(path='/Users/mc.spreck/mary-claire-daily-business-review/output/report.pdf',
-            format='A4', print_background=True,
+        await pg.pdf(path=str(PDF), format='A4', print_background=True,
             margin={'top':'10mm','bottom':'10mm','left':'8mm','right':'8mm'})
         await b.close()
 
@@ -104,10 +110,11 @@ asyncio.run(gen())
 
 **Step 5: Upload PDF and post to Slack**
 ```python
-import requests
+import requests, pathlib
 
+REPO    = pathlib.Path.cwd()  # run from repo root
+PDF     = str(REPO / 'output' / 'report.pdf')
 WEBHOOK = 'https://hooks.slack.com/services/[ask-MC-for-webhook-url]'
-PDF     = '/Users/mc.spreck/mary-claire-daily-business-review/output/report.pdf'
 
 URL = requests.post('https://tmpfiles.org/api/v1/upload',
     files={'file': open(PDF,'rb')}, data={'expires':'1d'}).json().get('data',{}).get('url','').replace('tmpfiles.org/','tmpfiles.org/dl/')
