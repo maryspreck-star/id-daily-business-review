@@ -363,17 +363,17 @@ MTD_BY_STUDIO = [
 ]
 MTD_HS_TOTAL = 1_786_366.71  # HubSpot dashboard Jun 1-14 (MC=Yes + Closed Won)
 
-# MTD LY (Jun 1-13, 2025) — HubSpot API (same filters, same methodology)
+# MTD LY (Jun 1-14, 2025) — pre-Aug stage-date methodology (same as MTD_HS_LY_TOTAL)
 MTD_LY_BY_STUDIO = {
-    "Boston":        170_319.63, "New York":       169_047.25,
-    "Minneapolis":    98_869.51, "San Francisco":   92_644.23,
-    "Seattle":        89_446.76, "Denver":          62_544.20,
-    "Washington DC":  61_565.00, "Baltimore":       58_268.68,
-    "Chicago":        47_043.75, "Los Angeles":     28_977.70,
-    "Charlotte":      15_656.75, "Philadelphia":    13_921.38,
-    "Dallas":              0.00,  # no closed-won deals Jun 1-13, 2025
+    "New York":      252_543.75, "Seattle":        159_006.22,
+    "Boston":        155_865.14, "Dallas":         133_126.26,
+    "Charlotte":     116_663.00, "Minneapolis":    112_987.74,
+    "Chicago":       111_395.21, "Philadelphia":    98_602.11,
+    "Denver":         93_207.47, "Washington DC":   71_176.75,
+    "Los Angeles":    68_837.27, "Baltimore":       57_484.69,
+    "San Francisco":  37_999.47,
 }
-MTD_HS_LY_TOTAL = 1_468_895.08  # Snowflake pre-Aug methodology (stage dates, Jun 1-14 2025)
+MTD_HS_LY_TOTAL = 1_468_895.08  # pre-Aug stage-date methodology, Jun 1-14 2025
 
 # MTD all reps (Jun 1-13) — exact from HubSpot API (MC=Yes + Closed Won + studio team)
 # email_prefix: (display_name, studio, revenue)
