@@ -1,7 +1,8 @@
 # Daily Business Review — Data Methodology
 
-**Last updated:** 2026-06-08  
-**Report periods:** Yesterday · Last Week (Mon–Sun) · MTD
+**Last updated:** 2026-06-14  
+**Report periods:** Yesterday · Last Week (Mon–Sun) · MTD  
+**Source file:** `src/collectors/snowflake.py` (Snowflake) · `src/collectors/deals.py` (deals/CVR) · `src/collectors/hubspot_activities.py` (HubSpot API) · `src/collectors/slack_notes.py` (Slack)
 
 ---
 
@@ -10,19 +11,19 @@
 ### Data sources
 | Source | Used for |
 |---|---|
-| `PROD.ID_WAREHOUSE.ORDERS` + `ID_WAREHOUSE.CUSTOMERS` | Revenue, orders, AOV, segments |
+| `PROD.ID_WAREHOUSE.ORDERS` + `ID_WAREHOUSE.CUSTOMERS` | Revenue, orders, AOV, segments, assisted %, UPT, repeat % |
 | `FIVETRAN_DB.UPLOADS.ALL_COMPANY_DAILY_FORECAST` | Forecast (Looker source, column: `ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS`) |
 | `PROD.ID_WAREHOUSE.STG_HUBSPOT_ENGAGEMENTS_BASE` + `STG_CONTACTS` | Inbound Engagements |
 | `PROD.ID_WAREHOUSE.SWATCH_ORDERS` + `STG_CONTACTS` | Swatch Performance |
-| `PROD.ID_WAREHOUSE.ORDER_ITEMS` + `PRODUCTS` | Merch Contribution |
+| `PROD.ID_WAREHOUSE.ORDER_ITEMS` + `PRODUCTS` | Merch Contribution (product class, collection, fabric) |
 | `PROD.ID_WAREHOUSE.STG_DEAL` | Studio Deal CVR |
 
 ---
 
-### Yesterday / Last Week / MTD — Revenue section
+### Yesterday / MTD — Revenue section
 
 #### Revenue (Net Sales)
-- **Formula:** `SUM(subtotal - ABS(discount_amount) + shipping_amount)`  
+- **Formula:** `SUM(subtotal - ABS(discount_amount) + shipping_amount)`
 - **Table:** `PROD.ID_WAREHOUSE.ORDERS o INNER JOIN ID_WAREHOUSE.CUSTOMERS c ON o.CUSTOMER_ID = c.CUSTOMER_ID`
 - **Filters:**
   - Staff excluded: `c.EMAIL NOT LIKE '%@interiordefine.com%' OR c.EMAIL IS NULL`
@@ -50,7 +51,32 @@
 #### Segments
 - **Column:** `CASE WHEN c.CUSTOMER_ID = 20 THEN 'Havenly' ELSE c.CUSTOMER_GROUP_CLASS END`
 - **Values:** B2C · Trade · Havenly (customer_id=20) · B2B
-- **YoY:** same date range prior year
+- **YoY (MTD):** same calendar days prior year
+
+---
+
+### Assisted Sales % and UPT
+
+- **Table:** `PROD.ID_WAREHOUSE.ORDERS` (standard, non-cancelled)
+- **Filters:** `ORDER_TYPE = 'standard' AND CANCELLATION = 'F'` + Denver timezone date filter
+- **Assisted %:** `SUM(CASE WHEN INDIVIDUAL IS NOT NULL AND INDIVIDUAL != '' THEN 1 ELSE 0 END) / COUNT(*)`
+  - `INDIVIDUAL` field on the order indicates a studio rep assisted the sale
+- **UPT (Units per Transaction):** total line items from `ORDER_ITEMS` ÷ total orders for the same period
+- **Period:** Yesterday only (not MTD)
+- **Source function:** `fetch_yesterday_assisted()` in `snowflake.py`
+
+---
+
+### Repeat Customer %
+
+- **Table:** `PROD.ID_WAREHOUSE.ORDERS` (standard, non-cancelled)
+- **Definition:** MTD orders where the customer placed at least one order before the current month
+- **Method:**
+  1. Pull all MTD order IDs + customer IDs
+  2. Find each customer's `MIN(order_date)` across all-time orders
+  3. `repeat_pct = orders where first_order_date < month_start / total MTD orders`
+- **Period:** MTD
+- **Source function:** `fetch_mtd_repeat_pct()` in `snowflake.py`
 
 ---
 
@@ -60,55 +86,92 @@
 - **Filter:** `c.CUSTOMER_GROUP = 'B2C'`
 - **MTD orders:** `COUNT(*)` where `CREATED_AT` in current month
 - **MTD customers:** `COUNT(DISTINCT so.EMAIL)`
+- **Rolling chart:** 6 prior complete months (oldest first), same filters
 - **YoY:** same month prior year
+- **Source function:** `fetch_swatches()` in `snowflake.py`
 
 ---
 
-### Merch Contribution (Merchandise · MTO + QS)
+### Merch Contribution
+
+All three breakdowns use the same base join and filters:
 
 - **Tables:** `ORDER_ITEMS oi JOIN PRODUCTS p ON oi.CATALOG_PRODUCT_ID = p.CATALOG_PRODUCT_ID JOIN ORDERS o ON oi.SALES_ORDER_ID = o.SALES_ORDER_ID`
-- **Filters:**
-  - `o.ORDER_TYPE = 'standard' AND o.CANCELLATION = 'F'`
-  - `p.ITEM_CLASSIFICATION = 'Merchandise'`
-  - `p.FULFILLMENT_CLASSIFICATION IN ('Made To Order', 'Quickship')`
-  - Denver timezone date filter on `o.ORDER_CREATED_AT`
-- **Revenue column:** `p.CLASS` (Sectionals, Sofas, Chairs, Beds, etc.)
-- **AUR:** `SUM(oi.PRICE) / COUNT(oi item)` per class
-- **% Mix:** category revenue / total merch revenue
-- **Bar width:** relative to top category (Sectionals = 100%)
+- **Filters:** `o.ORDER_TYPE = 'standard' AND o.CANCELLATION = 'F'` + Denver timezone MTD date filter on `o.ORDER_CREATED_AT`
+- **Revenue metric:** `SUM(oi.PRICE)` per category
+- **% Mix:** category revenue ÷ total revenue for that breakdown
+- **Bar width:** relative to the top category (100% = highest)
+
+#### By Product Class (primary chart)
+- **Column:** `p.CLASS` (e.g. Sectionals, Sofas, Chairs, Beds)
 - **Matches:** Looker `qid=B2YtIQC4p3yQuoUBBFvThb`
+
+#### By Collection
+- **Column:** `p.COLLECTION` (e.g. Topher, Austin, Jarvis)
+- Rows with `NULL` COLLECTION excluded
+
+#### By Fabric Family
+- **Column:** `p.FABRIC_FAMILY` (e.g. Performance, Velvet, Leather)
+- Rows with `NULL` FABRIC_FAMILY excluded
+
+- **Source function:** `fetch_merch_mix()` in `snowflake.py`
 
 ---
 
 ### Studio Performance MTD
 
-#### Discounted Revenue, Orders, AOV
-- **Source:** Looker `qid=ZZ8GuCGmVK8zpmRaT1GeHM`
-- **Formula:** `orders.md_order_revenue` grouped by `hubspot_deals.studio_name`
-- **Excludes:** null studio (Website/unattributed), "Assisted No Studio"
+#### Discounted Revenue, Orders, AOV (from Snowflake ORDERS)
+- **Table:** `PROD.ID_WAREHOUSE.ORDERS`
+- **Column grouped by:** `LOCATION` field on the order (the studio that placed/assisted the order)
+- **Filter:** standard + non-cancelled + Denver timezone MTD date filter + `LOCATION IS NOT NULL`
+- **Formula:** `SUM(subtotal - ABS(discount_amount) + shipping_amount)` per studio
+- **Source function:** `fetch_by_studio()` in `snowflake.py`
+- **Note:** This uses `ORDERS.LOCATION`, which differs from HubSpot's `hubspot_deals.studio_name`. The two may not align exactly for assisted/online-initiated orders.
 
-#### % of Deals, Deal CVR
-- **Source:** Looker `qid=M9kJPDOwBaf7plmqMxRte2` (hubspot_contacts explore)
-- **Table in Snowflake:** `PROD.ID_WAREHOUSE.STG_DEAL`
-- **Date filter:** MTD (June 1 – current date), no staff filter (studio reps have @interiordefine.com emails)
-- **Filter:** `DEAL_TYPE != 'Direct Order'`
-- **% of Deals:** studio inbound / total inbound across all studios (MTD)
-- **Deal CVR:** `SUM(IS_CONVERTED) / COUNT(*)` per studio (MTD)
+#### % of Deals and Deal CVR (from STG_DEAL)
+- **Table:** `PROD.ID_WAREHOUSE.STG_DEAL`
+- **Date filter:** MTD (month start – today, Denver timezone)
+- **Staff exclusion:** `DEAL_OWNER_EMAIL NOT LIKE '%@interiordefine.com%' OR DEAL_OWNER_EMAIL IS NULL`
+- **% of Deals:** studio inbound ÷ total inbound across all studios (MTD)
+
+##### Two CVR methods (both computed, report displays based on cohort maturity):
+
+**14-Day Mature Cohort CVR** (`cvr_14day_mtd`)
+- Denominator: deals created more than 14 days ago (`CREATE_DATE < today − 14 days`)
+- Numerator: those mature deals where `14_DAY_CONVERTED = 1`
+- Used when sufficient cohort maturity exists; avoids penalizing fresh leads
+
+**Meaningful Contact CVR** (`cvr_meaningful_mtd`)
+- Denominator: MTD deals where `MEANINGFUL_CONTACT = 1`
+- Numerator: meaningful deals where `IS_CONVERTED = 1`
+- Aligns with HubSpot's internal reporting definition (post-Aug 2025 methodology)
+
+- **Source function:** `fetch_deals()` in `deals.py`
 
 ---
 
 ### Inbound Engagements
 
-- **Table:** `STG_HUBSPOT_ENGAGEMENTS_BASE e JOIN STG_CONTACTS c ON e.CONTACT_ID = c.PRIMARY_HUBSPOT_ID`
+- **Table:** `PROD.ID_WAREHOUSE.STG_HUBSPOT_ENGAGEMENTS_BASE e JOIN STG_CONTACTS c ON e.CONTACT_ID = c.PRIMARY_HUBSPOT_ID`
 - **Filters:**
   - `ENGAGEMENT_TYPE NOT IN ('NOTE', 'TASK')`
   - `ENGAGEMENT_DIRECTION = 'Incoming'`
   - `c.CUSTOMER_GROUP = 'B2C'`
   - Studio exclusions: `c.STUDIO_NAME NOT IN ('The Inside', 'Burrow', 'General Managers', 'Remote Sales')`
   - Denver timezone on `e.CREATED_AT`
-- **Count:** `COUNT(DISTINCT c.PRIMARY_HUBSPOT_ID)` (distinct contacts)
-- **YoY:** same day-of-week prior year (yesterday − 364 days)
+- **Count:** `COUNT(DISTINCT c.PRIMARY_HUBSPOT_ID)` (distinct contacts per day, not raw engagement events)
 - **Matches:** Looker dashboard 1156 "Daily Inbound Engagement" tile exactly
+
+#### KPI cards
+- **Yesterday:** engagement count for yesterday (Denver date)
+- **YoY:** same day-of-week prior year (yesterday − 364 days, preserving Mon/Tue/etc. alignment)
+
+#### Rolling 4-week chart
+- **Weeks:** 4 complete prior weeks, each anchored to Monday (Mon–Sun)
+- Week starts computed in Python: `this_monday − 1, 2, 3, 4 weeks`, displayed oldest → newest
+- All 6 dates (yesterday, LY date, 4 week-starts) fetched in a single SQL query with an `IN` clause
+
+- **Source function:** `fetch_engagements()` in `snowflake.py`
 
 ---
 
@@ -120,9 +183,9 @@
 | HubSpot CSV export | Revenue (Net Sales) — exact match to dashboard |
 | Google Sheet `1lJcsmRhG3ScG8s2ol2jPwUBJ18n20MMn101rXc1ZQp0` tab "For claude_add each month" | Daily retail forecast (studio plan) |
 | Google Sheet `1CkbEVt9utgqkO4xbCnxpc1A6tJCTTRaXWo_iQZQiyJw` tab "for claude" | Monthly rep and team goals |
-| `PROD.ID_WAREHOUSE.STG_DEAL` | Deal CVR, response time, pacing actuals |
-| HubSpot API `/crm/v3/owners` | Rep → studio team mapping |
-| HubSpot API (calls + meetings) | Activity counts per rep |
+| `PROD.ID_WAREHOUSE.STG_DEAL` | Deal CVR, inbound volume, by-studio and by-rep breakdowns |
+| HubSpot API `/crm/v3/owners` | Rep → primary studio team mapping |
+| HubSpot API `/crm/v3/objects/calls/search` + `/meetings/search` | MTD call and meeting counts per rep |
 | `#id--retail-closing-notes` Slack channel (ID: C08MYB2S3DH) | Closing notes narrative |
 
 ---
@@ -131,7 +194,7 @@
 
 - **Source:** HubSpot CSV export — `hubspot-crm-exports-all-deals-YYYY-MM-DD.csv`
 - **Filter:** `Deal Stage = "Closed Won"` (any of 3 pipelines) AND `Meaningful Contact? = Yes` AND `HubSpot Team` known AND `Close Date` in period
-- **Metric:** `Amount` (deal amount field)
+- **Metric:** `Amount` (deal amount field, post-discount, excludes tax/shipping)
 - **Matches:** HubSpot dashboard "MTD Sales by Team" — `qid=10022704`
 - **Note:** Snowflake and the HubSpot API return ~$65K more than the dashboard due to an internal HubSpot reporting engine difference. CSV export gives exact match.
 
@@ -173,11 +236,14 @@
 ### Activity by Studio (Calls & Meetings per rep)
 
 - **Source:** HubSpot API
-  - Calls: `POST /crm/v3/objects/calls/search` filtered by owner + MTD close date
-  - Meetings: `POST /crm/v3/objects/meetings/search` filtered by owner + MTD close date
-- **Team attribution:** HubSpot owners API (`/crm/v3/owners`) — primary studio team from `hs_teams`
-- **Displayed as:** total calls per studio and calls-per-rep average
+  - Calls: `POST /crm/v3/objects/calls/search` filtered by `hubspot_owner_id` + `hs_createdate ≥ month start (ms)`
+  - Meetings: `POST /crm/v3/objects/meetings/search`, same filters
+- **Team attribution:** HubSpot owners API (`GET /crm/v3/owners`) — primary studio team from `hs_teams` where `primary=true` and team name matches known studio list
+- **Studio list:** New York, Chicago, Minneapolis, Seattle, Dallas, Charlotte, Los Angeles, Washington DC, Boston, Denver, Philadelphia, San Francisco, Baltimore
+- **Displayed as:** total calls + meetings per studio, calls-per-rep average, meetings-per-rep average
+- **Rate limiting:** 120ms sleep between each API call to stay under HubSpot's 100 req/10s limit
 - **Note:** SMS and Chat not yet included (HubSpot sync limitation)
+- **Source function:** `fetch_activities()` in `hubspot_activities.py`
 
 ---
 
@@ -192,10 +258,10 @@
 
 ## Forecast sources summary
 
-| Tab | Forecast source | Column |
+| Tab | Forecast source | Column / sheet |
 |---|---|---|
 | Total Business | `FIVETRAN_DB.UPLOADS.ALL_COMPANY_DAILY_FORECAST` | `ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS` |
-| Sales Team | Google Sheet (studio retail plan) | Daily $ from "For claude_add each month" tab |
+| Sales Team | Google Sheet `1lJcsmRhG3ScG8s2ol2jPwUBJ18n20MMn101rXc1ZQp0` | Daily $ from "For claude_add each month" tab |
 
 The two sources differ significantly — the Snowflake/Looker forecast is the full company plan (all channels), while the Google Sheet is the retail studio plan calibrated to HubSpot deal revenue.
 
@@ -208,3 +274,4 @@ The two sources differ significantly — the Snowflake/Looker forecast is the fu
 3. **SMS/Chat activities:** Not included in activity table — not synced to Snowflake, HubSpot API scopes needed.
 4. **GitHub Actions cron:** Not yet live — requires `SENDGRID_API_KEY` in GitHub secrets + repo push.
 5. **Swatch CVR by window:** Deferred — requires complex cohort SQL to match Looker exactly.
+6. **Studio revenue source discrepancy:** Tab 1 studio table uses `ORDERS.LOCATION`; Tab 2 and Looker use `hubspot_deals.studio_name`. These can differ for online-initiated orders with studio assists.
