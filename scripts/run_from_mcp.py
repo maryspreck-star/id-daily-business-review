@@ -519,6 +519,97 @@ MONTHLY_CVR = [
     {"month": "Jun 2026*","contacts": 2_639, "d14":  6.82, "d30":  6.82, "d60":  6.82, "d90":  6.82},
 ]
 
+# ── Last Week Jun 8–14, 2026 — Total Business tab (Snowflake) ─────────────────
+
+LW_B2C_REV, LW_B2C_ORD =  652_865.25, 253
+LW_TR_REV,  LW_TR_ORD  =  250_379.58,  92
+LW_HV_REV,  LW_HV_ORD  =   24_379.00,  17
+LW_B2B_REV, LW_B2B_ORD =   64_608.99,  14
+LW_TOT_REV, LW_TOT_ORD =  992_232.82, 376
+LW_BLENDED_AOV =   2_638.38   # computed from Snowflake revenue/orders
+LW_B2C_AOV     =   2_580.49
+LW_TR_AOV      =   2_721.52
+LW_ASSISTED_REV =  649_313.61  # Snowflake STG_DEAL MC=Yes + Closed Won Jun 8-14
+LW_SNOWFLAKE_FCST = 1_315_117   # ALL_COMPANY_DAILY_FORECAST Jun 8-14
+
+# Last week LY Jun 8–14, 2025 — Snowflake
+LW_B2C_REV_LY, LW_B2C_ORD_LY =  869_336.08, 302
+LW_TR_REV_LY,  LW_TR_ORD_LY  =  218_322.03,  79
+LW_HV_REV_LY,  LW_HV_ORD_LY  =   61_602.74,  23
+LW_B2B_REV_LY, LW_B2B_ORD_LY =   17_845.00,   3
+LW_TOT_REV_LY, LW_TOT_ORD_LY = 1_168_860.85, 408
+LW_BLENDED_AOV_LY =  2_864.85
+LW_B2C_AOV_LY     =  2_878.60
+LW_TR_AOV_LY      =  2_763.57
+
+# Last week inbound — ← validate and update from Looker dashboard 1156 each week
+LW_INBOUND    = 1_392   # estimated (MTD/14 × 7) — update from Looker
+LW_INBOUND_LY = 1_352   # estimated — update from Looker
+
+# Last week swatch — ← validate and update from Looker dashboard 1156 each week
+SW_LW_ORD,    SW_LW_CUST    = 2_450, 2_135   # estimated — update from Looker
+SW_LW_LY_ORD, SW_LW_LY_CUST = 2_142, 1_838   # estimated — update from Looker
+
+# ── Last Week Jun 8–14, 2026 — Sales Team tab ─────────────────────────────────
+
+LW_BY_STUDIO = [
+    {"name": "New York",      "rev":  77_760.44},
+    {"name": "Washington DC", "rev":  76_271.46},
+    {"name": "Los Angeles",   "rev":  60_488.70},
+    {"name": "Dallas",        "rev":  57_144.84},
+    {"name": "Chicago",       "rev":  56_471.25},
+    {"name": "Charlotte",     "rev":  47_499.50},
+    {"name": "Seattle",       "rev":  46_582.73},
+    {"name": "Denver",        "rev":  45_846.49},
+    {"name": "San Francisco", "rev":  42_258.50},
+    {"name": "Baltimore",     "rev":  41_976.50},
+    {"name": "Minneapolis",   "rev":  40_533.20},
+    {"name": "Philadelphia",  "rev":  26_403.00},
+    {"name": "Boston",        "rev":  26_390.75},
+]
+LW_HS_TOTAL = 645_627.36   # sum of above — STG_DEAL MC=Yes Closed Won Jun 8-14
+LW_LY_BY_STUDIO = {
+    "New York":      139_211.11, "Seattle":        67_706.03,
+    "Boston":         66_908.82, "Chicago":        63_530.96,
+    "Charlotte":      60_267.25, "Minneapolis":    57_805.18,
+    "Washington DC":  52_045.24, "Denver":         50_002.49,
+    "Philadelphia":   43_294.49, "Dallas":         37_896.62,
+    "Los Angeles":    30_149.20, "Baltimore":      29_230.44,
+    "San Francisco":  23_009.48,
+}
+LW_HS_LY_TOTAL = 721_057.31   # pre-Aug stage-date methodology Jun 8-14, 2025
+
+# Last week sales forecast — derived from DAILY_FCST
+LW_SALES_FCST = sum(v for k,v in DAILY_FCST.items() if '2026-06-08' <= k <= '2026-06-14')
+
+# ── Activities by studio — Snowflake STG_DEAL, DE_OWNED_DEAL=1, MTD Jun 1–14 ──
+# Source: STG_DEAL.CALLS / MEETINGS / DEAL_INCOMING_EMAILS+DEAL_OUTGOING_EMAILS
+# Note: counts are deal-level aggregates — refer to HubSpot activity dashboard for
+# raw HubSpot activity records (Call, Conversation Session, SMS, etc.)
+ACTIVITIES_BY_STUDIO = [
+    {"studio": "Baltimore",     "calls":  45, "meetings":  17, "emails":   621, "deals": 271},
+    {"studio": "Boston",        "calls": 115, "meetings":  43, "emails":   779, "deals": 394},
+    {"studio": "Charlotte",     "calls": 101, "meetings":  39, "emails":   774, "deals": 374},
+    {"studio": "Chicago",       "calls": 113, "meetings":  69, "emails":   996, "deals": 525},
+    {"studio": "Dallas",        "calls": 101, "meetings":  74, "emails":   828, "deals": 469},
+    {"studio": "Denver",        "calls": 122, "meetings":  65, "emails":   706, "deals": 365},
+    {"studio": "Los Angeles",   "calls": 113, "meetings":  70, "emails":   934, "deals": 442},
+    {"studio": "Minneapolis",   "calls": 182, "meetings":  87, "emails":   933, "deals": 491},
+    {"studio": "New York",      "calls": 179, "meetings": 140, "emails": 1_446, "deals": 736},
+    {"studio": "Philadelphia",  "calls":  80, "meetings":  53, "emails":   631, "deals": 294},
+    {"studio": "San Francisco", "calls":  59, "meetings":  58, "emails":   474, "deals": 308},
+    {"studio": "Seattle",       "calls":  73, "meetings":  92, "emails":   981, "deals": 463},
+    {"studio": "Washington DC", "calls": 123, "meetings":  51, "emails":   752, "deals": 411},
+]
+
+# Rep headcount per studio — Design Experts + Senior Design Experts only (from REP_GOALS)
+STUDIO_REP_COUNT = {
+    "Baltimore": 3, "Boston": 4, "Charlotte": 2, "Chicago": 4,
+    "Dallas": 3, "Denver": 3, "Los Angeles": 4, "Minneapolis": 4,
+    "New York": 6, "Philadelphia": 3, "San Francisco": 3,
+    "Seattle": 5, "Washington DC": 3,
+}
+
 # ── Tab 1: Total Business ─────────────────────────────────────────────────────
 
 def tab1():
@@ -553,6 +644,45 @@ def tab1():
         '<div class="section">'
         '<div class="section-label">📈 Yesterday — Sun Jun 14</div>'
         + row1 + row2 + segs + merch + '</div>'
+    )
+
+    # Last Week section — Jun 8–14, 2026
+    lw_mix = LW_B2C_REV + LW_TR_REV + LW_HV_REV + LW_B2B_REV
+    lw_row1 = (
+        '<div class="kpi-grid">'
+        + _kpi(_cf(LW_TOT_REV), "Revenue", _yoy(LW_TOT_REV, LW_TOT_REV_LY, fmt=_cf), "#0d9488")
+        + _kpi(str(LW_TOT_ORD), "Orders", _yoy_n(LW_TOT_ORD, LW_TOT_ORD_LY))
+        + _kpi(_pct(LW_ASSISTED_REV / LW_TOT_REV), "Assisted %")
+        + _kpi(str(LW_INBOUND), "Inbound Engagements", _yoy_n(LW_INBOUND, LW_INBOUND_LY))
+        + _fcst_kpi(LW_TOT_REV, LW_SNOWFLAKE_FCST, fmt=_cf)
+        + '</div>'
+    )
+    lw_row2 = (
+        '<div class="aov-grid">'
+        + _aov_box("Blended AOV", LW_BLENDED_AOV, _yoy(LW_BLENDED_AOV, LW_BLENDED_AOV_LY, fmt=_cf), fmt=_cf)
+        + _aov_box("B2C AOV",     LW_B2C_AOV,     _yoy(LW_B2C_AOV,     LW_B2C_AOV_LY,     fmt=_cf), fmt=_cf)
+        + _aov_box("Trade AOV",   LW_TR_AOV,       _yoy(LW_TR_AOV,      LW_TR_AOV_LY,       fmt=_cf), fmt=_cf)
+        + '</div>'
+    )
+    lw_segs = (
+        '<div class="sub-label">Revenue by Customer Class</div>'
+        + _seg_bar("B2C",     LW_B2C_REV, lw_mix, LW_B2C_REV_LY, "#6366f1", fmt=_cf)
+        + _seg_bar("Trade",   LW_TR_REV,  lw_mix, LW_TR_REV_LY,  "#0d9488", fmt=_cf)
+        + _seg_bar("Havenly", LW_HV_REV,  lw_mix, LW_HV_REV_LY,  "#a78bfa", fmt=_cf)
+        + _seg_bar("B2B",     LW_B2B_REV, lw_mix, LW_B2B_REV_LY, "#64748b", fmt=_cf)
+    )
+    lw_swatches = (
+        '<div class="sub-label">Swatch Performance</div>'
+        '<div class="kpi-grid">'
+        + _kpi(f"{SW_LW_ORD:,}", "Swatch Orders", _yoy_n(SW_LW_ORD, SW_LW_LY_ORD))
+        + _kpi(f"{SW_LW_CUST:,}", "Unique Customers", _yoy_n(SW_LW_CUST, SW_LW_LY_CUST))
+        + '</div>'
+        + '<p class="note">⚠ Inbound and swatch figures are estimated (MTD/14 × 7) — update from Looker dashboard 1156.</p>'
+    )
+    lw_sec = (
+        '<div class="section">'
+        '<div class="section-label">📆 Last Week — Jun 8–14</div>'
+        + lw_row1 + lw_row2 + lw_segs + lw_swatches + '</div>'
     )
 
     # MTD section
@@ -751,6 +881,53 @@ def tab1():
         + mtd_row1 + mtd_row2 + mtd_segs + swatches + mtd_merch + studio_tbl + '</div>'
     )
 
+    # Performance blurb — dynamically generated from all data
+    def _sign1(v): return "▲" if v >= 0 else "▼"
+    def _col1(v):  return "#16a34a" if v >= 0 else "#dc2626"
+    def _dir1(v):  return "ahead of" if v >= 0 else "behind"
+
+    yd_vs_fcst  = (YD_REV_FOR_FCST  - YD_FCST_SNOWFLAKE)  / YD_FCST_SNOWFLAKE  * 100
+    yd_aov_chg  = (YD_BLENDED_AOV   - YD_BLENDED_AOV_LY)  / YD_BLENDED_AOV_LY  * 100
+    yd_inb_chg  = (YD_INBOUND       - YD_INBOUND_LY)       / YD_INBOUND_LY       * 100
+    yd_ast_pct  =  YD_ASSISTED_REV  / YD_TOT_REV * 100
+    lw_vs_fcst1 = (LW_TOT_REV       - LW_SNOWFLAKE_FCST)   / LW_SNOWFLAKE_FCST   * 100
+    lw_rev_yoy  = (LW_TOT_REV       - LW_TOT_REV_LY)       / LW_TOT_REV_LY       * 100
+    lw_aov_yoy  = (LW_BLENDED_AOV   - LW_BLENDED_AOV_LY)   / LW_BLENDED_AOV_LY   * 100
+    lw_b2c_pct  =  LW_B2C_REV / lw_mix * 100
+    lw_b2c_ly   =  LW_B2C_REV_LY / (LW_B2C_REV_LY+LW_TR_REV_LY+LW_HV_REV_LY+LW_B2B_REV_LY) * 100
+    mtd_vs_fcst = (MTD_REV_FOR_FCST - MTD_SNOWFLAKE_FCST)  / MTD_SNOWFLAKE_FCST  * 100
+    mtd_rev_yoy = (MTD_TOT_REV      - MTD_TOT_REV_LY)      / MTD_TOT_REV_LY      * 100
+    mtd_inb_chg = (MTD_INBOUND      - MTD_INBOUND_LY)      / MTD_INBOUND_LY      * 100
+    mtd_sw_chg  = (SW_MTD_ORD       - SW_LY_ORD)           / SW_LY_ORD           * 100
+    mtd_aov_yoy = (MTD_BLENDED_AOV  - MTD_BLENDED_AOV_LY)  / MTD_BLENDED_AOV_LY  * 100
+    mtd_ast_pct =  MTD_ASSISTED_REV / MTD_TOT_REV * 100
+
+    blurb_lines = [
+        '<div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">📊 Performance Summary — Why Are We Missing / Achieving Plan?</div>',
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Yesterday: </span>'
+        f'<span style="font-size:12px;color:#334155">{_cf(YD_TOT_REV)} — <span style="color:{_col1(yd_vs_fcst)}">{_sign1(yd_vs_fcst)} {abs(yd_vs_fcst):.1f}% {_dir1(yd_vs_fcst)}</span> forecast. '
+        f'Inbound <span style="color:{_col1(yd_inb_chg)}">{_sign1(yd_inb_chg)} {abs(yd_inb_chg):.1f}% YoY</span> ({YD_INBOUND} vs {YD_INBOUND_LY}). '
+        f'Blended AOV {_cf(YD_BLENDED_AOV)} <span style="color:{_col1(yd_aov_chg)}">{_sign1(yd_aov_chg)} {abs(yd_aov_chg):.1f}% YoY</span>. '
+        f'Assisted (MC=Yes): {yd_ast_pct:.1f}% of revenue.</span></div>',
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Last Week (Jun 8–14): </span>'
+        f'<span style="font-size:12px;color:#334155">{_cf(LW_TOT_REV)} — <span style="color:{_col1(lw_vs_fcst1)}">{_sign1(lw_vs_fcst1)} {abs(lw_vs_fcst1):.1f}% {_dir1(lw_vs_fcst1)}</span> forecast. '
+        f'Revenue <span style="color:{_col1(lw_rev_yoy)}">{_sign1(lw_rev_yoy)} {abs(lw_rev_yoy):.1f}% YoY</span>. '
+        f'AOV {_cf(LW_BLENDED_AOV)} vs {_cf(LW_BLENDED_AOV_LY)} LY <span style="color:{_col1(lw_aov_yoy)}">{_sign1(lw_aov_yoy)} {abs(lw_aov_yoy):.1f}%</span>. '
+        f'B2C mix {lw_b2c_pct:.0f}% vs {lw_b2c_ly:.0f}% LY ({"▼ shift toward non-B2C" if lw_b2c_pct < lw_b2c_ly else "▲ stronger B2C mix"}).</span></div>',
+        f'<div><span style="font-weight:700;font-size:12px">MTD (Jun 1–14): </span>'
+        f'<span style="font-size:12px;color:#334155">{_cf(MTD_TOT_REV)} — <span style="color:{_col1(mtd_vs_fcst)}">{_sign1(mtd_vs_fcst)} {abs(mtd_vs_fcst):.1f}% {_dir1(mtd_vs_fcst)}</span> forecast. '
+        f'Revenue <span style="color:{_col1(mtd_rev_yoy)}">{_sign1(mtd_rev_yoy)} {abs(mtd_rev_yoy):.1f}% YoY</span>. '
+        f'Lead indicators: inbound <span style="color:{_col1(mtd_inb_chg)}">{_sign1(mtd_inb_chg)} {abs(mtd_inb_chg):.1f}% YoY</span> ({MTD_INBOUND:,} vs {MTD_INBOUND_LY:,}), '
+        f'swatches <span style="color:{_col1(mtd_sw_chg)}">{_sign1(mtd_sw_chg)} {abs(mtd_sw_chg):.1f}% YoY</span> ({SW_MTD_ORD:,} vs {SW_LY_ORD:,}). '
+        f'Blended AOV {_cf(MTD_BLENDED_AOV)} vs {_cf(MTD_BLENDED_AOV_LY)} LY <span style="color:{_col1(mtd_aov_yoy)}">{_sign1(mtd_aov_yoy)} {abs(mtd_aov_yoy):.1f}%</span>. '
+        f'Assisted: {mtd_ast_pct:.1f}% of revenue.</span></div>',
+    ]
+    blurb_sec = (
+        '<div class="section">'
+        '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:3px solid #16a34a;border-radius:6px;padding:14px 16px">'
+        + "".join(blurb_lines) + '</div></div>'
+    )
+
     cvr_sec = (
         '<div class="section">'
         '<div class="section-label">📈 Inbound CVR Trend — 2026 Monthly Cohorts</div>'
@@ -765,6 +942,8 @@ def tab1():
     <div class="hdr-meta">Daily Business Review · Sun Jun 14, 2026 · Forecast source: Looker (ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS)</div>
   </div>
   {yd_sec}
+  {lw_sec}
+  {blurb_sec}
   {mtd_sec}
   {cvr_sec}
   <div class="footer">Interior Define Daily Business Review — auto-generated · Forecast: FIVETRAN_DB.UPLOADS.ALL_COMPANY_DAILY_FORECAST</div>
@@ -823,6 +1002,207 @@ def tab2():
         + '</div>'
         + yd_notes
         + '</div>'
+    )
+
+    # ── Last Week section (Jun 8–14) ──────────────────────────────────────────
+    lw_hs_yoy   = _yoy(LW_HS_TOTAL, LW_HS_LY_TOTAL)
+    lw_fcst_d   = (LW_HS_TOTAL - LW_SALES_FCST) / LW_SALES_FCST if LW_SALES_FCST else 0
+    lw_fcst_css = "up" if lw_fcst_d >= 0 else "dn"
+    lw_net = (
+        '<div class="ns-pair">'
+        f'<div class="ns-box" style="border-left:3px solid #0d9488">'
+        f'<div class="ns-lbl">Net Sales — Last Week</div>'
+        f'<div class="ns-val">{_c(LW_HS_TOTAL)}</div>'
+        f'<div class="ns-chg">{lw_hs_yoy}</div>'
+        f'</div>'
+        f'<div class="ns-box" style="border-left:3px solid {"#16a34a" if lw_fcst_d>=0 else "#dc2626"}">'
+        f'<div class="ns-lbl">vs Forecast</div>'
+        f'<div class="ns-val" style="font-size:16px"><span class="{lw_fcst_css}">{"+" if lw_fcst_d>=0 else ""}{lw_fcst_d*100:.1f}% v. {_c(LW_SALES_FCST)} fcst</span></div>'
+        f'</div>'
+        '</div>'
+    )
+    max_lw_s = max(s["rev"] for s in LW_BY_STUDIO)
+    lw_s_bars = "".join(_horiz_bar(s["name"], s["rev"], max_lw_s) for s in sorted(LW_BY_STUDIO, key=lambda x: -x["rev"])[:5])
+    lw_sec = (
+        '<div class="section">'
+        '<div class="section-label">📆 Last Week — Jun 8–14</div>'
+        + lw_net
+        + f'<div><div class="sub-label">Top 5 Studios</div>{lw_s_bars}</div>'
+        + '</div>'
+    )
+
+    # ── Activities by Studio ───────────────────────────────────────────────────
+    act_total = {k: sum(s[k] for s in ACTIVITIES_BY_STUDIO) for k in ("calls","meetings","emails","deals")}
+    def _act_bar(v, mx, color="#6366f1"):
+        w = int(v / mx * 120) if mx else 0
+        return f'<div style="width:{w}px;height:10px;background:{color};border-radius:2px;display:inline-block;vertical-align:middle"></div>'
+
+    act_rows = ""
+    max_calls = max(s["calls"] for s in ACTIVITIES_BY_STUDIO)
+    max_mtgs  = max(s["meetings"] for s in ACTIVITIES_BY_STUDIO)
+    max_emails= max(s["emails"]   for s in ACTIVITIES_BY_STUDIO)
+    for s in sorted(ACTIVITIES_BY_STUDIO, key=lambda x: -(x["calls"]+x["meetings"]+x["emails"])):
+        reps = STUDIO_REP_COUNT.get(s["studio"], 1)
+        calls_pp  = s["calls"]    / reps
+        mtgs_pp   = s["meetings"] / reps
+        emails_pp = s["emails"]   / reps
+        act_rows += (
+            f'<tr>'
+            f'<td style="font-weight:600">{s["studio"]}</td>'
+            f'<td>{s["calls"]:,} {_act_bar(s["calls"],max_calls,"#6366f1")}</td>'
+            f'<td style="font-size:10px;color:#64748b">{calls_pp:.1f}/rep</td>'
+            f'<td>{s["meetings"]:,} {_act_bar(s["meetings"],max_mtgs,"#0d9488")}</td>'
+            f'<td style="font-size:10px;color:#64748b">{mtgs_pp:.1f}/rep</td>'
+            f'<td>{s["emails"]:,} {_act_bar(s["emails"],max_emails,"#94a3b8")}</td>'
+            f'<td style="font-size:10px;color:#64748b">{emails_pp:.1f}/rep</td>'
+            f'<td style="color:#64748b">{s["deals"]:,}</td>'
+            f'</tr>'
+        )
+    act_rows += (
+        f'<tr style="font-weight:700;border-top:2px solid #cbd5e1">'
+        f'<td>TOTAL</td>'
+        f'<td colspan="2">{act_total["calls"]:,} calls</td>'
+        f'<td colspan="2">{act_total["meetings"]:,} mtgs</td>'
+        f'<td colspan="2">{act_total["emails"]:,} emails</td>'
+        f'<td>{act_total["deals"]:,}</td></tr>'
+    )
+    act_tbl = (
+        '<div class="table-wrap"><table>'
+        '<tr><th>Studio</th>'
+        '<th>Calls</th><th>Calls/Rep</th>'
+        '<th>Meetings</th><th>Mtgs/Rep</th>'
+        '<th>Emails Sent</th><th>Emails/Rep</th>'
+        '<th>Deals Touched</th></tr>'
+        + act_rows + '</table></div>'
+    )
+    # So-what blurb
+    top_calls_studio = max(ACTIVITIES_BY_STUDIO, key=lambda x: x["calls"]/STUDIO_REP_COUNT.get(x["studio"],1))
+    top_mtg_studio   = max(ACTIVITIES_BY_STUDIO, key=lambda x: x["meetings"]/STUDIO_REP_COUNT.get(x["studio"],1))
+    low_mtg_studio   = min(ACTIVITIES_BY_STUDIO, key=lambda x: x["meetings"]/STUDIO_REP_COUNT.get(x["studio"],1))
+    top_c_pp  = top_calls_studio["calls"]  / STUDIO_REP_COUNT.get(top_calls_studio["studio"],1)
+    top_m_pp  = top_mtg_studio["meetings"] / STUDIO_REP_COUNT.get(top_mtg_studio["studio"],1)
+    low_m_pp  = low_mtg_studio["meetings"] / STUDIO_REP_COUNT.get(low_mtg_studio["studio"],1)
+    avg_m_pp  = act_total["meetings"] / sum(STUDIO_REP_COUNT.values())
+    avg_c_pp  = act_total["calls"]    / sum(STUDIO_REP_COUNT.values())
+    act_blurb = (
+        '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0284c7;border-radius:6px;padding:12px 14px;margin-top:10px">'
+        '<div style="font-size:11px;font-weight:700;color:#0c4a6e;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">💡 So What — Activities MTD</div>'
+        f'<div style="font-size:12px;color:#1e293b;line-height:1.65">'
+        f'Across all {sum(STUDIO_REP_COUNT.values())} DE/SDEs, the team averaged <strong>{avg_c_pp:.1f} calls/rep</strong> and <strong>{avg_m_pp:.1f} meetings/rep</strong> MTD. '
+        f'<strong>{top_calls_studio["studio"]}</strong> leads on calls/rep ({top_c_pp:.1f}); '
+        f'<strong>{top_mtg_studio["studio"]}</strong> leads on meetings/rep ({top_m_pp:.1f}). '
+        f'<strong>{low_mtg_studio["studio"]}</strong> has the fewest meetings/rep ({low_m_pp:.1f} vs {avg_m_pp:.1f} avg) — worth monitoring given meetings are the highest-converting activity. '
+        f'Note: figures are MTD deal-level aggregates from STG_DEAL; raw HubSpot activity dashboard may show higher counts due to activities not yet linked to a deal.'
+        f'</div>'
+        '</div>'
+    )
+    activities_sec = (
+        '<div class="section">'
+        '<div class="section-label">📞 Activities by Studio — MTD (DE/SDE only)</div>'
+        + act_tbl + act_blurb + '</div>'
+    )
+
+    # ── Sales Team Performance Blurb ──────────────────────────────────────────
+    def _s(v):    return "▲" if v >= 0 else "▼"
+    def _c2(v):   return "#16a34a" if v >= 0 else "#dc2626"
+    def _dir2(v): return "ahead of" if v >= 0 else "behind"
+
+    yd_s_fcst  = (YD_HS_TOTAL  - YD_SALES_FCST)  / YD_SALES_FCST  * 100 if YD_SALES_FCST  else 0
+    yd_s_yoy   = (YD_HS_TOTAL  - YD_HS_LY_TOTAL)  / YD_HS_LY_TOTAL  * 100 if YD_HS_LY_TOTAL  else 0
+    lw_s_fcst2 = (LW_HS_TOTAL  - LW_SALES_FCST)  / LW_SALES_FCST   * 100 if LW_SALES_FCST  else 0
+    lw_s_yoy   = (LW_HS_TOTAL  - LW_HS_LY_TOTAL)  / LW_HS_LY_TOTAL  * 100 if LW_HS_LY_TOTAL  else 0
+    mtd_s_fcst = (MTD_HS_TOTAL - MTD_SALES_FCST)  / MTD_SALES_FCST  * 100 if MTD_SALES_FCST else 0
+    mtd_s_yoy  = (MTD_HS_TOTAL - MTD_HS_LY_TOTAL) / MTD_HS_LY_TOTAL * 100 if MTD_HS_LY_TOTAL else 0
+
+    # Studios ahead/behind paced goal MTD
+    studios_ahead  = []
+    studios_behind = []
+    for studio in sorted(STUDIO_GOALS.keys()):
+        goal   = STUDIO_GOALS[studio]
+        paced  = goal * PACING_PCT
+        actual = next((s["rev"] for s in MTD_BY_STUDIO if s["name"] == studio), 0)
+        pct_p  = actual / paced if paced else 0
+        if pct_p >= 1.05:
+            studios_ahead.append((studio, pct_p))
+        elif pct_p < 0.85:
+            studios_behind.append((studio, pct_p))
+    studios_ahead.sort(key=lambda x: -x[1])
+    studios_behind.sort(key=lambda x: x[1])
+
+    # Reps pacing well vs not
+    reps_ahead_l  = []
+    reps_behind_l = []
+    for email_key, (display_name, studio, goal) in REP_GOALS.items():
+        if goal == 0: continue
+        paced  = goal * PACING_PCT
+        actual = MTD_ALL_REPS[email_key][2] if email_key in MTD_ALL_REPS else 0
+        pct_p  = actual / paced if paced else 0
+        short  = display_name.split()[0][0] + ". " + display_name.split()[-1]
+        if pct_p >= 1.1:
+            reps_ahead_l.append((short, studio, pct_p))
+        elif pct_p < 0.75:
+            reps_behind_l.append((short, studio, pct_p))
+    reps_ahead_l.sort(key=lambda x: -x[2])
+    reps_behind_l.sort(key=lambda x: x[2])
+
+    def _studio_list(lst, color, fmt):
+        return ", ".join(f'<span style="color:{color};font-weight:600">{s}</span> ({fmt(p)})' for s,p in lst[:3])
+    def _rep_list(lst, color, fmt):
+        return ", ".join(f'<span style="color:{color};font-weight:600">{n} ({st})</span> ({fmt(p)})' for n,st,p in lst[:3])
+
+    # MC% average MTD
+    mc_avg_pct = sum(r["mtd_pct"] for r in MC_DATA) / len(MC_DATA) if MC_DATA else 0
+    low_mc = sorted(MC_DATA, key=lambda x: x["mtd_pct"])[:2]
+
+    perf_lines = [
+        '<div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">📊 Sales Team Performance — Why Are We Missing / Achieving Plan?</div>',
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Yesterday: </span>'
+        f'<span style="font-size:12px;color:#334155">{_c(YD_HS_TOTAL)} — <span style="color:{_c2(yd_s_fcst)}">{_s(yd_s_fcst)} {abs(yd_s_fcst):.1f}% {_dir2(yd_s_fcst)}</span> forecast, '
+        f'<span style="color:{_c2(yd_s_yoy)}">{_s(yd_s_yoy)} {abs(yd_s_yoy):.1f}% YoY</span>.</span></div>',
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Last Week (Jun 8–14): </span>'
+        f'<span style="font-size:12px;color:#334155">{_c(LW_HS_TOTAL)} — <span style="color:{_c2(lw_s_fcst2)}">{_s(lw_s_fcst2)} {abs(lw_s_fcst2):.1f}% {_dir2(lw_s_fcst2)}</span> forecast, '
+        f'<span style="color:{_c2(lw_s_yoy)}">{_s(lw_s_yoy)} {abs(lw_s_yoy):.1f}% YoY</span>.</span></div>',
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">MTD (Jun 1–14): </span>'
+        f'<span style="font-size:12px;color:#334155">{_c(MTD_HS_TOTAL)} — <span style="color:{_c2(mtd_s_fcst)}">{_s(mtd_s_fcst)} {abs(mtd_s_fcst):.1f}% {_dir2(mtd_s_fcst)}</span> forecast, '
+        f'<span style="color:{_c2(mtd_s_yoy)}">{_s(mtd_s_yoy)} {abs(mtd_s_yoy):.1f}% YoY</span>.</span></div>',
+    ]
+    if studios_ahead:
+        perf_lines.append(
+            f'<div style="margin-bottom:7px;font-size:12px;color:#334155">'
+            f'<span style="font-weight:700">Pacing ahead (&gt;105%): </span>'
+            + _studio_list(studios_ahead, "#16a34a", lambda p: f"{p*100:.0f}%") + '.</div>'
+        )
+    if studios_behind:
+        perf_lines.append(
+            f'<div style="margin-bottom:7px;font-size:12px;color:#334155">'
+            f'<span style="font-weight:700">Pacing behind (&lt;85%): </span>'
+            + _studio_list(studios_behind, "#dc2626", lambda p: f"{p*100:.0f}%") + '.</div>'
+        )
+    if reps_ahead_l:
+        perf_lines.append(
+            f'<div style="margin-bottom:7px;font-size:12px;color:#334155">'
+            f'<span style="font-weight:700">Top pacing reps (&gt;110%): </span>'
+            + _rep_list(reps_ahead_l, "#16a34a", lambda p: f"{p*100:.0f}%") + '.</div>'
+        )
+    if reps_behind_l:
+        perf_lines.append(
+            f'<div style="margin-bottom:7px;font-size:12px;color:#334155">'
+            f'<span style="font-weight:700">Reps to watch (&lt;75% paced): </span>'
+            + _rep_list(reps_behind_l, "#dc2626", lambda p: f"{p*100:.0f}%") + '.</div>'
+        )
+    if low_mc:
+        low_mc_str = ", ".join(f'<span style="color:#dc2626;font-weight:600">{r["name"]}</span> ({r["mtd_pct"]}%)' for r in low_mc)
+        perf_lines.append(
+            f'<div style="margin-bottom:7px;font-size:12px;color:#334155">'
+            f'<span style="font-weight:700">MC% concern: </span>'
+            f'Avg team MC rate {mc_avg_pct:.0f}% MTD. Lowest: {low_mc_str}. '
+            f'MC=Yes deals convert at 8–16% vs 1–2% without MC — studios below avg should prioritize meaningful contact activities (meetings, warm calls).'
+            f'</div>'
+        )
+    perf_blurb_sec = (
+        '<div class="section">'
+        '<div style="background:#fefce8;border:1px solid #fde68a;border-left:3px solid #d97706;border-radius:6px;padding:14px 16px">'
+        + "".join(perf_lines) + '</div></div>'
     )
 
     # MTD section
@@ -1065,6 +1445,9 @@ def tab2():
     <div class="hdr-meta">Sun Jun 14, 2026 · Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won)</div>
   </div>
   {yd_sec}
+  {lw_sec}
+  {perf_blurb_sec}
+  {activities_sec}
   {mtd_sec}
   <div class="footer">Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won) · Pacing: Google Sheet</div>
 </div>"""
