@@ -233,7 +233,7 @@ MTD_TR_AOV_LY      = 2_825.20
 
 # Swatch — Jun 1-14
 SW_MTD_ORD,  SW_MTD_CUST  = 4_900, 4_269   # Looker Jun 1-14
-SW_LY_ORD,   SW_LY_CUST   = 4_003, 3_435
+SW_LY_ORD,   SW_LY_CUST   = 4_284, 3_675   # Looker Jun 1-14, 2025
 
 # Merch — Looker (same validated query as last night, updated to Jun 1-14)
 MERCH = [
