@@ -190,7 +190,7 @@ YD_TOT_REV, YD_TOT_ORD = 87_282.25, 33
 YD_BLENDED_AOV = 2_747.23   # Looker calendar pivot Jun 14
 YD_B2C_AOV     = 2_761.30
 YD_TR_AOV      = 2_529.22
-YD_ASSISTED_REV = 42_088.75   # MC=Yes revenue STG_DEAL Jun 14
+YD_ASSISTED_REV = 45_975.75   # Looker MC=Yes revenue Jun 14 (52.7% of total)
 YD_INBOUND, YD_INBOUND_LY     = 196, 189
 MTD_INBOUND, MTD_INBOUND_LY  = 2_784, 2_703   # LY updated to Jun 1-14, 2025
 YD_FCST_SNOWFLAKE   = 106_453
@@ -334,7 +334,7 @@ YD_BY_STUDIO = [
     {"name": "Los Angeles",   "rev":  1_085.00},
 ]
 YD_HS_TOTAL    = 42_088.75
-YD_HS_LY_TOTAL = 0.0  # Jun 14 2025 — no MC=Yes closes
+YD_HS_LY_TOTAL = 68_648.21  # pre-Aug stage-date methodology, Jun 14 2025
 
 # Yesterday top reps — STG_DEAL MC=Yes Jun 14
 YD_TOP_REPS = [
