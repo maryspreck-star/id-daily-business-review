@@ -235,100 +235,114 @@ MTD_TR_AOV_LY      = MTD_TR_REV_LY  / MTD_TR_ORD_LY
 SW_MTD_ORD,  SW_MTD_CUST  = 4_748, 4_132
 SW_LY_ORD,   SW_LY_CUST   = 4_003, 3_435
 
-# Merch — Looker (Merchandise item_classification, MTO+QS, Jun 1-13)
+# Merch — Snowflake (Merchandise item_classification, Jun 1-14)
 MERCH = [
-    {"cat": "Sectionals",    "rev":  863_521.75, "units": 247, "aur": 3_496},
-    {"cat": "Sofas",         "rev":  558_070.55, "units": 278, "aur": 2_007},
-    {"cat": "Chairs",        "rev":  324_781.75, "units": 315, "aur": 1_031},
-    {"cat": "Dining Seating","rev":  254_028.75, "units": 444, "aur":   572},
-    {"cat": "Beds",          "rev":  152_393.75, "units":  78, "aur": 1_954},
-    {"cat": "Ottomans",      "rev":   91_894.75, "units": 158, "aur":   582},
-    {"cat": "Benches",       "rev":   29_474.25, "units":  44, "aur":   670},
-    {"cat": "Accent Tables", "rev":    7_166.25, "units":   7, "aur": 1_024},
-    {"cat": "Pillows",       "rev":    6_049.50, "units": 113, "aur":    54},
+    {"cat": "Sectionals",    "rev": 1_250_020, "units": 254, "aur": 4_921},
+    {"cat": "Sofas",         "rev":   745_374, "units": 270, "aur": 2_761},
+    {"cat": "Chairs",        "rev":   303_730, "units": 214, "aur": 1_419},
+    {"cat": "Beds",          "rev":   207_200, "units":  78, "aur": 2_656},
+    {"cat": "Dining Seating","rev":   176_310, "units": 168, "aur": 1_049},
+    {"cat": "Ottomans",      "rev":   113_350, "units": 134, "aur":   846},
+    {"cat": "Benches",       "rev":    39_750, "units":  44, "aur":   903},
+    {"cat": "Accent Tables", "rev":     8_180, "units":   6, "aur": 1_363},
+    {"cat": "Pillows",       "rev":     5_915, "units":  80, "aur":    74},
 ]
-MERCH_TOTAL = 2_298_444.30  # Looker total incl. Rugs, Art, Dining Tables, Lighting
+MERCH_TOTAL = 2_860_671  # includes Rugs, Art, Dining Tables, Lighting
 
-# Studio revenue — Looker (hubspot_deals.studio_name, no type/cancel filter, MTD Jun 1-13)
-# Inbound/Won from STG_DEAL (for % of Deals and Deal CVR columns)
-TOTAL_INBOUND = 4_932
+# Studio revenue — ORDERS.LOCATION (Jun 1-14) + STG_DEAL inbound/won
+TOTAL_INBOUND = 5_526  # sum of MTD deal inbound by studio
 STUDIOS_ORDERS = [
-    {"name":"New York",      "rev":254_662.32,"orders":87,"inbound":674,"won":30},
-    {"name":"Dallas",        "rev":205_436.58,"orders":63,"inbound":432,"won":35},
-    {"name":"Washington DC", "rev":177_295.69,"orders":62,"inbound":387,"won":32},
-    {"name":"Minneapolis",   "rev":169_413.66,"orders":53,"inbound":449,"won":25},
-    {"name":"Denver",        "rev":169_388.95,"orders":51,"inbound":337,"won":24},
-    {"name":"Seattle",       "rev":167_006.94,"orders":54,"inbound":433,"won":25},
-    {"name":"Charlotte",     "rev":165_261.25,"orders":52,"inbound":349,"won":21},
-    {"name":"Chicago",       "rev":162_831.66,"orders":53,"inbound":480,"won":24},
-    {"name":"Boston",        "rev":158_137.97,"orders":56,"inbound":364,"won":20},
-    {"name":"Los Angeles",   "rev":152_293.09,"orders":48,"inbound":409,"won":18},
-    {"name":"San Francisco", "rev":123_951.74,"orders":47,"inbound":291,"won":21},
-    {"name":"Baltimore",     "rev": 88_942.24,"orders":25,"inbound":256,"won": 7},
-    {"name":"Philadelphia",  "rev": 65_897.50,"orders":27,"inbound":271,"won":10},
+    {"name":"Washington DC", "rev":109_791,"orders":35,"inbound":415,"won":32},
+    {"name":"Minneapolis",   "rev": 89_964,"orders":25,"inbound":492,"won":26},
+    {"name":"Los Angeles",   "rev": 89_747,"orders":27,"inbound":434,"won":20},
+    {"name":"Charlotte",     "rev": 88_706,"orders":23,"inbound":369,"won":21},
+    {"name":"Chicago",       "rev": 85_362,"orders":23,"inbound":526,"won":26},
+    {"name":"Boston",        "rev": 79_157,"orders":27,"inbound":391,"won":19},
+    {"name":"Denver",        "rev": 69_391,"orders":22,"inbound":363,"won":25},
+    {"name":"Seattle",       "rev": 59_081,"orders":17,"inbound":459,"won":24},
+    {"name":"San Francisco", "rev": 54_397,"orders":18,"inbound":311,"won":24},
+    {"name":"New York",      "rev": 43_313,"orders":14,"inbound":735,"won":30},
+    {"name":"Baltimore",     "rev": 12_353,"orders": 3,"inbound":270,"won": 7},
+    {"name":"Dallas",        "rev":  2_410,"orders": 1,"inbound":471,"won":34},
 ]
+STUDIOS_ORDERS.sort(key=lambda s: s["rev"], reverse=True)
 STUDIO_TOT_REV = sum(s["rev"] for s in STUDIOS_ORDERS)
 
-# % Meaningful Contact by studio — MTD Jun 1-13 and last 90 days
-MC_DATA = [
-    # name, mtd_total, mtd_mc_yes, mtd_mc_pct, mtd_mc_cvr, mtd_no_cvr, d90_mc_pct, d90_mc_cvr
-    {"name":"New York",      "mtd_tot":675, "mtd_mc":300, "mtd_pct":44.4, "mtd_cvr":8.0,  "no_cvr":1.6, "d90_pct":52.3, "d90_cvr":22.8},
-    {"name":"Chicago",       "mtd_tot":481, "mtd_mc":236, "mtd_pct":49.1, "mtd_cvr":9.3,  "no_cvr":0.8, "d90_pct":51.1, "d90_cvr":25.6},
-    {"name":"Minneapolis",   "mtd_tot":450, "mtd_mc":265, "mtd_pct":58.9, "mtd_cvr":8.7,  "no_cvr":1.6, "d90_pct":68.4, "d90_cvr":19.4},
-    {"name":"Seattle",       "mtd_tot":433, "mtd_mc":219, "mtd_pct":50.6, "mtd_cvr":10.0, "no_cvr":1.4, "d90_pct":54.6, "d90_cvr":23.7},
-    {"name":"Dallas",        "mtd_tot":433, "mtd_mc":255, "mtd_pct":58.9, "mtd_cvr":12.5, "no_cvr":1.7, "d90_pct":53.5, "d90_cvr":24.7},
-    {"name":"Los Angeles",   "mtd_tot":406, "mtd_mc":196, "mtd_pct":48.3, "mtd_cvr":8.2,  "no_cvr":1.0, "d90_pct":62.0, "d90_cvr":18.1},
-    {"name":"Washington DC", "mtd_tot":389, "mtd_mc":211, "mtd_pct":54.2, "mtd_cvr":14.2, "no_cvr":1.1, "d90_pct":48.5, "d90_cvr":28.2},
-    {"name":"Boston",        "mtd_tot":366, "mtd_mc":187, "mtd_pct":51.1, "mtd_cvr":9.1,  "no_cvr":1.7, "d90_pct":62.2, "d90_cvr":21.6},
-    {"name":"Charlotte",     "mtd_tot":349, "mtd_mc":156, "mtd_pct":44.7, "mtd_cvr":11.5, "no_cvr":1.6, "d90_pct":40.6, "d90_cvr":27.6},
-    {"name":"Denver",        "mtd_tot":337, "mtd_mc":154, "mtd_pct":45.7, "mtd_cvr":14.3, "no_cvr":1.1, "d90_pct":49.2, "d90_cvr":26.6},
-    {"name":"San Francisco", "mtd_tot":293, "mtd_mc":139, "mtd_pct":47.4, "mtd_cvr":15.8, "no_cvr":0.6, "d90_pct":45.8, "d90_cvr":25.2},
-    {"name":"Philadelphia",  "mtd_tot":271, "mtd_mc":123, "mtd_pct":45.4, "mtd_cvr":8.1,  "no_cvr":0.0, "d90_pct":52.9, "d90_cvr":21.5},
-    {"name":"Baltimore",     "mtd_tot":255, "mtd_mc":145, "mtd_pct":56.9, "mtd_cvr":4.8,  "no_cvr":0.0, "d90_pct":73.5, "d90_cvr":17.6},
+# Studio inbound CVR MTD Jun 1-14 (sorted by CVR desc)
+STUDIO_MTD_CVR = [
+    {"studio": "San Francisco", "contacts": 130, "orders": 15, "cvr": 11.54},
+    {"studio": "Charlotte",     "contacts": 121, "orders": 11, "cvr":  9.09},
+    {"studio": "Denver",        "contacts": 172, "orders": 15, "cvr":  8.72},
+    {"studio": "Dallas",        "contacts": 185, "orders": 16, "cvr":  8.65},
+    {"studio": "Los Angeles",   "contacts": 204, "orders": 16, "cvr":  7.84},
+    {"studio": "Washington DC", "contacts": 180, "orders": 14, "cvr":  7.78},
+    {"studio": "Boston",        "contacts": 172, "orders": 13, "cvr":  7.56},
+    {"studio": "Philadelphia",  "contacts": 149, "orders": 10, "cvr":  6.71},
+    {"studio": "Chicago",       "contacts": 227, "orders": 15, "cvr":  6.61},
+    {"studio": "New York",      "contacts": 337, "orders": 22, "cvr":  6.53},
+    {"studio": "Seattle",       "contacts": 246, "orders": 16, "cvr":  6.50},
+    {"studio": "Minneapolis",   "contacts": 199, "orders": 12, "cvr":  6.03},
+    {"studio": "Baltimore",     "contacts": 132, "orders":  6, "cvr":  4.55},
 ]
 
-# Deal CVR from Looker hubspot_contacts explore (excl. Direct Order deals)
-# MTD = Jun 1-13, 2026 | 90D = last 90 days
+# % Meaningful Contact by studio — MTD Jun 1-14 and last 90 days
+MC_DATA = [
+    {"name":"New York",      "mtd_tot":735, "mtd_mc":321, "mtd_pct":43.7, "mtd_cvr":7.8,  "no_cvr":1.7, "d90_pct":52.2, "d90_cvr":22.5},
+    {"name":"Chicago",       "mtd_tot":526, "mtd_mc":252, "mtd_pct":47.9, "mtd_cvr":9.5,  "no_cvr":0.7, "d90_pct":51.0, "d90_cvr":25.4},
+    {"name":"Minneapolis",   "mtd_tot":492, "mtd_mc":287, "mtd_pct":58.3, "mtd_cvr":8.0,  "no_cvr":2.0, "d90_pct":68.2, "d90_cvr":19.1},
+    {"name":"Dallas",        "mtd_tot":471, "mtd_mc":271, "mtd_pct":57.5, "mtd_cvr":11.4, "no_cvr":2.0, "d90_pct":53.5, "d90_cvr":24.5},
+    {"name":"Seattle",       "mtd_tot":459, "mtd_mc":222, "mtd_pct":48.4, "mtd_cvr":9.9,  "no_cvr":1.3, "d90_pct":54.1, "d90_cvr":23.9},
+    {"name":"Los Angeles",   "mtd_tot":434, "mtd_mc":212, "mtd_pct":48.8, "mtd_cvr":8.5,  "no_cvr":0.9, "d90_pct":61.9, "d90_cvr":17.9},
+    {"name":"Washington DC", "mtd_tot":415, "mtd_mc":218, "mtd_pct":52.5, "mtd_cvr":13.8, "no_cvr":1.0, "d90_pct":48.3, "d90_cvr":27.9},
+    {"name":"Boston",        "mtd_tot":391, "mtd_mc":192, "mtd_pct":49.1, "mtd_cvr":8.9,  "no_cvr":1.5, "d90_pct":61.8, "d90_cvr":21.3},
+    {"name":"Charlotte",     "mtd_tot":369, "mtd_mc":164, "mtd_pct":44.4, "mtd_cvr":11.0, "no_cvr":1.5, "d90_pct":40.5, "d90_cvr":27.2},
+    {"name":"Denver",        "mtd_tot":363, "mtd_mc":159, "mtd_pct":43.8, "mtd_cvr":13.8, "no_cvr":2.0, "d90_pct":49.0, "d90_cvr":26.4},
+    {"name":"San Francisco", "mtd_tot":311, "mtd_mc":147, "mtd_pct":47.3, "mtd_cvr":15.0, "no_cvr":1.8, "d90_pct":45.7, "d90_cvr":24.9},
+    {"name":"Philadelphia",  "mtd_tot":290, "mtd_mc":129, "mtd_pct":44.5, "mtd_cvr":7.8,  "no_cvr":0.0, "d90_pct":52.8, "d90_cvr":21.3},
+    {"name":"Baltimore",     "mtd_tot":270, "mtd_mc":154, "mtd_pct":57.0, "mtd_cvr":4.5,  "no_cvr":0.0, "d90_pct":73.4, "d90_cvr":17.4},
+]
+
+# Deal CVR — computed from MC_DATA (closed_won / total_deals) MTD Jun 1-14 and 90D
 MTD_CVR = {
-    "Washington DC": 0.0823, "Dallas":        0.0810, "San Francisco": 0.0722,
-    "Denver":        0.0712, "Minneapolis":   0.0578, "Seattle":       0.0576,
-    "Charlotte":     0.0575, "Boston":        0.0549, "Chicago":       0.0500,
-    "New York":      0.0445, "Los Angeles":   0.0441, "Philadelphia":  0.0369,
-    "Baltimore":     0.0276,
+    "Washington DC": 0.0773, "San Francisco": 0.0807, "Dallas":       0.0741,
+    "Denver":        0.0716, "Charlotte":     0.0572, "Minneapolis":  0.0551,
+    "Seattle":       0.0547, "Boston":        0.0514, "Los Angeles":  0.0461,
+    "Chicago":       0.0491, "New York":      0.0435, "Philadelphia": 0.0348,
+    "Baltimore":     0.0256,
 }
 NINETY_DAY_CVR = {
-    "Washington DC": 0.1562, "Dallas":        0.1526, "Denver":        0.1473,
-    "Minneapolis":   0.1463, "Chicago":       0.1455, "Seattle":       0.1448,
-    "Boston":        0.1439, "San Francisco": 0.1372, "Baltimore":     0.1370,
-    "New York":      0.1369, "Charlotte":     0.1356, "Los Angeles":   0.1225,
-    "Philadelphia":  0.1220,
+    "Washington DC": 0.1555, "Dallas":        0.1520, "Denver":       0.1466,
+    "Minneapolis":   0.1464, "Chicago":       0.1451, "Seattle":      0.1450,
+    "Boston":        0.1437, "San Francisco": 0.1371, "New York":     0.1366,
+    "Charlotte":     0.1363, "Baltimore":     0.1368, "Los Angeles":  0.1233,
+    "Philadelphia":  0.1215,
 }
 
 # ── Snowflake STG_DEAL — Sales Team tab ──────────────────────────────────────
 
-# Yesterday (Jun 13) by studio — HubSpot API (MC=Yes + Closed Won + studio team)
+# Yesterday (Jun 14, 2026) by studio — STG_DEAL MC=Yes
 YD_BY_STUDIO = [
-    {"name": "New York",      "rev": 14_612.75},
-    {"name": "Seattle",       "rev": 10_195.00},
-    {"name": "Chicago",       "rev":  8_676.25},
-    {"name": "Washington DC", "rev":  5_643.99},
-    {"name": "Minneapolis",   "rev":  5_269.00},
-    {"name": "Los Angeles",   "rev":  4_532.00},
-    {"name": "Dallas",        "rev":  3_668.00},
-    {"name": "San Francisco", "rev":  2_243.75},
-    {"name": "Charlotte",     "rev":  1_632.00},
-    {"name": "Boston",        "rev":    442.50},
+    {"name": "Chicago",       "rev": 12_096.50},
+    {"name": "Philadelphia",  "rev":  8_112.00},
+    {"name": "Seattle",       "rev":  6_037.25},
+    {"name": "New York",      "rev":  4_152.00},
+    {"name": "Boston",        "rev":  3_450.00},
+    {"name": "Minneapolis",   "rev":  2_744.00},
+    {"name": "San Francisco", "rev":  1_912.50},
+    {"name": "Baltimore",     "rev":  1_292.00},
+    {"name": "Dallas",        "rev":  1_207.50},
+    {"name": "Los Angeles",   "rev":  1_085.00},
 ]
-YD_HS_TOTAL    = 42_088.75   # STG_DEAL MC=Yes Jun 14 2026
-YD_HS_LY_TOTAL = 0.0         # Jun 14 2025 LY — no closed-won deals that day
+YD_HS_TOTAL    = 42_088.75
+YD_HS_LY_TOTAL = 0.0  # Jun 14 2025 — no MC=Yes closes
 
-# Yesterday top reps — HubSpot API
+# Yesterday top reps — STG_DEAL MC=Yes Jun 14
 YD_TOP_REPS = [
-    {"name": "Kai Davies",        "studio": "Seattle",       "rev": 10_195.00},
-    {"name": "Mouny Alfraik",     "studio": "New York",      "rev":  8_946.50},
-    {"name": "Kaylee Krostag",    "studio": "Chicago",       "rev":  8_676.25},
-    {"name": "Ibtesam Chowdhury", "studio": "New York",      "rev":  5_666.25},
-    {"name": "Sameera Tanveer",   "studio": "Washington DC", "rev":  5_643.99},
+    {"name": "Kagen Haberstick",  "studio": "Philadelphia", "rev":  8_112.00},
+    {"name": "Kristen Rosario",   "studio": "Chicago",      "rev":  4_811.00},
+    {"name": "Jamie Williams",    "studio": "New York",     "rev":  4_152.00},
+    {"name": "Sean Steele",       "studio": "Chicago",      "rev":  3_843.00},
+    {"name": "Heaven Chartier",   "studio": "Boston",       "rev":  3_450.00},
 ]
 
 # MTD (Jun 1-14) by studio — STG_DEAL
@@ -370,7 +384,7 @@ MTD_ALL_REPS = {
     "sydney.stetzel":       ("Sydney Stetzel",       "Denver",         83_448.73),
     "shawn.neifert":        ("Shawn Neifert",        "Washington DC",  70_033.72),
     "brynn.cohune":         ("Brynn Cohune",         "Boston",         57_363.22),
-    "sean.steele":          ("Sean Steele",          "Chicago",        52_745.75),
+    "sean.steele":          ("Sean Steele",          "Chicago",        56_588.75),
     "brittany.herrera":     ("Brittany Herrera",     "Denver",         49_270.79),
     "rachel.kivo":          ("Rachel Kivo",          "San Francisco",  48_086.48),
     "luz.rivera":           ("Lucy Rivera",          "Minneapolis",    48_002.73),
@@ -381,10 +395,10 @@ MTD_ALL_REPS = {
     "angela.sunder":        ("Angela Sunder",        "Minneapolis",    44_015.75),
     "maico.vergara":        ("Maico Vergara",        "Washington DC",  41_149.74),
     "zoe.finkelstein":      ("Zoe Finkelstein",      "Minneapolis",    39_387.70),
-    "kaylee.krostag":       ("Kaylee Krostag",       "Chicago",        38_959.67),
+    "kaylee.krostag":       ("Kaylee Krostag",       "Chicago",        42_526.17),
     "mouny.alfraik":        ("Mouny Alfraik",        "New York",       38_034.00),
     "victoria.correa":      ("Victoria Correa",      "Dallas",         37_396.25),
-    "kristen.rosario":      ("Kristen Rosario",      "Chicago",        35_027.25),
+    "kristen.rosario":      ("Kristen Rosario",      "Chicago",        39_838.25),
     "lindsay.reyna":        ("Lindsay Reyna",        "Seattle",        34_246.96),
     "jose.macario":         ("Jose Marcario",        "Minneapolis",    34_138.22),
     "ashanti.gillespie":    ("Ashanti Gillespie",    "Baltimore",      34_073.75),
@@ -396,7 +410,7 @@ MTD_ALL_REPS = {
     "abby.keane":           ("Abby Keane",           "Boston",         30_963.50),
     "laurel.clark":         ("Laurel Clark",         "Philadelphia",   30_489.00),
     "ibtesam.chowdhury":    ("Ibtesam Chowdhury",   "New York",       30_352.83),
-    "sarah.dreier":         ("Sarah Dreier",         "Los Angeles",    29_777.97),
+    "sarah.dreier":         ("Sarah Dreier",         "Los Angeles",    44_366.19),
     "amira.seale":          ("Amira Seale",          "San Francisco",  27_415.50),
     "eric.sorensen":        ("Eric Sorensen",        "Boston",         26_720.75),
     "robyn.yannoukos":      ("Robyn Yann",           "Denver",         25_211.50),
