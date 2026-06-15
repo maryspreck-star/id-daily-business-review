@@ -8,8 +8,10 @@
 
 ## Report periods (Monday run)
 - **Yesterday** = Sunday (today − 1 day)
+- **Last Week** = Monday–Sunday of the prior week (e.g., Jun 8–14 when report runs Jun 16)
 - **MTD** = first of current month through Sunday
 - **LY Yesterday** = same calendar date one year prior
+- **LY Last Week** = same Mon–Sun range one year prior
 - **LY MTD** = same calendar range one year prior
 
 ---
@@ -75,6 +77,21 @@ When in doubt, run the Looker query and use that number. Do not substitute raw S
 
 **LY:** Same query for same calendar date LY  
 **Count:** Distinct contacts (not raw engagement events)
+
+---
+
+### Last Week Revenue by Segment (Tab 1)
+
+**Source:** Same Looker `orders` explore as Yesterday but date range = Mon–Sun of prior week  
+**Filters:** Same employee exclusion, no order_type/cancellation filter  
+**Segments:** B2C, Trade, Havenly, B2B — same logic as Yesterday  
+**LY:** Same query for same Mon–Sun range one year prior  
+**AOV (Blended, B2C, Trade):** Looker `orders.average_order_value` for the same week range — always use Looker, never compute manually  
+**Assisted %:** MC=Yes revenue ÷ total revenue for the week  
+**Forecast:** `SUM(DAILY_FCST values for Mon–Sun)` — summed from the hardcoded `DAILY_FCST` dict in the script  
+**Inbound:** ⚠️ Not available directly from Looker for a prior week window — current value is estimated as `MTD_INBOUND / days_MTD × 7`. Update from Looker dashboard 1156 "Daily Inbound Engagement" filtered to the specific Mon–Sun dates.  
+**Swatch orders:** ⚠️ Same limitation — estimated as `SW_MTD_ORD / days_MTD × 7`. Update from Looker `swatch_orders` explore filtered to the same week.  
+**Studio breakdown:** `STG_DEAL` — `CLOSE_DATE` CDT in Mon–Sun range, `MEANINGFUL_CONTACT = TRUE`, `IS_CONVERTED = TRUE`, same studio exclusions
 
 ---
 
@@ -284,6 +301,57 @@ Same pacing %, status logic as team table.
 
 ---
 
+### Last Week Net Sales (Tab 2)
+
+**Source:** `PROD.ID_WAREHOUSE.STG_DEAL`  
+**TY filter:** `CLOSE_DATE` CDT in Mon–Sun prior week, `MEANINGFUL_CONTACT = TRUE`, `IS_CONVERTED = TRUE`, studio exclusions  
+**LY filter:** Same Mon–Sun range LY — pre-Aug stage-date methodology (same as LY Yesterday/MTD)  
+**Forecast:** `SUM(DAILY_FCST Mon–Sun)` from the hardcoded retail `DAILY_FCST` dict  
+**Studio breakdown:** Grouped by `STUDIO_NAME`, top 5 shown as bars
+
+---
+
+### Activities by Studio (Tab 2 — MTD)
+
+**Source:** `PROD.ID_WAREHOUSE.STG_DEAL`  
+**Fields used:**
+- `CALLS` — all calls logged on a deal (inbound + outbound combined, no directional split available)
+- `MEETINGS` — meetings logged on a deal
+- `DEAL_INCOMING_EMAILS` — emails sent to the contact from HubSpot
+- Deal count = number of deals touched in the period
+
+**Filter:** `CREATE_DATE` CDT in MTD, `STUDIO_NAME` in known studio list, `DEAL_TYPE != 'Direct Order'`  
+**Grouped by:** `STUDIO_NAME`  
+**Per-rep average:** Studio total ÷ `STUDIO_REP_COUNT[studio]` — headcount from `REP_GOALS` dict, DE/SDE roles only  
+**Sorted by:** Total activity volume (calls + meetings + emails) descending  
+⚠️ STG_DEAL is deal-level — one row per deal. If a deal has multiple logged calls, the `CALLS` field reflects the count at the deal level. Raw HubSpot activity dashboard may show higher counts for activities not yet linked to a deal.  
+⚠️ No inbound vs outbound split on calls — treat as total call volume per studio.
+
+---
+
+### Performance Blurbs (Tab 1 and Tab 2)
+
+Both tabs include a dynamically generated narrative blurb explaining why revenue is missing or achieving plan. No additional data sources — all figures are computed from variables already pulled for the rest of the report.
+
+**Tab 1 — Total Business blurb computes:**
+- Revenue vs Snowflake forecast (%) for Yesterday, Last Week, MTD
+- Inbound YoY % change
+- Swatch orders YoY % change (MTD only)
+- Blended AOV YoY % change
+- B2C mix shift vs LY
+- Assisted % (MC=Yes share of revenue)
+
+**Tab 2 — Sales Team blurb computes:**
+- Revenue vs retail plan forecast (%) for Yesterday, Last Week, MTD
+- Revenue YoY % change for all three periods
+- Studios ahead of paced goal (>105%) and behind (<85%)
+- Reps pacing above 110% and below 75% of paced goal
+- Average team MC% MTD + lowest studios — flags studios where low MC% may be suppressing conversion
+
+All thresholds are hardcoded in the script and can be adjusted without changing data sources.
+
+---
+
 ### Closing Notes
 
 **Source:** Slack channel `#id--retail-closing-notes` (ID: `C08MYB2S3DH`)  
@@ -335,7 +403,7 @@ These are completely different — Tab 2 forecast is ~40% of Tab 1.
 | Routine | `trig_01RswSW7MsvW5ZGDdvKMhqB5` |
 | Manage | https://claude.ai/code/routines/trig_01RswSW7MsvW5ZGDdvKMhqB5 |
 | GitHub | https://github.com/maryspreck-star/id-daily-business-review |
-| Delivery | Slack webhook → havenlyteam.slack.com, PDF via tmpfiles.org |
+| Delivery | Slack webhook → havenlyteam.slack.com · Email PDF via SendGrid → `EMAIL_TO` in `.env` |
 | Webhook | `https://hooks.slack.com/services/[see routine config]` |
 | DST note | Update cron to `0 14 * * 1` in November when CDT→CST |
 
@@ -352,3 +420,9 @@ These are completely different — Tab 2 forecast is ~40% of Tab 1.
 4. **Fabric/collection merch:** Not shown in the current report (only product class). Add if needed.
 
 5. **Rep goals new hire:** When a new rep joins, add them to `REP_GOALS` dict in `run_from_mcp.py` using their email prefix as the key.
+
+6. **Last Week inbound/swatches are estimated:** These values are approximated as `MTD / days_elapsed × 7`. They carry a visible warning note in the report and should be updated from Looker dashboard 1156 each Monday before the report sends.
+
+7. **Activities calls field = inbound + outbound combined:** STG_DEAL does not split call direction. If directional data is needed, it must be pulled from the HubSpot raw activities API directly.
+
+8. **Email delivery requires SENDGRID_API_KEY:** If the key is not set in `.env`, the script skips email silently and logs `[skip] SENDGRID_API_KEY not set`. Slack delivery is not affected.
