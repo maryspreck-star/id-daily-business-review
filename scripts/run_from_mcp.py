@@ -2,7 +2,7 @@
 All data pulled via MCP queries on 2026-06-14. Report date = 2026-06-13 (Saturday).
 Run: source venv/bin/activate && python scripts/run_from_mcp.py
 """
-import os, sys
+import os, sys, datetime, asyncio, pathlib, requests
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ── Formatting helpers ────────────────────────────────────────────────────────
@@ -1092,7 +1092,7 @@ def tab2():
         f'<strong>{top_calls_studio["studio"]}</strong> leads on calls/rep ({top_c_pp:.1f}); '
         f'<strong>{top_mtg_studio["studio"]}</strong> leads on meetings/rep ({top_m_pp:.1f}). '
         f'<strong>{low_mtg_studio["studio"]}</strong> has the fewest meetings/rep ({low_m_pp:.1f} vs {avg_m_pp:.1f} avg) — worth monitoring given meetings are the highest-converting activity. '
-        f'Note: figures are MTD deal-level aggregates from STG_DEAL; raw HubSpot activity dashboard may show higher counts due to activities not yet linked to a deal.'
+        f'Note: calls include both inbound and outbound — no directional split available in STG_DEAL. Figures are MTD deal-level aggregates; raw HubSpot activity dashboard may show higher counts for activities not yet linked to a deal.'
         f'</div>'
         '</div>'
     )
@@ -1447,8 +1447,8 @@ def tab2():
   {yd_sec}
   {lw_sec}
   {perf_blurb_sec}
-  {activities_sec}
   {mtd_sec}
+  {activities_sec}
   <div class="footer">Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won) · Pacing: Google Sheet</div>
 </div>"""
 
@@ -1482,3 +1482,63 @@ for path in ["output/report.html", "output/report-2026-06-13.html"]:
     with open(path, "w") as f:
         f.write(html)
     print(f"[ok] {path}", file=sys.stderr)
+
+# ── PDF generation ────────────────────────────────────────────────────────────
+
+REPO = pathlib.Path(__file__).parent.parent
+HTML_PATH = (REPO / "output" / "report.html").resolve()
+PDF_PATH  = (REPO / "output" / "report.pdf").resolve()
+
+async def _gen_pdf():
+    from playwright.async_api import async_playwright
+    async with async_playwright() as p:
+        b = await p.chromium.launch()
+        pg = await b.new_page()
+        await pg.goto(f"file://{HTML_PATH}")
+        await pg.wait_for_load_state("networkidle")
+        await pg.pdf(path=str(PDF_PATH), format="A4", print_background=True,
+            margin={"top":"10mm","bottom":"10mm","left":"8mm","right":"8mm"})
+        await b.close()
+
+asyncio.run(_gen_pdf())
+print(f"[ok] {PDF_PATH}", file=sys.stderr)
+
+# ── Email delivery ────────────────────────────────────────────────────────────
+
+SENDGRID_KEY = os.getenv("SENDGRID_API_KEY", "")
+EMAIL_TO     = os.getenv("EMAIL_TO",   "mary.spreck@interiordefine.com")
+EMAIL_FROM   = os.getenv("EMAIL_FROM", "reports@interiordefine.com")
+
+if SENDGRID_KEY:
+    # Upload PDF for attachment link
+    upload = requests.post(
+        "https://catbox.moe/user/api.php",
+        data={"reqtype": "fileupload"},
+        files={"fileToUpload": ("report.pdf", open(PDF_PATH, "rb"), "application/pdf")},
+        timeout=30,
+    )
+    pdf_url = upload.text.strip()
+
+    send_date = datetime.date.today().strftime("%A, %B %-d, %Y")
+    body_html = f"""<p>Report for {send_date}.</p>
+<p style="margin:16px 0">
+  <a href="{pdf_url}" style="background:#6366f1;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;font-weight:600;font-size:14px">Download PDF</a>
+</p>"""
+
+    resp = requests.post(
+        "https://api.sendgrid.com/v3/mail/send",
+        headers={"Authorization": f"Bearer {SENDGRID_KEY}", "Content-Type": "application/json"},
+        json={
+            "personalizations": [{"to": [{"email": EMAIL_TO}]}],
+            "from": {"email": EMAIL_FROM},
+            "subject": "ID Monday Business Report",
+            "content": [{"type": "text/html", "value": body_html}],
+        },
+        timeout=15,
+    )
+    if resp.status_code == 202:
+        print(f"[ok] email sent to {EMAIL_TO}", file=sys.stderr)
+    else:
+        print(f"[warn] email failed: {resp.status_code} {resp.text}", file=sys.stderr)
+else:
+    print("[skip] SENDGRID_API_KEY not set — email not sent", file=sys.stderr)
