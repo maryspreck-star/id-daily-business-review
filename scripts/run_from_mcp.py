@@ -232,40 +232,40 @@ MTD_B2C_AOV_LY     = MTD_B2C_REV_LY / MTD_B2C_ORD_LY
 MTD_TR_AOV_LY      = MTD_TR_REV_LY  / MTD_TR_ORD_LY
 
 # Swatch — Jun 1-14
-SW_MTD_ORD,  SW_MTD_CUST  = 4_748, 4_132
+SW_MTD_ORD,  SW_MTD_CUST  = 4_900, 4_269   # Looker Jun 1-14
 SW_LY_ORD,   SW_LY_CUST   = 4_003, 3_435
 
-# Merch — Snowflake (Merchandise item_classification, Jun 1-14)
+# Merch — Looker (same validated query as last night, updated to Jun 1-14)
 MERCH = [
-    {"cat": "Sectionals",    "rev": 1_250_020, "units": 254, "aur": 4_921},
-    {"cat": "Sofas",         "rev":   745_374, "units": 270, "aur": 2_761},
-    {"cat": "Chairs",        "rev":   303_730, "units": 214, "aur": 1_419},
-    {"cat": "Beds",          "rev":   207_200, "units":  78, "aur": 2_656},
-    {"cat": "Dining Seating","rev":   176_310, "units": 168, "aur": 1_049},
-    {"cat": "Ottomans",      "rev":   113_350, "units": 134, "aur":   846},
-    {"cat": "Benches",       "rev":    39_750, "units":  44, "aur":   903},
-    {"cat": "Accent Tables", "rev":     8_180, "units":   6, "aur": 1_363},
-    {"cat": "Pillows",       "rev":     5_915, "units":  80, "aur":    74},
+    {"cat": "Sectionals",    "rev":  880_541.75, "units": 253, "aur": 3_480},
+    {"cat": "Sofas",         "rev":  580_888.30, "units": 289, "aur": 2_010},
+    {"cat": "Chairs",        "rev":  342_603.25, "units": 330, "aur": 1_038},
+    {"cat": "Dining Seating","rev":  257_216.25, "units": 448, "aur":   574},
+    {"cat": "Beds",          "rev":  155_595.25, "units":  79, "aur": 1_970},
+    {"cat": "Ottomans",      "rev":   92_701.25, "units": 160, "aur":   579},
+    {"cat": "Benches",       "rev":   31_748.50, "units":  46, "aur":   690},
+    {"cat": "Accent Tables", "rev":    7_166.25, "units":   7, "aur": 1_024},
+    {"cat": "Pillows",       "rev":    6_992.25, "units": 129, "aur":    54},
 ]
-MERCH_TOTAL = 2_860_671  # includes Rugs, Art, Dining Tables, Lighting
+MERCH_TOTAL = 2_366_516.05  # Looker total (incl Rugs, Art, Dining Tables, Lighting)
 
-# Studio revenue — ORDERS.LOCATION (Jun 1-14) + STG_DEAL inbound/won
-TOTAL_INBOUND = 5_526  # sum of MTD deal inbound by studio
+# Studio revenue — Looker (hubspot_deals.studio_name, same validated method, Jun 1-14)
+TOTAL_INBOUND = 5_526
 STUDIOS_ORDERS = [
-    {"name":"Washington DC", "rev":109_791,"orders":35,"inbound":415,"won":32},
-    {"name":"Minneapolis",   "rev": 89_964,"orders":25,"inbound":492,"won":26},
-    {"name":"Los Angeles",   "rev": 89_747,"orders":27,"inbound":434,"won":20},
-    {"name":"Charlotte",     "rev": 88_706,"orders":23,"inbound":369,"won":21},
-    {"name":"Chicago",       "rev": 85_362,"orders":23,"inbound":526,"won":26},
-    {"name":"Boston",        "rev": 79_157,"orders":27,"inbound":391,"won":19},
-    {"name":"Denver",        "rev": 69_391,"orders":22,"inbound":363,"won":25},
-    {"name":"Seattle",       "rev": 59_081,"orders":17,"inbound":459,"won":24},
-    {"name":"San Francisco", "rev": 54_397,"orders":18,"inbound":311,"won":24},
-    {"name":"New York",      "rev": 43_313,"orders":14,"inbound":735,"won":30},
-    {"name":"Baltimore",     "rev": 12_353,"orders": 3,"inbound":270,"won": 7},
-    {"name":"Dallas",        "rev":  2_410,"orders": 1,"inbound":471,"won":34},
+    {"name":"New York",      "rev":263_844.32,"orders":89,"inbound":735,"won":30},
+    {"name":"Dallas",        "rev":206_943.08,"orders":64,"inbound":471,"won":34},
+    {"name":"Minneapolis",   "rev":179_265.41,"orders":56,"inbound":492,"won":26},
+    {"name":"Washington DC", "rev":177_295.69,"orders":62,"inbound":415,"won":32},
+    {"name":"Chicago",       "rev":175_825.16,"orders":56,"inbound":526,"won":26},
+    {"name":"Seattle",       "rev":173_642.19,"orders":56,"inbound":459,"won":24},
+    {"name":"Denver",        "rev":169_388.95,"orders":53,"inbound":363,"won":25},
+    {"name":"Charlotte",     "rev":165_261.25,"orders":52,"inbound":369,"won":21},
+    {"name":"Boston",        "rev":161_886.97,"orders":57,"inbound":391,"won":19},
+    {"name":"Los Angeles",   "rev":156_821.09,"orders":50,"inbound":434,"won":20},
+    {"name":"San Francisco", "rev":127_283.49,"orders":49,"inbound":311,"won":24},
+    {"name":"Baltimore",     "rev": 90_533.24,"orders":26,"inbound":270,"won": 7},
+    {"name":"Philadelphia",  "rev": 74_308.50,"orders":28,"inbound":290,"won":10},
 ]
-STUDIOS_ORDERS.sort(key=lambda s: s["rev"], reverse=True)
 STUDIO_TOT_REV = sum(s["rev"] for s in STUDIOS_ORDERS)
 
 # Studio inbound CVR MTD Jun 1-14 (sorted by CVR desc)
@@ -517,23 +517,6 @@ MONTHLY_CVR = [
     {"month": "Apr 2026", "contacts": 5_897, "d14": 11.57, "d30": 13.97, "d60": 15.72, "d90": 15.75},
     {"month": "May 2026", "contacts": 7_556, "d14": 17.23, "d30": 19.26, "d60": 19.32, "d90": 19.32},
     {"month": "Jun 2026*","contacts": 2_639, "d14":  6.82, "d30":  6.82, "d60":  6.82, "d90":  6.82},
-]
-
-# By-studio MTD CVR for Jun 1-13, 2026 (Sales Team tab)
-STUDIO_MTD_CVR = [
-    {"studio": "San Francisco", "contacts": 122, "orders": 15, "cvr": 12.30},
-    {"studio": "Charlotte",     "contacts": 116, "orders": 11, "cvr":  9.48},
-    {"studio": "Denver",        "contacts": 167, "orders": 15, "cvr":  8.98},
-    {"studio": "Dallas",        "contacts": 169, "orders": 15, "cvr":  8.88},
-    {"studio": "Washington DC", "contacts": 168, "orders": 14, "cvr":  8.33},
-    {"studio": "Los Angeles",   "contacts": 197, "orders": 16, "cvr":  8.12},
-    {"studio": "Boston",        "contacts": 163, "orders": 13, "cvr":  7.98},
-    {"studio": "Philadelphia",  "contacts": 143, "orders": 10, "cvr":  6.99},
-    {"studio": "New York",      "contacts": 315, "orders": 21, "cvr":  6.67},
-    {"studio": "Chicago",       "contacts": 210, "orders": 14, "cvr":  6.67},
-    {"studio": "Minneapolis",   "contacts": 190, "orders": 12, "cvr":  6.32},
-    {"studio": "Seattle",       "contacts": 237, "orders": 14, "cvr":  5.91},
-    {"studio": "Baltimore",     "contacts": 119, "orders":  6, "cvr":  5.04},
 ]
 
 # ── Tab 1: Total Business ─────────────────────────────────────────────────────
