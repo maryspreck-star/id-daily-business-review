@@ -8,8 +8,8 @@ description: Run, verify, or edit the Interior Define Monday Business Review rep
 ## What This Report Is
 
 A two-tab HTML + PDF report that runs automatically every Monday at 8am CT and posts to **havenlyteam.slack.com** via the ID Report Bot. It covers:
-- **Tab 1 — Total Business:** Revenue, AOV, inbound engagements, swatch orders, merch mix, studio performance, CVR trends
-- **Tab 2 — Sales Team:** HubSpot net sales, pacing vs goals, closing notes, MC%, inbound CVR
+- **Tab 1 — Total Business:** Revenue, AOV, inbound, swatches, merch mix, studio performance, CVR trends — with **Yesterday**, **Last Week (Mon–Sun)**, and **MTD** views, plus a performance blurb (why missing/achieving plan)
+- **Tab 2 — Sales Team:** HubSpot net sales, pacing vs goals, closing notes, MC%, inbound CVR — with **Yesterday**, **Last Week**, and **MTD** views, plus a **performance blurb** (pacing by studio/rep, YoY, MC% situation) and **activities by studio** table (calls, meetings, emails, per-rep averages)
 
 **If something looks wrong or you need to re-run it:**
 
@@ -149,8 +149,14 @@ Key = their email prefix (e.g., `"jane.doe"` for `jane.doe@interiordefine.com`).
 Find the variable at the top of the script (all data vars are in the `# ── DATA` section, lines ~180-470). Update the value. Run `python scripts/run_from_mcp.py` to preview, then regenerate PDF.
 
 ### Add someone to the email/Slack list
-Currently posts to the havenlyteam.slack.com webhook. To add more people to the routine's automated delivery, contact MC or update the routine at:
+Currently posts to the havenlyteam.slack.com webhook AND sends a PDF email via SendGrid to `EMAIL_TO` in `.env`. To change the recipient, update `EMAIL_TO` in `.env`. To add the routine to more Slack channels, update the routine at:
 https://claude.ai/code/routines/trig_01RswSW7MsvW5ZGDdvKMhqB5
+
+### Fix a wrong number in the Last Week section
+Last Week inbound and swatch figures are **estimated** (MTD / days elapsed × 7) and carry a warning note in the report. If you have the real number from Looker dashboard 1156, update the relevant `LW_INBOUND`, `LW_INBOUND_LY`, `SW_LW_ORD`, `SW_LW_LY_ORD` variables near the top of `scripts/run_from_mcp.py`. All other Last Week revenue figures come from Snowflake and are accurate.
+
+### Email delivery not sending
+Check that `SENDGRID_API_KEY` is set in `.env`. If blank, the script logs `[skip] SENDGRID_API_KEY not set` and continues — Slack delivery is not affected. Get a key from sendgrid.com (free tier) and add it to `.env`.
 
 ---
 
