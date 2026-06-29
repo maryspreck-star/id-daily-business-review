@@ -155,6 +155,30 @@ https://claude.ai/code/routines/trig_01RswSW7MsvW5ZGDdvKMhqB5
 ### Fix a wrong number in the Last Week section
 Last Week inbound and swatch figures are **estimated** (MTD / days elapsed × 7) and carry a warning note in the report. If you have the real number from Looker dashboard 1156, update the relevant `LW_INBOUND`, `LW_INBOUND_LY`, `SW_LW_ORD`, `SW_LW_LY_ORD` variables near the top of `scripts/run_from_mcp.py`. All other Last Week revenue figures come from Snowflake and are accurate.
 
+### Blended AOV looks wrong (too low)
+
+**⚠️ CRITICAL:** Blended AOV must be computed as a **weighted average of per-segment Looker AOVs**, NOT simple `total_revenue / total_orders`. The two can differ by $100+/order.
+
+Correct formula:
+```python
+blended_aov = sum(seg_orders * seg_looker_aov for each segment) / total_orders
+```
+
+Always pull `orders.average_order_value` per segment from Looker, then weight by segment order count. This applies to all 6 periods (YD, LW, MTD — TY and LY). See `data-methodology.md` for full explanation.
+
+### MTD Studio Performance table looks wrong (Tab 1 only)
+
+Tab 1's `STUDIOS_ORDERS` must come from **Looker**, not Snowflake:
+- **Explore:** `orders`, **Dim:** `hubspot_deals.studio_name`
+- **Filter:** `hubspot_deals.has_meaningful_contact = "Yes"` + employee exclusion
+- **Fields:** `md_order_revenue`, `order_count`, `average_order_value`
+
+Tab 2's `MTD_BY_STUDIO` still uses Snowflake STG_DEAL — these are separate variables.
+
+### Merch Contribution showing in Yesterday section
+
+Merch data is always MTD-sourced — it must **only** appear in `mtd_sec`, never in `yd_sec`. If it appears under Yesterday, remove the `merch` variable from the `yd_sec` assembly block in the script.
+
 ### Email delivery not sending
 Check that `SENDGRID_API_KEY` is set in `.env`. If blank, the script logs `[skip] SENDGRID_API_KEY not set` and continues — Slack delivery is not affected. Get a key from sendgrid.com (free tier) and add it to `.env`.
 
