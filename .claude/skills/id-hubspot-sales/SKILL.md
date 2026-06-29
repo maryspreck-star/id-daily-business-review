@@ -325,6 +325,24 @@ Shift the date range back exactly one year from the TY period. Keep the same ela
 
 ---
 
+## Rep Goals — What to Know Before Building a Pacing Table
+
+Rep goals are **not stored in HubSpot** — they are set by GMs and tracked separately. When building a rep-level pacing or goal-tracking table:
+
+1. **Always verify goals with the user** before populating — do not pull from a stale artifact or prior session snapshot.
+2. **Not all reps have assigned goals.** GMs in particular may have no individual revenue goal.
+3. **Exclude no-goal reps from pacing tables** — if a rep has no goal, omit their row entirely (their revenue still rolls into the studio total).
+
+### Known reps without goals (as of June 2026)
+
+| Rep | Owner ID | Studio | Note |
+|---|---|---|---|
+| Bran Randol | 85929996 | San Francisco | GM — no June goal assigned (user-confirmed 2026-06-29) |
+
+> When you encounter other reps with suspiciously low goals (e.g. $13K for a full-time DE) or clearly new/part-time staff, confirm with the user before including them in a pacing table.
+
+---
+
 ## Common Mistakes
 
 | ❌ Wrong | ✅ Right | Why |
@@ -333,6 +351,7 @@ Shift the date range back exactly one year from the TY period. Keep the same ela
 | Snowflake STG_DEAL for revenue | HubSpot MCP for revenue | Only HubSpot MCP matches dashboard exactly |
 | Missing dealstage filter | Include all 4 Closed Won values | Multiple pipelines have their own Closed Won stage ID |
 | Group by studio name | Group by `hubspot_team_id` | HubSpot uses team IDs — map with table above |
+| Include GMs in rep pacing tables | Confirm goal exists first | GMs may have no individual goal assigned |
 
 ---
 
