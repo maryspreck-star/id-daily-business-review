@@ -108,19 +108,43 @@ async def gen():
 asyncio.run(gen())
 ```
 
-**Step 5: Upload PDF and post to Slack**
+**Step 5: Publish as artifact, then post to Slack**
+
+First, extract the style + body from `output/report.html` and publish via the Artifact tool:
 ```python
-import requests, pathlib
-
-REPO    = pathlib.Path.cwd()  # run from repo root
-PDF     = str(REPO / 'output' / 'report.pdf')
-WEBHOOK = 'https://hooks.slack.com/services/[ask-MC-for-webhook-url]'
-
-URL = requests.post('https://tmpfiles.org/api/v1/upload',
-    files={'file': open(PDF,'rb')}, data={'expires':'1d'}).json().get('data',{}).get('url','').replace('tmpfiles.org/','tmpfiles.org/dl/')
-
-requests.post(WEBHOOK, json={'text': f'<{URL}|📄 ID Business Review — {yd.strftime("%a %b %-d, %Y")}>\n\n*Data as of {yd.strftime("%a %b %-d, %Y")} — verify yesterday revenue matches Looker dashboard 1156*'})
+import re
+with open("output/report.html") as f:
+    html = f.read()
+styles = re.findall(r"<style[^>]*>(.*?)</style>", html, re.DOTALL)
+body = re.search(r"<body[^>]*>(.*)</body>", html, re.DOTALL).group(1)
+yd_label = yd.strftime("%a %b %-d")
+artifact_content = (
+    f"<title>Interior Define — Daily Business Review · {yd_label}</title>\n"
+    f"<style>\n{styles[0]}\n</style>\n{body}"
+)
+# Write to a temp file, then publish via the Artifact tool (favicon="📊")
+# Artifact tool returns: https://claude.ai/code/artifact/[uuid]  ← save as ARTIFACT_URL
 ```
+
+Then post to **`#salesoperations` only** (channel ID: `C05CJH674S3`) using `mcp__claude_ai_Slack__slack_send_message`:
+```
+📊 *ID Business Review — [yd e.g. Sun Jun 28, 2026]*
+<[ARTIFACT_URL]|View full report →>
+
+*MTD thru [yd]*
+Revenue: *$X,XXX,XXX* ▲/▼ X% vs LY  |  ▲/▼ X% vs forecast
+HubSpot Net Sales: *$X,XXX,XXX* ▲/▼ X% vs LY
+
+*Last Week ([lw_start]–[lw_end])*
+Total: *$X,XXX,XXX* ▲/▼ X% vs LY  |  ▲/▼ X% vs forecast
+Blended AOV: $X,XXX
+
+*Yesterday ([yd])*
+Total: *$XXX,XXX* ▲/▼ X% vs LY  |  ▲/▼ X% vs forecast
+Blended AOV: $X,XXX
+```
+
+**Do NOT post to any other channel.** Do NOT use the old PDF webhook.
 
 ---
 
@@ -191,7 +215,7 @@ Check that `SENDGRID_API_KEY` is set in `.env`. If blank, the script logs `[skip
 | GitHub repo | https://github.com/maryspreck-star/id-daily-business-review |
 | Routine (manage/pause) | https://claude.ai/code/routines/trig_01RswSW7MsvW5ZGDdvKMhqB5 |
 | Looker dashboard | https://havenly.looker.com/dashboards/1156 |
-| Slack webhook | `https://hooks.slack.com/services/[ask-MC-for-webhook-url]` |
+| Slack channel | `#salesoperations` (ID: `C05CJH674S3`) — use Slack MCP, no webhook |
 | HubSpot API key | In script (or ask MC) |
 | Methodology doc | `mary-claire-daily-business-review/docs/data-methodology.md` |
 | Script location | `mary-claire-daily-business-review/scripts/run_from_mcp.py` |
