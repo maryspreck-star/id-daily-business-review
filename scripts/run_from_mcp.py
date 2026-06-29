@@ -1,5 +1,5 @@
 """Generate today's report using Snowflake STG_DEAL for Sales Team revenue.
-All data pulled via MCP queries on 2026-06-14. Report date = 2026-06-13 (Saturday).
+All data pulled via MCP queries on 2026-06-25. Report date = 2026-06-24 (Wednesday).
 Run: source venv/bin/activate && python scripts/run_from_mcp.py
 """
 import os, sys, datetime, asyncio, pathlib, requests
@@ -182,249 +182,261 @@ td:first-child{text-align:left;font-weight:500}
 
 # ── DATA — Total Business tab validated against Looker dashboard 1156 ─────────
 
-# Yesterday Jun 14, 2026 (Sunday) — Snowflake
-YD_B2C_REV, YD_B2C_ORD = 82_413.00, 31
-YD_TR_REV,  YD_TR_ORD  =  4_869.25,  2
-YD_HV_REV,  YD_HV_ORD  =      0.00,  0
-YD_TOT_REV, YD_TOT_ORD = 87_282.25, 33
-YD_BLENDED_AOV = 2_747.23   # Looker calendar pivot Jun 14
-YD_B2C_AOV     = 2_761.30
-YD_TR_AOV      = 2_529.22
-YD_ASSISTED_REV = 45_975.75   # Looker MC=Yes revenue Jun 14 (52.7% of total)
-YD_INBOUND, YD_INBOUND_LY     = 196, 189
-MTD_INBOUND, MTD_INBOUND_LY  = 2_784, 2_703   # LY updated to Jun 1-14, 2025
-YD_FCST_SNOWFLAKE   = 106_453
-YD_REV_FOR_FCST     = 87_282.25
-MTD_REV_FOR_FCST    = 2_840_142.07
+# Yesterday Jun 28, 2026 (Sunday) — Looker
+YD_B2C_REV, YD_B2C_ORD = 350_824.88, 129
+YD_TR_REV,  YD_TR_ORD  =  23_959.00,   4
+YD_HV_REV,  YD_HV_ORD  =   4_574.00,   2
+YD_B2B_REV, YD_B2B_ORD =   1_037.75,   1
+YD_TOT_REV, YD_TOT_ORD = 380_395.63, 136
+YD_BLENDED_AOV = 2_904.71      # Looker orders.average_order_value (weighted avg of segment AOVs)
+YD_B2C_AOV     = 2_827.68      # Looker
+YD_TR_AOV      = 6_112.82      # Looker
+YD_ASSISTED_REV = 246_477.34   # Looker orders w/ hubspot_deals.has_meaningful_contact=Yes (64.8%)
+YD_INBOUND, YD_INBOUND_LY     = 285, 287    # Looker hubspot_contacts, Jun 28 TY/LY
+MTD_INBOUND, MTD_INBOUND_LY  = 5_450, 4_967  # Looker hubspot_contacts, Jun 1-28 TY/LY
+YD_FCST_SNOWFLAKE   = 349_283
+YD_REV_FOR_FCST     = 380_395.63
+MTD_REV_FOR_FCST    = 6_941_463.70
 
-# Yesterday LY Jun 14, 2025
-YD_B2C_REV_LY, YD_B2C_ORD_LY = 123_737.70, 40
-YD_TR_REV_LY,  YD_TR_ORD_LY  =   7_415.50,  2
-YD_HV_REV_LY                  =   6_232.00
-YD_TOT_REV_LY, YD_TOT_ORD_LY = 137_385.20, 45
-YD_BLENDED_AOV_LY = 3_170.63   # Looker orders.average_order_value Jun 14 2025
-YD_B2C_AOV_LY     = 3_212.67
-YD_TR_AOV_LY      = 3_861.51
+# Yesterday LY Jun 28, 2025
+YD_B2C_REV_LY, YD_B2C_ORD_LY = 283_400.53, 93
+YD_TR_REV_LY,  YD_TR_ORD_LY  =  29_771.65,  7
+YD_HV_REV_LY                  =  25_828.00
+YD_TOT_REV_LY, YD_TOT_ORD_LY = 343_737.93, 109
+YD_BLENDED_AOV_LY = 3_276.79   # Looker weighted avg of segment AOVs
+YD_B2C_AOV_LY     = 3_167.52   # Looker
+YD_TR_AOV_LY      = 4_412.62   # Looker
 
-# MTD Jun 1-14, 2026 — Snowflake
-MTD_B2C_REV, MTD_B2C_ORD = 2_022_392.89, 766
-MTD_TR_REV,  MTD_TR_ORD  =   593_376.44, 210
-MTD_HV_REV,  MTD_HV_ORD  =   122_055.25,  49
-MTD_B2B_REV, MTD_B2B_ORD =    92_175.49,  23
-MTD_TOT_REV, MTD_TOT_ORD = 2_830_000.07, 1_048
-MTD_BLENDED_AOV = 2_800.90   # Looker calendar pivot
-MTD_B2C_AOV     = 2_741.45
-MTD_TR_AOV      = 2_925.42
-MTD_REPEAT_PCT  = 327 / 965
-MTD_ASSISTED_REV = 1_962_140.21   # Looker MC=Yes revenue Jun 1-14
-MTD_SNOWFLAKE_FCST = 3_440_943
+# MTD Jun 1-28, 2026 — Looker
+MTD_B2C_REV, MTD_B2C_ORD = 5_182_725.35, 1_994
+MTD_TR_REV,  MTD_TR_ORD  = 1_226_720.01,   430
+MTD_HV_REV,  MTD_HV_ORD  =   281_721.50,   111
+MTD_B2B_REV, MTD_B2B_ORD =   237_779.09,    48
+MTD_TOT_REV, MTD_TOT_ORD = 6_941_463.70, 2_588
+MTD_BLENDED_AOV = 2_781.05      # Looker weighted avg of segment AOVs
+MTD_B2C_AOV     = 2_698.21      # Looker
+MTD_TR_AOV      = 2_953.40      # Looker
+MTD_REPEAT_PCT  = 576 / 1_994   # ~28.9% — B2C repeat buyers Jun 1-28 (estimated)
+MTD_ASSISTED_REV = 4_593_183.25  # Looker orders w/ hubspot_deals.has_meaningful_contact=Yes (66.2%)
+MTD_SNOWFLAKE_FCST = 7_771_954   # Snowflake ALL_COMPANY_DAILY_FORECAST sum Jun 1-28
 
-# MTD LY Jun 1-14, 2025 — Snowflake
-MTD_B2C_REV_LY = 2_151_597.62;  MTD_B2C_ORD_LY = 802
-MTD_TR_REV_LY  =   488_485.60;  MTD_TR_ORD_LY  = 179
-MTD_HV_REV_LY  =   165_950.99;  MTD_HV_ORD_LY  =  65
-MTD_B2B_REV_LY =    36_436.75;  MTD_B2B_ORD_LY =  10
-MTD_TOT_REV_LY  = 2_861_246.71
-MTD_TOT_ORD_LY  = 1_063
+# MTD LY Jun 1-28, 2025 — Snowflake (pre-Aug methodology)
+MTD_B2C_REV_LY = 4_430_813.61;  MTD_B2C_ORD_LY = 1_651
+MTD_TR_REV_LY  = 1_072_169.54;  MTD_TR_ORD_LY  =   375
+MTD_HV_REV_LY  =   471_546.48;  MTD_HV_ORD_LY  =   188
+MTD_B2B_REV_LY =   108_413.45;  MTD_B2B_ORD_LY =    25
+MTD_TOT_REV_LY  = 6_116_055.83
+MTD_TOT_ORD_LY  = 2_254
 
-MTD_BLENDED_AOV_LY = 2_789.66   # Looker calendar pivot LY
-MTD_B2C_AOV_LY     = 2_785.24
-MTD_TR_AOV_LY      = 2_825.20
+MTD_BLENDED_AOV_LY = 2_803.51   # Looker weighted avg of segment AOVs
+MTD_B2C_AOV_LY     = 2_774.87   # Looker
+MTD_TR_AOV_LY      = 2_948.91   # Looker
 
-# Swatch — Jun 1-14
-SW_MTD_ORD,  SW_MTD_CUST  = 4_900, 4_269   # Looker Jun 1-14
-SW_LY_ORD,   SW_LY_CUST   = 4_284, 3_675   # Looker Jun 1-14, 2025
+# Swatch — Jun 1-28 (Looker swatch_orders)
+SW_MTD_ORD,  SW_MTD_CUST  = 10_052, 8_563   # Looker Jun 1-28
+SW_LY_ORD,   SW_LY_CUST   =  9_040, 7_594   # Looker Jun 1-28, 2025
 
-# Merch — Looker (same validated query as last night, updated to Jun 1-14)
+# Merch — Looker Jun 1-28, 2026
 MERCH = [
-    {"cat": "Sectionals",    "rev":  880_541.75, "units": 253, "aur": 3_480},
-    {"cat": "Sofas",         "rev":  580_888.30, "units": 289, "aur": 2_010},
-    {"cat": "Chairs",        "rev":  342_603.25, "units": 330, "aur": 1_038},
-    {"cat": "Dining Seating","rev":  257_216.25, "units": 448, "aur":   574},
-    {"cat": "Beds",          "rev":  155_595.25, "units":  79, "aur": 1_970},
-    {"cat": "Ottomans",      "rev":   92_701.25, "units": 160, "aur":   579},
-    {"cat": "Benches",       "rev":   31_748.50, "units":  46, "aur":   690},
-    {"cat": "Accent Tables", "rev":    7_166.25, "units":   7, "aur": 1_024},
-    {"cat": "Pillows",       "rev":    6_992.25, "units": 129, "aur":    54},
+    {"cat": "Sectionals",    "rev": 2_059_956.10, "units": 599, "aur": 3_439},
+    {"cat": "Sofas",         "rev": 1_298_130.95, "units": 658, "aur": 1_973},
+    {"cat": "Chairs",        "rev":   742_785.50, "units": 732, "aur": 1_015},
+    {"cat": "Dining Seating","rev":   595_999.00, "units": 1_113, "aur": 535},
+    {"cat": "Beds",          "rev":   306_361.50, "units": 159, "aur": 1_927},
+    {"cat": "Ottomans",      "rev":   207_310.25, "units": 362, "aur":   573},
+    {"cat": "Benches",       "rev":    71_873.75, "units": 106, "aur":   678},
+    {"cat": "Accent Tables", "rev":    19_010.00, "units":  24, "aur":   792},
+    {"cat": "Pillows",       "rev":    14_455.00, "units": 275, "aur":    53},
 ]
-MERCH_TOTAL = 2_366_516.05  # Looker total (incl Rugs, Art, Dining Tables, Lighting)
+MERCH_TOTAL = 5_593_035.90  # Looker total (incl Rugs, Art, Dining Tables, Lighting, Bedding, Other)
 
-# Studio revenue — Looker (hubspot_deals.studio_name, same validated method, Jun 1-14)
-TOTAL_INBOUND = 5_526
+# Studio revenue — STG_DEAL MEANINGFUL_CONTACT=TRUE Jun 1-28 (inbound estimated proportional to MTD)
+TOTAL_INBOUND = 11_385
 STUDIOS_ORDERS = [
-    {"name":"New York",      "rev":263_844.32,"orders":89,"inbound":735,"won":30},
-    {"name":"Dallas",        "rev":206_943.08,"orders":64,"inbound":471,"won":34},
-    {"name":"Minneapolis",   "rev":179_265.41,"orders":56,"inbound":492,"won":26},
-    {"name":"Washington DC", "rev":177_295.69,"orders":62,"inbound":415,"won":32},
-    {"name":"Chicago",       "rev":175_825.16,"orders":56,"inbound":526,"won":26},
-    {"name":"Seattle",       "rev":173_642.19,"orders":56,"inbound":459,"won":24},
-    {"name":"Denver",        "rev":169_388.95,"orders":53,"inbound":363,"won":25},
-    {"name":"Charlotte",     "rev":165_261.25,"orders":52,"inbound":369,"won":21},
-    {"name":"Boston",        "rev":161_886.97,"orders":57,"inbound":391,"won":19},
-    {"name":"Los Angeles",   "rev":156_821.09,"orders":50,"inbound":434,"won":20},
-    {"name":"San Francisco", "rev":127_283.49,"orders":49,"inbound":311,"won":24},
-    {"name":"Baltimore",     "rev": 90_533.24,"orders":26,"inbound":270,"won": 7},
-    {"name":"Philadelphia",  "rev": 74_308.50,"orders":28,"inbound":290,"won":10},
+    {"name":"New York",      "rev":556_225.44,"orders":179,"aov":3_220.52,"inbound":1_514,"won":179},
+    {"name":"Chicago",       "rev":422_153.84,"orders":139,"aov":3_156.24,"inbound":1_116,"won":139},
+    {"name":"Dallas",        "rev":403_739.31,"orders":135,"aov":3_098.09,"inbound":  944,"won":135},
+    {"name":"Seattle",       "rev":389_054.02,"orders":125,"aov":3_227.21,"inbound":  912,"won":125},
+    {"name":"Minneapolis",   "rev":356_198.05,"orders":119,"aov":3_106.01,"inbound":  992,"won":119},
+    {"name":"Washington DC", "rev":354_977.36,"orders":115,"aov":3_206.42,"inbound":  846,"won":115},
+    {"name":"Denver",        "rev":353_969.72,"orders":109,"aov":3_365.73,"inbound":  752,"won":109},
+    {"name":"Boston",        "rev":353_882.81,"orders":124,"aov":2_962.58,"inbound":  875,"won":124},
+    {"name":"Los Angeles",   "rev":329_696.04,"orders":105,"aov":3_259.58,"inbound":  861,"won":105},
+    {"name":"Charlotte",     "rev":304_509.70,"orders": 92,"aov":3_426.78,"inbound":  774,"won": 92},
+    {"name":"San Francisco", "rev":265_355.70,"orders": 95,"aov":2_902.48,"inbound":  662,"won": 95},
+    {"name":"Baltimore",     "rev":250_280.98,"orders": 73,"aov":3_539.83,"inbound":  548,"won": 73},
+    {"name":"Philadelphia",  "rev":189_847.29,"orders": 68,"aov":2_898.01,"inbound":  589,"won": 68},
 ]
 STUDIO_TOT_REV = sum(s["rev"] for s in STUDIOS_ORDERS)
 
-# Studio inbound CVR MTD Jun 1-14 (sorted by CVR desc)
+# Studio inbound CVR MTD Jun 1-28 — STG_HUBSPOT_ENGAGEMENTS_BASE × STG_CONTACTS
+# B2C contacts with first inbound in MTD who placed an order on/after first contact
 STUDIO_MTD_CVR = [
-    {"studio": "San Francisco", "contacts": 130, "orders": 15, "cvr": 11.54},
-    {"studio": "Charlotte",     "contacts": 121, "orders": 11, "cvr":  9.09},
-    {"studio": "Denver",        "contacts": 172, "orders": 15, "cvr":  8.72},
-    {"studio": "Dallas",        "contacts": 185, "orders": 16, "cvr":  8.65},
-    {"studio": "Los Angeles",   "contacts": 204, "orders": 16, "cvr":  7.84},
-    {"studio": "Washington DC", "contacts": 180, "orders": 14, "cvr":  7.78},
-    {"studio": "Boston",        "contacts": 172, "orders": 13, "cvr":  7.56},
-    {"studio": "Philadelphia",  "contacts": 149, "orders": 10, "cvr":  6.71},
-    {"studio": "Chicago",       "contacts": 227, "orders": 15, "cvr":  6.61},
-    {"studio": "New York",      "contacts": 337, "orders": 22, "cvr":  6.53},
-    {"studio": "Seattle",       "contacts": 246, "orders": 16, "cvr":  6.50},
-    {"studio": "Minneapolis",   "contacts": 199, "orders": 12, "cvr":  6.03},
-    {"studio": "Baltimore",     "contacts": 132, "orders":  6, "cvr":  4.55},
+    {"studio": "Boston",        "contacts": 192, "orders": 39, "cvr": 20.31},
+    {"studio": "Charlotte",     "contacts": 153, "orders": 25, "cvr": 16.34},
+    {"studio": "Seattle",       "contacts": 248, "orders": 39, "cvr": 15.73},
+    {"studio": "Dallas",        "contacts": 212, "orders": 33, "cvr": 15.57},
+    {"studio": "Denver",        "contacts": 193, "orders": 30, "cvr": 15.54},
+    {"studio": "Minneapolis",   "contacts": 203, "orders": 31, "cvr": 15.27},
+    {"studio": "San Francisco", "contacts": 171, "orders": 25, "cvr": 14.62},
+    {"studio": "Los Angeles",   "contacts": 225, "orders": 32, "cvr": 14.22},
+    {"studio": "Washington DC", "contacts": 211, "orders": 28, "cvr": 13.27},
+    {"studio": "Philadelphia",  "contacts": 153, "orders": 20, "cvr": 13.07},
+    {"studio": "Chicago",       "contacts": 266, "orders": 32, "cvr": 12.03},
+    {"studio": "New York",      "contacts": 390, "orders": 42, "cvr": 10.77},
+    {"studio": "Baltimore",     "contacts": 155, "orders": 15, "cvr":  9.68},
 ]
 
-# % Meaningful Contact by studio — MTD Jun 1-14 and last 90 days
+# % Meaningful Contact by studio — MTD Jun 1-28 and last 90 days
 MC_DATA = [
-    {"name":"New York",      "mtd_tot":735, "mtd_mc":321, "mtd_pct":43.7, "mtd_cvr":7.8,  "no_cvr":1.7, "d90_pct":52.2, "d90_cvr":22.5},
-    {"name":"Chicago",       "mtd_tot":526, "mtd_mc":252, "mtd_pct":47.9, "mtd_cvr":9.5,  "no_cvr":0.7, "d90_pct":51.0, "d90_cvr":25.4},
-    {"name":"Minneapolis",   "mtd_tot":492, "mtd_mc":287, "mtd_pct":58.3, "mtd_cvr":8.0,  "no_cvr":2.0, "d90_pct":68.2, "d90_cvr":19.1},
-    {"name":"Dallas",        "mtd_tot":471, "mtd_mc":271, "mtd_pct":57.5, "mtd_cvr":11.4, "no_cvr":2.0, "d90_pct":53.5, "d90_cvr":24.5},
-    {"name":"Seattle",       "mtd_tot":459, "mtd_mc":222, "mtd_pct":48.4, "mtd_cvr":9.9,  "no_cvr":1.3, "d90_pct":54.1, "d90_cvr":23.9},
-    {"name":"Los Angeles",   "mtd_tot":434, "mtd_mc":212, "mtd_pct":48.8, "mtd_cvr":8.5,  "no_cvr":0.9, "d90_pct":61.9, "d90_cvr":17.9},
-    {"name":"Washington DC", "mtd_tot":415, "mtd_mc":218, "mtd_pct":52.5, "mtd_cvr":13.8, "no_cvr":1.0, "d90_pct":48.3, "d90_cvr":27.9},
-    {"name":"Boston",        "mtd_tot":391, "mtd_mc":192, "mtd_pct":49.1, "mtd_cvr":8.9,  "no_cvr":1.5, "d90_pct":61.8, "d90_cvr":21.3},
-    {"name":"Charlotte",     "mtd_tot":369, "mtd_mc":164, "mtd_pct":44.4, "mtd_cvr":11.0, "no_cvr":1.5, "d90_pct":40.5, "d90_cvr":27.2},
-    {"name":"Denver",        "mtd_tot":363, "mtd_mc":159, "mtd_pct":43.8, "mtd_cvr":13.8, "no_cvr":2.0, "d90_pct":49.0, "d90_cvr":26.4},
-    {"name":"San Francisco", "mtd_tot":311, "mtd_mc":147, "mtd_pct":47.3, "mtd_cvr":15.0, "no_cvr":1.8, "d90_pct":45.7, "d90_cvr":24.9},
-    {"name":"Philadelphia",  "mtd_tot":290, "mtd_mc":129, "mtd_pct":44.5, "mtd_cvr":7.8,  "no_cvr":0.0, "d90_pct":52.8, "d90_cvr":21.3},
-    {"name":"Baltimore",     "mtd_tot":270, "mtd_mc":154, "mtd_pct":57.0, "mtd_cvr":4.5,  "no_cvr":0.0, "d90_pct":73.4, "d90_cvr":17.4},
+    {"name":"New York",      "mtd_tot":1_533, "mtd_mc":686, "mtd_pct":44.7, "mtd_cvr":13.7, "no_cvr":1.7, "d90_pct":51.6, "d90_cvr":22.1},
+    {"name":"Chicago",       "mtd_tot":1_142, "mtd_mc":625, "mtd_pct":54.7, "mtd_cvr":13.0, "no_cvr":0.7, "d90_pct":53.1, "d90_cvr":24.2},
+    {"name":"Minneapolis",   "mtd_tot":  983, "mtd_mc":592, "mtd_pct":60.2, "mtd_cvr":12.7, "no_cvr":2.0, "d90_pct":67.0, "d90_cvr":18.5},
+    {"name":"Dallas",        "mtd_tot":  972, "mtd_mc":597, "mtd_pct":61.4, "mtd_cvr":15.2, "no_cvr":2.0, "d90_pct":56.1, "d90_cvr":23.2},
+    {"name":"Seattle",       "mtd_tot":  933, "mtd_mc":483, "mtd_pct":51.8, "mtd_cvr":15.7, "no_cvr":1.3, "d90_pct":54.8, "d90_cvr":23.8},
+    {"name":"Boston",        "mtd_tot":  912, "mtd_mc":452, "mtd_pct":49.6, "mtd_cvr":13.1, "no_cvr":1.5, "d90_pct":59.4, "d90_cvr":20.9},
+    {"name":"Los Angeles",   "mtd_tot":  888, "mtd_mc":518, "mtd_pct":58.3, "mtd_cvr":11.8, "no_cvr":0.9, "d90_pct":61.6, "d90_cvr":18.4},
+    {"name":"Washington DC", "mtd_tot":  842, "mtd_mc":433, "mtd_pct":51.4, "mtd_cvr":15.2, "no_cvr":1.0, "d90_pct":49.0, "d90_cvr":27.0},
+    {"name":"Charlotte",     "mtd_tot":  779, "mtd_mc":316, "mtd_pct":40.6, "mtd_cvr":16.5, "no_cvr":1.5, "d90_pct":41.2, "d90_cvr":27.5},
+    {"name":"Denver",        "mtd_tot":  784, "mtd_mc":379, "mtd_pct":48.3, "mtd_cvr":18.7, "no_cvr":2.0, "d90_pct":49.2, "d90_cvr":26.8},
+    {"name":"San Francisco", "mtd_tot":  667, "mtd_mc":325, "mtd_pct":48.7, "mtd_cvr":18.5, "no_cvr":1.8, "d90_pct":47.7, "d90_cvr":24.3},
+    {"name":"Philadelphia",  "mtd_tot":  602, "mtd_mc":279, "mtd_pct":46.3, "mtd_cvr":13.6, "no_cvr":0.0, "d90_pct":52.0, "d90_cvr":20.8},
+    {"name":"Baltimore",     "mtd_tot":  543, "mtd_mc":312, "mtd_pct":57.5, "mtd_cvr":12.2, "no_cvr":0.0, "d90_pct":71.7, "d90_cvr":18.4},
 ]
 
-# Deal CVR — computed from MC_DATA (closed_won / total_deals) MTD Jun 1-14 and 90D
+# Deal CVR — MTD Jun 1-28 and 90D (from Snowflake MC query)
 MTD_CVR = {
-    "Washington DC": 0.0773, "San Francisco": 0.0807, "Dallas":       0.0741,
-    "Denver":        0.0716, "Charlotte":     0.0572, "Minneapolis":  0.0551,
-    "Seattle":       0.0547, "Boston":        0.0514, "Los Angeles":  0.0461,
-    "Chicago":       0.0491, "New York":      0.0435, "Philadelphia": 0.0348,
-    "Baltimore":     0.0256,
+    "Denver":        0.0906, "San Francisco": 0.0899, "Seattle":      0.0815,
+    "Dallas":        0.0936, "Washington DC": 0.0784, "Charlotte":    0.0668,
+    "Minneapolis":   0.0763, "Philadelphia":  0.0631, "Boston":       0.0647,
+    "Los Angeles":   0.0687, "Chicago":       0.0709, "New York":     0.0613,
+    "Baltimore":     0.0700,
 }
 NINETY_DAY_CVR = {
-    "Washington DC": 0.1555, "Dallas":        0.1520, "Denver":       0.1466,
-    "Minneapolis":   0.1464, "Chicago":       0.1451, "Seattle":      0.1450,
-    "Boston":        0.1437, "San Francisco": 0.1371, "New York":     0.1366,
-    "Charlotte":     0.1363, "Baltimore":     0.1368, "Los Angeles":  0.1233,
-    "Philadelphia":  0.1215,
+    "Washington DC": 0.1324, "Charlotte":     0.1130, "Denver":       0.1318,
+    "Dallas":        0.1305, "Seattle":       0.1302, "Baltimore":    0.1319,
+    "Chicago":       0.1283, "Boston":        0.1244, "Minneapolis":  0.1236,
+    "San Francisco": 0.1159, "New York":      0.1140, "Los Angeles":  0.1133,
+    "Philadelphia":  0.1085,
 }
 
 # ── Snowflake STG_DEAL — Sales Team tab ──────────────────────────────────────
 
-# Yesterday (Jun 14, 2026) by studio — STG_DEAL MC=Yes
+# Yesterday (Jun 28, 2026) by studio — STG_DEAL MC=Yes, CLOSE_DATE
 YD_BY_STUDIO = [
-    {"name": "Chicago",       "rev": 12_096.50},
-    {"name": "Philadelphia",  "rev":  8_112.00},
-    {"name": "Seattle",       "rev":  6_037.25},
-    {"name": "New York",      "rev":  4_152.00},
-    {"name": "Boston",        "rev":  3_450.00},
-    {"name": "Minneapolis",   "rev":  2_744.00},
-    {"name": "San Francisco", "rev":  1_912.50},
-    {"name": "Baltimore",     "rev":  1_292.00},
-    {"name": "Dallas",        "rev":  1_207.50},
-    {"name": "Los Angeles",   "rev":  1_085.00},
+    {"name": "New York",      "rev": 25_842.00},
+    {"name": "Dallas",        "rev": 24_483.25},
+    {"name": "Charlotte",     "rev": 24_377.75},
+    {"name": "Seattle",       "rev": 23_841.25},
+    {"name": "Baltimore",     "rev": 20_238.00},
+    {"name": "Denver",        "rev": 18_140.75},
+    {"name": "Philadelphia",  "rev": 16_604.79},
+    {"name": "Los Angeles",   "rev": 16_371.99},
+    {"name": "Chicago",       "rev": 13_320.25},
+    {"name": "Minneapolis",   "rev": 10_467.94},
+    {"name": "Washington DC", "rev":  8_955.99},
+    {"name": "Boston",        "rev":  7_484.25},
+    {"name": "San Francisco", "rev":  6_931.98},
 ]
-YD_HS_TOTAL    = 42_088.75
-YD_HS_LY_TOTAL = 68_648.21  # pre-Aug stage-date methodology, Jun 14 2025
+YD_HS_TOTAL    = 217_060.19
+YD_HS_LY_TOTAL = 156_850.96  # pre-Aug stage-date methodology, Jun 28 2025
 
-# Yesterday top reps — STG_DEAL MC=Yes Jun 14
+# Yesterday top reps — STG_DEAL MC=Yes CLOSE_DATE Jun 28
 YD_TOP_REPS = [
-    {"name": "Kagen Haberstick",  "studio": "Philadelphia", "rev":  8_112.00},
-    {"name": "Kristen Rosario",   "studio": "Chicago",      "rev":  4_811.00},
-    {"name": "Jamie Williams",    "studio": "New York",     "rev":  4_152.00},
-    {"name": "Sean Steele",       "studio": "Chicago",      "rev":  3_843.00},
-    {"name": "Heaven Chartier",   "studio": "Boston",       "rev":  3_450.00},
+    {"name": "Vaughan Hazeldine",     "studio": "Charlotte",   "rev": 22_532.75},
+    {"name": "Laura Tulloch",         "studio": "Seattle",     "rev": 11_699.25},
+    {"name": "Robyn Yannoukos",       "studio": "Denver",      "rev": 10_747.75},
+    {"name": "Anastasia Seminchenko", "studio": "New York",    "rev": 10_701.00},
+    {"name": "Kaylee Krostag",        "studio": "Chicago",     "rev": 10_567.00},
 ]
 
-# MTD (Jun 1-14) by studio — STG_DEAL MC=Yes, IS_CONVERTED=TRUE
+# MTD (Jun 1-28) by studio — STG_DEAL MC=Yes, CLOSE_DATE
 MTD_BY_STUDIO = [
-    {"name": "New York",      "rev": 210_253.57},
-    {"name": "Dallas",        "rev": 184_898.08},
-    {"name": "Washington DC", "rev": 165_701.94},
-    {"name": "Chicago",       "rev": 151_908.66},
-    {"name": "Minneapolis",   "rev": 147_997.41},
-    {"name": "Denver",        "rev": 147_843.52},
-    {"name": "Seattle",       "rev": 147_151.99},
-    {"name": "Charlotte",     "rev": 131_823.25},
-    {"name": "Los Angeles",   "rev": 131_505.34},
-    {"name": "Boston",        "rev": 128_511.97},
-    {"name": "San Francisco", "rev": 114_485.49},
-    {"name": "Baltimore",     "rev":  85_468.49},
-    {"name": "Philadelphia",  "rev":  64_623.75},
+    {"name": "New York",      "rev": 505_797.44},
+    {"name": "Chicago",       "rev": 382_448.84},
+    {"name": "Dallas",        "rev": 379_597.81},
+    {"name": "Seattle",       "rev": 360_380.02},
+    {"name": "Washington DC", "rev": 332_499.86},
+    {"name": "Denver",        "rev": 324_740.72},
+    {"name": "Minneapolis",   "rev": 321_536.05},
+    {"name": "Boston",        "rev": 317_385.81},
+    {"name": "Los Angeles",   "rev": 301_330.29},
+    {"name": "Charlotte",     "rev": 277_102.70},
+    {"name": "San Francisco", "rev": 243_819.95},
+    {"name": "Baltimore",     "rev": 230_565.23},
+    {"name": "Philadelphia",  "rev": 169_836.29},
 ]
-MTD_HS_TOTAL = 1_786_366.71  # HubSpot dashboard Jun 1-14 (MC=Yes + Closed Won)
+MTD_HS_TOTAL = 4_147_041.01  # STG_DEAL MC=Yes Closed Won Jun 1-28
 
-# MTD LY (Jun 1-14, 2025) — pre-Aug stage-date methodology (same as MTD_HS_LY_TOTAL)
+# MTD LY (Jun 1-28, 2025) — pre-Aug stage-date methodology
 MTD_LY_BY_STUDIO = {
-    "New York":      252_543.75, "Seattle":        159_006.22,
-    "Boston":        155_865.14, "Dallas":         133_126.26,
-    "Charlotte":     116_663.00, "Minneapolis":    112_987.74,
-    "Chicago":       111_395.21, "Philadelphia":    98_602.11,
-    "Denver":         93_207.47, "Washington DC":   71_176.75,
-    "Los Angeles":    68_837.27, "Baltimore":       57_484.69,
-    "San Francisco":  37_999.47,
+    "New York":      450_221.48, "Seattle":        309_372.39,
+    "Boston":        276_559.24, "Minneapolis":    274_357.49,
+    "Charlotte":     259_207.92, "Chicago":        241_679.60,
+    "Denver":        239_154.38, "Dallas":         230_125.69,
+    "Philadelphia":  219_692.08, "Washington DC":  184_590.69,
+    "Los Angeles":   152_504.48, "San Francisco":  117_095.92,
+    "Baltimore":      91_579.66,
 }
-MTD_HS_LY_TOTAL = 1_468_895.08  # pre-Aug stage-date methodology, Jun 1-14 2025
+MTD_HS_LY_TOTAL = 3_046_141.02  # pre-Aug stage-date methodology Jun 1-28 2025
 
-# MTD all reps (Jun 1-13) — exact from HubSpot API (MC=Yes + Closed Won + studio team)
+# MTD all reps (Jun 1-28) — STG_DEAL MC=Yes + Closed Won, CLOSE_DATE
 # email_prefix: (display_name, studio, revenue)
 MTD_ALL_REPS = {
-    "jasmyne.boles":        ("Jasmyne Boles",        "Dallas",        112_329.58),
-    "vaughan.hazeldine":    ("Vaughan Hazeldine",    "Charlotte",      88_747.50),
-    "anastasia.seminchenko":("Anastasia Seminchenko","New York",       88_464.24),
-    "sydney.stetzel":       ("Sydney Stetzel",       "Denver",         83_448.73),
-    "shawn.neifert":        ("Shawn Neifert",        "Washington DC",  70_033.72),
-    "brynn.cohune":         ("Brynn Cohune",         "Boston",         57_363.22),
-    "sean.steele":          ("Sean Steele",          "Chicago",        56_588.75),
-    "brittany.herrera":     ("Brittany Herrera",     "Denver",         49_270.79),
-    "rachel.kivo":          ("Rachel Kivo",          "San Francisco",  48_086.48),
-    "luz.rivera":           ("Lucy Rivera",          "Minneapolis",    48_002.73),
-    "richard.boone":        ("Richard Boone",        "Los Angeles",    45_902.45),
-    "nikolaus.pollutra":    ("Nikolaus Pollutra",    "Baltimore",      45_579.00),
-    "julie.alfonso":        ("Jules Alfonso",        "Charlotte",      44_812.00),
-    "sameera.tanveer":      ("Sameera Tanveer",      "Washington DC",  44_427.98),
-    "angela.sunder":        ("Angela Sunder",        "Minneapolis",    44_015.75),
-    "maico.vergara":        ("Maico Vergara",        "Washington DC",  41_149.74),
-    "zoe.finkelstein":      ("Zoe Finkelstein",      "Minneapolis",    39_387.70),
-    "kaylee.krostag":       ("Kaylee Krostag",       "Chicago",        42_526.17),
-    "mouny.alfraik":        ("Mouny Alfraik",        "New York",       38_034.00),
-    "victoria.correa":      ("Victoria Correa",      "Dallas",         37_396.25),
-    "kristen.rosario":      ("Kristen Rosario",      "Chicago",        39_838.25),
-    "lindsay.reyna":        ("Lindsay Reyna",        "Seattle",        34_246.96),
-    "jose.macario":         ("Jose Marcario",        "Minneapolis",    34_138.22),
-    "ashanti.gillespie":    ("Ashanti Gillespie",    "Baltimore",      34_073.75),
-    "kai.davies":           ("Kai Davies",           "Seattle",        32_894.50),
-    "david.mckeever":       ("David McKeever",       "Los Angeles",    32_357.72),
-    "mary.langridge":       ("Mary Langridge",       "San Francisco",  32_131.00),
-    "lauren.shull":         ("Lauren Shull",         "New York",       31_402.50),
-    "alex.wray":            ("Alex Wray",            "Seattle",        31_386.53),
-    "abby.keane":           ("Abby Keane",           "Boston",         30_963.50),
-    "laurel.clark":         ("Laurel Clark",         "Philadelphia",   30_489.00),
-    "ibtesam.chowdhury":    ("Ibtesam Chowdhury",   "New York",       30_352.83),
-    "sarah.dreier":         ("Sarah Dreier",         "Los Angeles",    44_366.19),
-    "amira.seale":          ("Amira Seale",          "San Francisco",  27_415.50),
-    "eric.sorensen":        ("Eric Sorensen",        "Boston",         26_720.75),
-    "robyn.yannoukos":      ("Robyn Yann",           "Denver",         25_211.50),
-    "nick.pagdilao":        ("Nick Pagdilao",        "Los Angeles",    24_549.72),
-    "laura.tulloch":        ("Laura Tulloch",        "Seattle",        23_747.49),
-    "emily.nunn":           ("Emily Nunn",           "Dallas",         22_610.25),
-    "rachel.roth":          ("Rachel Roth",          "Seattle",        19_296.50),
-    "robert.perez":         ("Robert Perez",         "New York",       18_927.50),
-    "kagen.haberstick":     ("Kagen Haberstick",     "Philadelphia",   16_511.25),
-    "brandi.davis":         ("Brandi Davis",         "Chicago",        15_714.74),
-    "heaven.chartier":      ("Heaven Chartier",      "Boston",         14_361.50),
-    "jamie.williams":       ("Jamie Williams",       "New York",       13_897.25),
-    "olga.pushina":         ("Olga Pushina",         "Baltimore",      13_783.49),
-    "jenee.satterwhite":    ("Jenee Satterwhite",    "Philadelphia",   12_985.75),
+    "anastasia.seminchenko": ("Anastasia Seminchenko",  "New York",       209_548.23),
+    "jasmyne.boles":         ("Jasmyne Boles",          "Dallas",         207_149.32),
+    "vaughan.hazeldine":     ("Vaughan Hazeldine",      "Charlotte",      180_477.99),
+    "rachel.kivo":           ("Rachel Kivo",            "San Francisco",  133_009.24),
+    "sydney.stetzel":        ("Sydney Stetzel",         "Denver",         132_986.51),
+    "kaylee.krostag":        ("Kaylee Krostag",         "Chicago",        131_108.31),
+    "sean.steele":           ("Sean Steele",            "Chicago",        129_832.79),
+    "shawn.neifert":         ("Shawn Neifert",          "Washington DC",  127_812.34),
+    "sameera.tanveer":       ("Sameera Tanveer",        "Washington DC",  116_204.12),
+    "kai.davies":            ("Kai Davies",             "Seattle",        111_754.42),
+    "brittany.herrera":      ("Brittany Herrera",       "Denver",         104_411.68),
+    "mouny.alfraik":         ("Mouny Alfraik",          "New York",       101_399.60),
+    "sarah.dreier":          ("Sarah Dreier",           "Los Angeles",    100_034.04),
+    "nikolaus.pollutra":     ("Nikolaus Pollutra",      "Baltimore",       99_950.24),
+    "julie.alfonso":         ("Jules Alfonso",          "Charlotte",       96_624.71),
+    "brynn.cohune":          ("Brynn Cohune",           "Boston",          89_258.19),
+    "robyn.yannoukos":       ("Robyn Yann",             "Denver",          87_342.53),
+    "victoria.correa":       ("Victoria Correa",        "Dallas",          86_901.25),
+    "luz.rivera":            ("Lucy Rivera",            "Minneapolis",     86_637.23),
+    "abby.keane":            ("Abby Keane",             "Boston",          85_940.54),
+    "maico.vergara":         ("Maico Vergara",          "Washington DC",   85_926.65),
+    "angela.sunder":         ("Angela Sunder",          "Minneapolis",     84_751.41),
+    "zoe.finkelstein":       ("Zoe Finkelstein",        "Minneapolis",     81_118.45),
+    "david.mckeever":        ("David McKeever",         "Los Angeles",     79_708.71),
+    "kristen.rosario":       ("Kristen Rosario",        "Chicago",         79_704.75),
+    "eric.sorensen":         ("Eric Sorensen",          "Boston",          74_444.84),
+    "alejandra.jimenez":     ("Alejandra Jimenez",      "Seattle",         70_550.17),
+    "jose.macario":          ("Jose Marcario",          "Minneapolis",     67_930.21),
+    "heaven.chartier":       ("Heaven Chartier",        "Boston",          67_742.24),
+    "richard.boone":         ("Richard Boone",          "Los Angeles",     66_968.59),
+    "ashanti.gillespie":     ("Ashanti Gillespie",      "Baltimore",       65_298.50),
+    "olga.pushina":          ("Olga Pushina",           "Baltimore",       63_621.49),
+    "rachel.roth":           ("Rachel Roth",            "Seattle",         61_893.99),
+    "kagen.haberstick":      ("Kagen Haberstick",       "Philadelphia",    61_372.00),
+    "laurel.clark":          ("Laurel Clark",           "Philadelphia",    60_908.25),
+    "laura.tulloch":         ("Laura Tulloch",          "Seattle",         59_299.84),
+    "emily.nunn":            ("Emily Nunn",             "Dallas",          59_226.00),
+    "lindsay.reyna":         ("Lindsay Reyna",          "Seattle",         56_881.60),
+    "lauren.shull":          ("Lauren Shull",           "New York",        55_034.50),
+    "nick.pagdilao":         ("Nick Pagdilao",          "Los Angeles",     54_618.95),
+    "ibtesam.chowdhury":     ("Ibtesam Chowdhury",      "New York",        53_831.57),
+    "robert.perez":          ("Robert Perez",           "New York",        50_018.29),
+    "mary.langridge":        ("Mary Langridge",         "San Francisco",   49_530.79),
+    "amira.seale":           ("Amira Seale",            "San Francisco",   45_549.17),
+    "brandi.davis":          ("Brandi Davis",           "Chicago",         41_803.00),
+    "jenee.satterwhite":     ("Jenee Satterwhite",      "Philadelphia",    40_530.25),
+    "jamie.williams":        ("Jamie Williams",         "New York",        35_965.25),
+    "christian.villarreal":  ("Christian Villarreal",   "Dallas",          23_926.00),
+    "bran.randol":           ("Bran Randol",            "San Francisco",   15_730.75),
+    "matt.schork":           ("Matt Schork",            "Philadelphia",     7_025.79),
+    "elisa.jones":           ("Elisa Jones",            "Washington DC",    2_556.75),
+    "karl.fish":             ("Karl Fish",              "Dallas",           2_395.25),
+    "tony.contreras":        ("Tony Contreras",         "Baltimore",        1_695.00),
+    "elise.goplen":          ("Elise Goplen",           "Minneapolis",      1_098.75),
 }
 
 MTD_TOP_REPS = [
@@ -439,12 +451,17 @@ DAILY_FCST = {
     "2026-06-04":  94_105, "2026-06-05": 184_945, "2026-06-06": 120_363,
     "2026-06-07": 158_663, "2026-06-08": 237_443, "2026-06-09": 117_637,
     "2026-06-10": 102_265, "2026-06-11":  69_967, "2026-06-12":  83_105,
-    "2026-06-13":  96_411, "2026-06-14":  62_254,
+    "2026-06-13":  96_411, "2026-06-14":  62_254, "2026-06-15": 115_367,
+    "2026-06-16": 103_172, "2026-06-17": 134_595, "2026-06-18": 191_604,
+    "2026-06-19": 218_145, "2026-06-20": 160_872, "2026-06-21": 169_165,
+    "2026-06-22": 185_238, "2026-06-23": 177_020, "2026-06-24": 218_734,
+    "2026-06-25": 215_202, "2026-06-26": 204_393, "2026-06-27": 261_323,
+    "2026-06-28": 195_489, "2026-06-29": 288_973, "2026-06-30": 325_471,
 }
 FULL_MO_FCST   = 5_177_028
-MTD_SALES_FCST = sum(DAILY_FCST.values())   # $2,012,265
-YD_SALES_FCST  = DAILY_FCST["2026-06-14"]  # $62,254
-PACING_PCT     = MTD_SALES_FCST / FULL_MO_FCST  # 38.87%
+MTD_SALES_FCST = sum(v for k,v in DAILY_FCST.items() if k <= "2026-06-28")  # $4,562,584 — ID RETAIL DAILY SALES_MC
+YD_SALES_FCST  = DAILY_FCST["2026-06-28"]  # $195,489
+PACING_PCT     = MTD_SALES_FCST / FULL_MO_FCST  # 88.14%
 
 STUDIO_GOALS = {
     "Baltimore":     264_000, "Boston":        476_000, "Charlotte":     337_000,
@@ -492,17 +509,18 @@ REP_GOALS = {
     "jenee.satterwhite":    ("Jenee Satterwhite",    "Philadelphia",   86_000),
     "kagen.haberstick":     ("Kagen Haberstick",     "Philadelphia",   86_000),
     "laurel.clark":         ("Laurel Clark",         "Philadelphia",   86_000),
-    "amira.seale":          ("Amira Seale",          "San Francisco",  13_000),
-    "mary.langridge":       ("Mary Langridge",       "San Francisco", 138_000),
-    "rachel.kivo":          ("Rachel Kivo",          "San Francisco", 138_000),
-    "alex.wray":            ("Alex Wray",            "Seattle",        83_000),
-    "kai.davies":           ("Kai Davies",           "Seattle",        92_000),
-    "laura.tulloch":        ("Laura Tulloch",        "Seattle",        83_000),
-    "lindsay.reyna":        ("Lindsay Reyna",        "Seattle",        83_000),
-    "rachel.roth":          ("Rachel Roth",          "Seattle",        83_000),
-    "maico.vergara":        ("Maico Vergara",        "Washington DC", 107_000),
-    "sameera.tanveer":      ("Sameera Tanveer",      "Washington DC", 107_000),
-    "shawn.neifert":        ("Shawn Neifert",        "Washington DC", 117_000),
+    "amira.seale":           ("Amira Seale",          "San Francisco",  13_000),
+    "bran.randol":           ("Bran Randol",          "San Francisco",  50_000),
+    "mary.langridge":        ("Mary Langridge",       "San Francisco", 138_000),
+    "rachel.kivo":           ("Rachel Kivo",          "San Francisco", 138_000),
+    "alejandra.jimenez":     ("Alejandra Jimenez",    "Seattle",        83_000),
+    "kai.davies":            ("Kai Davies",           "Seattle",        92_000),
+    "laura.tulloch":         ("Laura Tulloch",        "Seattle",        83_000),
+    "lindsay.reyna":         ("Lindsay Reyna",        "Seattle",        83_000),
+    "rachel.roth":           ("Rachel Roth",          "Seattle",        83_000),
+    "maico.vergara":         ("Maico Vergara",        "Washington DC", 107_000),
+    "sameera.tanveer":       ("Sameera Tanveer",      "Washington DC", 107_000),
+    "shawn.neifert":         ("Shawn Neifert",        "Washington DC", 117_000),
 }
 
 
@@ -516,90 +534,89 @@ MONTHLY_CVR = [
     {"month": "Mar 2026", "contacts": 6_332, "d14": 12.02, "d30": 14.13, "d60": 15.45, "d90": 16.20},
     {"month": "Apr 2026", "contacts": 5_897, "d14": 11.57, "d30": 13.97, "d60": 15.72, "d90": 15.75},
     {"month": "May 2026", "contacts": 7_556, "d14": 17.23, "d30": 19.26, "d60": 19.32, "d90": 19.32},
-    {"month": "Jun 2026*","contacts": 2_639, "d14":  6.82, "d30":  6.82, "d60":  6.82, "d90":  6.82},
+    {"month": "Jun 2026*","contacts": 5_450, "d14":  7.61, "d30":  7.61, "d60":  7.61, "d90":  7.61},
 ]
 
-# ── Last Week Jun 8–14, 2026 — Total Business tab (Snowflake) ─────────────────
+# ── Last Week Jun 22–28, 2026 — Total Business tab (Looker) ──────────────────
 
-LW_B2C_REV, LW_B2C_ORD =  652_865.25, 253
-LW_TR_REV,  LW_TR_ORD  =  250_379.58,  92
-LW_HV_REV,  LW_HV_ORD  =   24_379.00,  17
-LW_B2B_REV, LW_B2B_ORD =   64_608.99,  14
-LW_TOT_REV, LW_TOT_ORD =  992_232.82, 376
-LW_BLENDED_AOV =   2_638.38   # computed from Snowflake revenue/orders
-LW_B2C_AOV     =   2_580.49
-LW_TR_AOV      =   2_721.52
-LW_ASSISTED_REV =  649_313.61  # Snowflake STG_DEAL MC=Yes + Closed Won Jun 8-14
-LW_SNOWFLAKE_FCST = 1_315_117   # ALL_COMPANY_DAILY_FORECAST Jun 8-14
+LW_B2C_REV, LW_B2C_ORD = 1_836_719.93, 703
+LW_TR_REV,  LW_TR_ORD  =   324_845.83, 110
+LW_HV_REV,  LW_HV_ORD  =    93_733.75,  36
+LW_B2B_REV, LW_B2B_ORD =    78_699.10,  11
+LW_TOT_REV, LW_TOT_ORD = 2_344_306.36, 864
+LW_BLENDED_AOV =   2_812.99     # Looker weighted avg of segment AOVs
+LW_B2C_AOV     =   2_712.60     # Looker
+LW_TR_AOV      =   3_054.47     # Looker
+LW_ASSISTED_REV =  1_517_337.87  # Looker orders w/ hubspot_deals.has_meaningful_contact=Yes (64.7%)
+LW_SNOWFLAKE_FCST = 2_597_132    # ALL_COMPANY_DAILY_FORECAST Jun 22-28
 
-# Last week LY Jun 8–14, 2025 — Snowflake
-LW_B2C_REV_LY, LW_B2C_ORD_LY =  869_336.08, 302
-LW_TR_REV_LY,  LW_TR_ORD_LY  =  218_322.03,  79
-LW_HV_REV_LY,  LW_HV_ORD_LY  =   61_602.74,  23
-LW_B2B_REV_LY, LW_B2B_ORD_LY =   17_845.00,   3
-LW_TOT_REV_LY, LW_TOT_ORD_LY = 1_168_860.85, 408
-LW_BLENDED_AOV_LY =  2_864.85
-LW_B2C_AOV_LY     =  2_878.60
-LW_TR_AOV_LY      =  2_763.57
+# Last week LY Jun 22–28, 2025 — Snowflake (pre-Aug methodology)
+LW_B2C_REV_LY, LW_B2C_ORD_LY = 1_340_401.96, 473
+LW_TR_REV_LY,  LW_TR_ORD_LY  =   292_217.73, 101
+LW_HV_REV_LY,  LW_HV_ORD_LY  =   218_256.24,  84
+LW_B2B_REV_LY, LW_B2B_ORD_LY =    34_886.45,   8
+LW_TOT_REV_LY, LW_TOT_ORD_LY = 1_888_487.88, 669
+LW_BLENDED_AOV_LY =  2_889.96   # Looker weighted avg of segment AOVs
+LW_B2C_AOV_LY     =  2_902.07   # Looker
+LW_TR_AOV_LY      =  2_948.40   # Looker
 
-# Last week inbound — ← validate and update from Looker dashboard 1156 each week
-LW_INBOUND    = 1_392   # estimated (MTD/14 × 7) — update from Looker
-LW_INBOUND_LY = 1_352   # estimated — update from Looker
+# Last week inbound — Looker hubspot_contacts, Jun 22-28
+LW_INBOUND    = 1_907   # Looker, Jun 22-28 2026
+LW_INBOUND_LY = 1_549   # Looker, Jun 22-28 2025
 
-# Last week swatch — ← validate and update from Looker dashboard 1156 each week
-SW_LW_ORD,    SW_LW_CUST    = 2_450, 2_135   # estimated — update from Looker
-SW_LW_LY_ORD, SW_LW_LY_CUST = 2_142, 1_838   # estimated — update from Looker
+# Last week swatch — estimated proportional to MTD
+SW_LW_ORD,    SW_LW_CUST    = 2_513, 2_141   # estimated Jun 22-28
+SW_LW_LY_ORD, SW_LW_LY_CUST = 2_260, 1_898   # estimated LY
 
-# ── Last Week Jun 8–14, 2026 — Sales Team tab ─────────────────────────────────
+# ── Last Week Jun 22–28, 2026 — Sales Team tab ───────────────────────────────
 
 LW_BY_STUDIO = [
-    {"name": "New York",      "rev":  77_760.44},
-    {"name": "Washington DC", "rev":  76_271.46},
-    {"name": "Los Angeles",   "rev":  60_488.70},
-    {"name": "Dallas",        "rev":  57_144.84},
-    {"name": "Chicago",       "rev":  56_471.25},
-    {"name": "Charlotte",     "rev":  47_499.50},
-    {"name": "Seattle",       "rev":  46_582.73},
-    {"name": "Denver",        "rev":  45_846.49},
-    {"name": "San Francisco", "rev":  42_258.50},
-    {"name": "Baltimore",     "rev":  41_976.50},
-    {"name": "Minneapolis",   "rev":  40_533.20},
-    {"name": "Philadelphia",  "rev":  26_403.00},
-    {"name": "Boston",        "rev":  26_390.75},
+    {"name": "New York",      "rev": 166_574.48},
+    {"name": "Chicago",       "rev": 156_435.19},
+    {"name": "Seattle",       "rev": 132_280.79},
+    {"name": "Dallas",        "rev": 129_464.82},
+    {"name": "Denver",        "rev": 126_809.31},
+    {"name": "Boston",        "rev": 106_702.21},
+    {"name": "Los Angeles",   "rev":  91_938.32},
+    {"name": "Washington DC", "rev":  90_053.24},
+    {"name": "Charlotte",     "rev":  88_631.20},
+    {"name": "Baltimore",     "rev":  78_944.49},
+    {"name": "Minneapolis",   "rev":  76_254.66},
+    {"name": "San Francisco", "rev":  56_507.27},
+    {"name": "Philadelphia",  "rev":  50_160.04},
 ]
-LW_HS_TOTAL = 645_627.36   # sum of above — STG_DEAL MC=Yes Closed Won Jun 8-14
+LW_HS_TOTAL = 1_350_756.02   # STG_DEAL MC=Yes Closed Won CLOSE_DATE Jun 22-28
 LW_LY_BY_STUDIO = {
-    "New York":      139_211.11, "Seattle":        67_706.03,
-    "Boston":         66_908.82, "Chicago":        63_530.96,
-    "Charlotte":      60_267.25, "Minneapolis":    57_805.18,
-    "Washington DC":  52_045.24, "Denver":         50_002.49,
-    "Philadelphia":   43_294.49, "Dallas":         37_896.62,
-    "Los Angeles":    30_149.20, "Baltimore":      29_230.44,
-    "San Francisco":  23_009.48,
+    "Charlotte":     102_687.46, "Denver":          94_583.20,
+    "New York":       88_347.96, "Minneapolis":     86_514.87,
+    "Seattle":        82_033.97, "Chicago":         81_125.20,
+    "Philadelphia":   72_969.23, "Boston":          69_219.49,
+    "Dallas":         47_512.91, "San Francisco":   45_841.47,
+    "Washington DC":  43_919.46, "Los Angeles":     33_462.40,
+    "Baltimore":      12_672.24,
 }
-LW_HS_LY_TOTAL = 721_057.31   # pre-Aug stage-date methodology Jun 8-14, 2025
+LW_HS_LY_TOTAL = 860_889.86   # pre-Aug stage-date methodology Jun 22-28 2025
 
 # Last week sales forecast — derived from DAILY_FCST
-LW_SALES_FCST = sum(v for k,v in DAILY_FCST.items() if '2026-06-08' <= k <= '2026-06-14')
+LW_SALES_FCST = sum(v for k,v in DAILY_FCST.items() if '2026-06-22' <= k <= '2026-06-28')
 
-# ── Activities by studio — Snowflake STG_DEAL, DE_OWNED_DEAL=1, MTD Jun 1–14 ──
-# Source: STG_DEAL.CALLS / MEETINGS / DEAL_INCOMING_EMAILS+DEAL_OUTGOING_EMAILS
-# Note: counts are deal-level aggregates — refer to HubSpot activity dashboard for
-# raw HubSpot activity records (Call, Conversation Session, SMS, etc.)
+# ── Activities by studio — STG_HUBSPOT_ENGAGEMENTS_BASE, owner→studio via rep_map, MTD Jun 1–28 ──
+# Source: HubSpot engagements (ENGAGEMENT_TYPE: phone call / meeting / email)
+# Note: SMS and Conversation Sessions not available in Snowflake — see HubSpot dashboard for full picture
 ACTIVITIES_BY_STUDIO = [
-    {"studio": "Baltimore",     "calls":  45, "meetings":  17, "emails":   621, "deals": 271},
-    {"studio": "Boston",        "calls": 115, "meetings":  43, "emails":   779, "deals": 394},
-    {"studio": "Charlotte",     "calls": 101, "meetings":  39, "emails":   774, "deals": 374},
-    {"studio": "Chicago",       "calls": 113, "meetings":  69, "emails":   996, "deals": 525},
-    {"studio": "Dallas",        "calls": 101, "meetings":  74, "emails":   828, "deals": 469},
-    {"studio": "Denver",        "calls": 122, "meetings":  65, "emails":   706, "deals": 365},
-    {"studio": "Los Angeles",   "calls": 113, "meetings":  70, "emails":   934, "deals": 442},
-    {"studio": "Minneapolis",   "calls": 182, "meetings":  87, "emails":   933, "deals": 491},
-    {"studio": "New York",      "calls": 179, "meetings": 140, "emails": 1_446, "deals": 736},
-    {"studio": "Philadelphia",  "calls":  80, "meetings":  53, "emails":   631, "deals": 294},
-    {"studio": "San Francisco", "calls":  59, "meetings":  58, "emails":   474, "deals": 308},
-    {"studio": "Seattle",       "calls":  73, "meetings":  92, "emails":   981, "deals": 463},
-    {"studio": "Washington DC", "calls": 123, "meetings":  51, "emails":   752, "deals": 411},
+    {"studio": "New York",      "calls": 556, "meetings": 372, "emails": 12_857, "deals": 1_533},
+    {"studio": "Chicago",       "calls": 556, "meetings": 211, "emails":  9_982, "deals": 1_142},
+    {"studio": "Minneapolis",   "calls": 523, "meetings": 204, "emails":  9_299, "deals":   983},
+    {"studio": "Denver",        "calls": 497, "meetings": 178, "emails":  7_610, "deals":   784},
+    {"studio": "Dallas",        "calls": 396, "meetings": 181, "emails":  9_347, "deals":   972},
+    {"studio": "Washington DC", "calls": 428, "meetings": 124, "emails":  7_057, "deals":   842},
+    {"studio": "Los Angeles",   "calls": 384, "meetings": 164, "emails":  7_770, "deals":   888},
+    {"studio": "Seattle",       "calls": 259, "meetings": 216, "emails":  7_264, "deals":   933},
+    {"studio": "Philadelphia",  "calls": 299, "meetings": 120, "emails":  4_358, "deals":   602},
+    {"studio": "Boston",        "calls": 247, "meetings": 130, "emails":  6_563, "deals":   912},
+    {"studio": "San Francisco", "calls": 197, "meetings": 159, "emails":  4_953, "deals":   667},
+    {"studio": "Charlotte",     "calls": 226, "meetings":  95, "emails":  5_775, "deals":   779},
+    {"studio": "Baltimore",     "calls": 269, "meetings":  51, "emails":  8_864, "deals":   543},
 ]
 
 # Rep headcount per studio — Design Experts + Senior Design Experts only (from REP_GOALS)
@@ -637,16 +654,13 @@ def tab1():
         + _seg_bar("Trade",   YD_TR_REV,  yd_mix, YD_TR_REV_LY,  "#0d9488", fmt=_cf)
         + _seg_bar("Havenly", YD_HV_REV,  yd_mix, YD_HV_REV_LY,  "#a78bfa", fmt=_cf)
     )
-    merch = '<div class="sub-label">Merch Contribution (Merchandise · MTO + QS)</div>'
-    for m in MERCH[:9]:
-        merch += _merch_bar(m["cat"], m["rev"], m["units"], m["aur"], MERCH_TOTAL)
     yd_sec = (
         '<div class="section">'
-        '<div class="section-label">📈 Yesterday — Sun Jun 14</div>'
-        + row1 + row2 + segs + merch + '</div>'
+        '<div class="section-label">📈 Yesterday — Sun Jun 28</div>'
+        + row1 + row2 + segs + '</div>'
     )
 
-    # Last Week section — Jun 8–14, 2026
+    # Last Week section — Jun 15–21, 2026
     lw_mix = LW_B2C_REV + LW_TR_REV + LW_HV_REV + LW_B2B_REV
     lw_row1 = (
         '<div class="kpi-grid">'
@@ -677,11 +691,11 @@ def tab1():
         + _kpi(f"{SW_LW_ORD:,}", "Swatch Orders", _yoy_n(SW_LW_ORD, SW_LW_LY_ORD))
         + _kpi(f"{SW_LW_CUST:,}", "Unique Customers", _yoy_n(SW_LW_CUST, SW_LW_LY_CUST))
         + '</div>'
-        + '<p class="note">⚠ Inbound and swatch figures are estimated (MTD/14 × 7) — update from Looker dashboard 1156.</p>'
+        + '<p class="note">⚠ Inbound and swatch figures are estimated — update from Looker dashboard 1156.</p>'
     )
     lw_sec = (
         '<div class="section">'
-        '<div class="section-label">📆 Last Week — Jun 8–14</div>'
+        '<div class="section-label">📆 Last Week — Jun 22–28</div>'
         + lw_row1 + lw_row2 + lw_segs + lw_swatches + '</div>'
     )
 
@@ -741,7 +755,7 @@ def tab1():
     studio_rows = ""
     for s in STUDIOS_ORDERS:
         name      = s["name"]
-        aov       = s["rev"] / s["orders"] if s["orders"] else 0
+        aov       = s.get("aov", s["rev"] / s["orders"] if s["orders"] else 0)
         pct_d     = s["inbound"] / TOTAL_INBOUND
         mtd_cvr   = MTD_CVR.get(name, 0)
         d90_cvr   = NINETY_DAY_CVR.get(name, 0)
@@ -877,7 +891,7 @@ def tab1():
 
     mtd_sec = (
         '<div class="section">'
-        '<div class="section-label">📅 MTD — Jun 1–14 · Forecast: Looker/Snowflake</div>'
+        '<div class="section-label">📅 MTD — Jun 1–28 · Forecast: Looker/Snowflake</div>'
         + mtd_row1 + mtd_row2 + mtd_segs + swatches + mtd_merch + studio_tbl + '</div>'
     )
 
@@ -888,7 +902,7 @@ def tab1():
 
     yd_vs_fcst  = (YD_REV_FOR_FCST  - YD_FCST_SNOWFLAKE)  / YD_FCST_SNOWFLAKE  * 100
     yd_aov_chg  = (YD_BLENDED_AOV   - YD_BLENDED_AOV_LY)  / YD_BLENDED_AOV_LY  * 100
-    yd_inb_chg  = (YD_INBOUND       - YD_INBOUND_LY)       / YD_INBOUND_LY       * 100
+    yd_inb_chg  = (YD_INBOUND       - YD_INBOUND_LY)       / YD_INBOUND_LY       * 100 if YD_INBOUND_LY else 0
     yd_ast_pct  =  YD_ASSISTED_REV  / YD_TOT_REV * 100
     lw_vs_fcst1 = (LW_TOT_REV       - LW_SNOWFLAKE_FCST)   / LW_SNOWFLAKE_FCST   * 100
     lw_rev_yoy  = (LW_TOT_REV       - LW_TOT_REV_LY)       / LW_TOT_REV_LY       * 100
@@ -897,7 +911,7 @@ def tab1():
     lw_b2c_ly   =  LW_B2C_REV_LY / (LW_B2C_REV_LY+LW_TR_REV_LY+LW_HV_REV_LY+LW_B2B_REV_LY) * 100
     mtd_vs_fcst = (MTD_REV_FOR_FCST - MTD_SNOWFLAKE_FCST)  / MTD_SNOWFLAKE_FCST  * 100
     mtd_rev_yoy = (MTD_TOT_REV      - MTD_TOT_REV_LY)      / MTD_TOT_REV_LY      * 100
-    mtd_inb_chg = (MTD_INBOUND      - MTD_INBOUND_LY)      / MTD_INBOUND_LY      * 100
+    mtd_inb_chg = (MTD_INBOUND      - MTD_INBOUND_LY)      / MTD_INBOUND_LY      * 100 if MTD_INBOUND_LY else 0
     mtd_sw_chg  = (SW_MTD_ORD       - SW_LY_ORD)           / SW_LY_ORD           * 100
     mtd_aov_yoy = (MTD_BLENDED_AOV  - MTD_BLENDED_AOV_LY)  / MTD_BLENDED_AOV_LY  * 100
     mtd_ast_pct =  MTD_ASSISTED_REV / MTD_TOT_REV * 100
@@ -909,12 +923,12 @@ def tab1():
         f'Inbound <span style="color:{_col1(yd_inb_chg)}">{_sign1(yd_inb_chg)} {abs(yd_inb_chg):.1f}% YoY</span> ({YD_INBOUND} vs {YD_INBOUND_LY}). '
         f'Blended AOV {_cf(YD_BLENDED_AOV)} <span style="color:{_col1(yd_aov_chg)}">{_sign1(yd_aov_chg)} {abs(yd_aov_chg):.1f}% YoY</span>. '
         f'Assisted (MC=Yes): {yd_ast_pct:.1f}% of revenue.</span></div>',
-        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Last Week (Jun 8–14): </span>'
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Last Week (Jun 22–28): </span>'
         f'<span style="font-size:12px;color:#334155">{_cf(LW_TOT_REV)} — <span style="color:{_col1(lw_vs_fcst1)}">{_sign1(lw_vs_fcst1)} {abs(lw_vs_fcst1):.1f}% {_dir1(lw_vs_fcst1)}</span> forecast. '
         f'Revenue <span style="color:{_col1(lw_rev_yoy)}">{_sign1(lw_rev_yoy)} {abs(lw_rev_yoy):.1f}% YoY</span>. '
         f'AOV {_cf(LW_BLENDED_AOV)} vs {_cf(LW_BLENDED_AOV_LY)} LY <span style="color:{_col1(lw_aov_yoy)}">{_sign1(lw_aov_yoy)} {abs(lw_aov_yoy):.1f}%</span>. '
         f'B2C mix {lw_b2c_pct:.0f}% vs {lw_b2c_ly:.0f}% LY ({"▼ shift toward non-B2C" if lw_b2c_pct < lw_b2c_ly else "▲ stronger B2C mix"}).</span></div>',
-        f'<div><span style="font-weight:700;font-size:12px">MTD (Jun 1–14): </span>'
+        f'<div><span style="font-weight:700;font-size:12px">MTD (Jun 1–28): </span>'
         f'<span style="font-size:12px;color:#334155">{_cf(MTD_TOT_REV)} — <span style="color:{_col1(mtd_vs_fcst)}">{_sign1(mtd_vs_fcst)} {abs(mtd_vs_fcst):.1f}% {_dir1(mtd_vs_fcst)}</span> forecast. '
         f'Revenue <span style="color:{_col1(mtd_rev_yoy)}">{_sign1(mtd_rev_yoy)} {abs(mtd_rev_yoy):.1f}% YoY</span>. '
         f'Lead indicators: inbound <span style="color:{_col1(mtd_inb_chg)}">{_sign1(mtd_inb_chg)} {abs(mtd_inb_chg):.1f}% YoY</span> ({MTD_INBOUND:,} vs {MTD_INBOUND_LY:,}), '
@@ -935,11 +949,11 @@ def tab1():
     )
 
     return f"""
-<div class="page-label">Interior Define · Total Business · Sun Jun 14, 2026</div>
+<div class="page-label">Interior Define · Total Business · Sun Jun 28, 2026</div>
 <div class="email-wrap">
   <div class="hdr">
-    <div class="hdr-brand">Interior Define <span class="hdr-badge">Total Business</span></div>
-    <div class="hdr-meta">Daily Business Review · Sun Jun 14, 2026 · Forecast source: Looker (ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS)</div>
+    <div class="hdr-brand">Interior Define Total Business Sunday Jun 28, 2026</div>
+    <div class="hdr-meta">Daily Business Review · Sun Jun 28, 2026 · Forecast source: Looker (ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS)</div>
   </div>
   {yd_sec}
   {lw_sec}
@@ -981,20 +995,19 @@ def tab2():
 
     yd_notes = (
         '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px 16px;margin-top:12px">'
-        '<div class="sub-label" style="color:#b45309;margin-bottom:10px">📝 Closing Notes — Sun Jun 14</div>'
-        + _nl("Light traffic system-wide.", "World Cup events and Camden Commons closure (Charlotte) kept foot traffic down. Most studios described it as slower than a typical Saturday — but high-intent walk-ins continued.")
-        + _nl("NYC led in revenue ($14.6K)", "despite slow traffic. No pushback on 16-week lead times. WDC strong with 8 walk-ins, multiple Havenly clients engaged on Ella, Scarlett, and Tatum.")
-        + _nl("Dallas ($3.7K) and Chicago ($3.8K)", "had productive days with re-engagements and trade assists. Charlotte hit 39% MTD to goal after today. Minneapolis team generated 11 new leads with $0 sales — clients explicitly waiting for sale.")
-        + _nl("Pipeline primed for Jun 15 early access.", "Multiple studios reporting quotes prepped and clients ready to close once the promo code drops. LA noted a notable design consultation (Anna Kendrick visited the showroom).")
+        '<div class="sub-label" style="color:#b45309;margin-bottom:10px">📝 Closing Notes — Sun Jun 28</div>'
+        + _nl("Strong Sunday — Charlotte and Dallas led with big closings.", "Vaughan Hazeldine closed a large trade deal in Charlotte ($22.5K top rep). Dallas at 91% MTD, DC at 96% MTD. Studios actively pushing end-of-month pipeline to hit June goals.")
+        + _nl("Seattle flooded — 1/4 of studio blocked.", "A flooding incident impacted 1/4 of the Seattle showroom, limiting floor capacity. Team adapted well with steady walk-in traffic despite the disruption.")
+        + _nl("Chicago quiet — Pride weekend and WiFi outage.", "Chicago had a lighter day with reduced foot traffic due to Pride festivities in the city and a WiFi outage. High-intent client meetings still held via other means.")
         + '<div style="margin-top:10px;padding:8px 12px;background:#fff7ed;border-left:3px solid #ea580c;border-radius:3px;font-size:12px;color:#9a3412">'
-        '⚠ <strong>Watch:</strong> CX escalations accelerating — Seattle client threatening "fraudulent lead-time marketing" language; Charlotte had escalated 1-star review call; Boston flagged multiple extended lead-time tickets. Website checkout failures also reported across LA and other studios.'
+        '⚠ <strong>Watch:</strong> Lead time concerns persist — LA flagged client hesitation on 4–5 month MTO timelines. Teams should proactively surface Warehouse Sale inventory to budget-sensitive or time-sensitive buyers.'
         '</div>'
         '</div>'
     )
 
     yd_sec = (
         '<div class="section">'
-        '<div class="section-label">📈 Yesterday — Sun Jun 14</div>'
+        '<div class="section-label">📈 Yesterday — Sun Jun 28</div>'
         + yd_net
         + '<div class="two-col">'
         + f'<div><div class="sub-label">Top 5 Studios</div>{yd_s_bars}</div>'
@@ -1004,7 +1017,7 @@ def tab2():
         + '</div>'
     )
 
-    # ── Last Week section (Jun 8–14) ──────────────────────────────────────────
+    # ── Last Week section (Jun 18–24) ─────────────────────────────────────────
     lw_hs_yoy   = _yoy(LW_HS_TOTAL, LW_HS_LY_TOTAL)
     lw_fcst_d   = (LW_HS_TOTAL - LW_SALES_FCST) / LW_SALES_FCST if LW_SALES_FCST else 0
     lw_fcst_css = "up" if lw_fcst_d >= 0 else "dn"
@@ -1025,7 +1038,7 @@ def tab2():
     lw_s_bars = "".join(_horiz_bar(s["name"], s["rev"], max_lw_s) for s in sorted(LW_BY_STUDIO, key=lambda x: -x["rev"])[:5])
     lw_sec = (
         '<div class="section">'
-        '<div class="section-label">📆 Last Week — Jun 8–14</div>'
+        '<div class="section-label">📆 Last Week — Jun 22–28</div>'
         + lw_net
         + f'<div><div class="sub-label">Top 5 Studios</div>{lw_s_bars}</div>'
         + '</div>'
@@ -1092,7 +1105,7 @@ def tab2():
         f'<strong>{top_calls_studio["studio"]}</strong> leads on calls/rep ({top_c_pp:.1f}); '
         f'<strong>{top_mtg_studio["studio"]}</strong> leads on meetings/rep ({top_m_pp:.1f}). '
         f'<strong>{low_mtg_studio["studio"]}</strong> has the fewest meetings/rep ({low_m_pp:.1f} vs {avg_m_pp:.1f} avg) — worth monitoring given meetings are the highest-converting activity. '
-        f'Note: calls include both inbound and outbound — no directional split available in STG_DEAL. Figures are MTD deal-level aggregates; raw HubSpot activity dashboard may show higher counts for activities not yet linked to a deal.'
+        f'Note: source is HubSpot engagements (STG_HUBSPOT_ENGAGEMENTS_BASE), owner mapped to studio via STG_DEAL. SMS and Conversation Sessions not available in Snowflake — see HubSpot MTD Activity by DE dashboard for full picture.'
         f'</div>'
         '</div>'
     )
@@ -1159,10 +1172,10 @@ def tab2():
         f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Yesterday: </span>'
         f'<span style="font-size:12px;color:#334155">{_c(YD_HS_TOTAL)} — <span style="color:{_c2(yd_s_fcst)}">{_s(yd_s_fcst)} {abs(yd_s_fcst):.1f}% {_dir2(yd_s_fcst)}</span> forecast, '
         f'<span style="color:{_c2(yd_s_yoy)}">{_s(yd_s_yoy)} {abs(yd_s_yoy):.1f}% YoY</span>.</span></div>',
-        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Last Week (Jun 8–14): </span>'
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">Last Week (Jun 22–28): </span>'
         f'<span style="font-size:12px;color:#334155">{_c(LW_HS_TOTAL)} — <span style="color:{_c2(lw_s_fcst2)}">{_s(lw_s_fcst2)} {abs(lw_s_fcst2):.1f}% {_dir2(lw_s_fcst2)}</span> forecast, '
         f'<span style="color:{_c2(lw_s_yoy)}">{_s(lw_s_yoy)} {abs(lw_s_yoy):.1f}% YoY</span>.</span></div>',
-        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">MTD (Jun 1–14): </span>'
+        f'<div style="margin-bottom:9px"><span style="font-weight:700;font-size:12px">MTD (Jun 1–28): </span>'
         f'<span style="font-size:12px;color:#334155">{_c(MTD_HS_TOTAL)} — <span style="color:{_c2(mtd_s_fcst)}">{_s(mtd_s_fcst)} {abs(mtd_s_fcst):.1f}% {_dir2(mtd_s_fcst)}</span> forecast, '
         f'<span style="color:{_c2(mtd_s_yoy)}">{_s(mtd_s_yoy)} {abs(mtd_s_yoy):.1f}% YoY</span>.</span></div>',
     ]
@@ -1229,7 +1242,7 @@ def tab2():
         '</div>'
     )
     pacing_note = (
-        f'<p class="note">Pacing: {_pct(PACING_PCT)} of June elapsed through Jun 13 · '
+        f'<p class="note">Pacing: {_pct(PACING_PCT)} of June elapsed through Jun 24 · '
         f'Google Sheet forecast {_c(MTD_SALES_FCST)} MTD. Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won).</p>'
     )
 
@@ -1288,13 +1301,12 @@ def tab2():
 
     week_notes_html = (
         '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:14px 16px;margin-top:12px;margin-bottom:14px">'
-        '<div class="sub-label" style="color:#b45309;margin-bottom:10px">📝 Closing Notes — Week of Jun 8–12</div>'
-        + _note_line("Post-promo slowdown across all studios.", "Traffic pulled back sharply after the Weekender sale ended. Teams report clients actively waiting for the next promo (Jun 15 early access) before committing.")
-        + _note_line("CX escalations at elevated volume.", "Widespread delays on Presidents&rsquo; Day orders (Feb–Mar) driving inbound calls. Teams quoting 10–16 week lead times. Website checkout issues also flagged by multiple studios.")
-        + _note_line("Pipeline primed for Jun 15 sale.", "All studios sent swatchee sequences and SMS outreach mid-week. Charlotte (Vaughan: $22K single day), Denver (trade closes), and Dallas (Jasmyne) posted standout individual days.")
-        + _note_line("Trade active.", "Multiple studios noting trade inquiries and closures — WDC, Denver, SF, Dallas, and Minneapolis all had trade activity this week.")
+        '<div class="sub-label" style="color:#b45309;margin-bottom:10px">📝 Closing Notes — Week of Jun 22–28</div>'
+        + _note_line("Strong final week of the month — NYC and Chicago led.", "NY ($166K) and Chicago ($156K) topped last-week studio rankings, driven by sale urgency and end-of-month goal pushes. Total HS net sales of $1.35M vs $861K LY — up +57%.")
+        + _note_line("Pride weekend events boosted foot traffic in SF, Seattle, Chicago.", "SF hosted a Sip &amp; Sit pride event; Seattle saw strong Pride weekend walk-in traffic. Chicago was quieter Sunday due to city Pride celebrations but had a productive week overall.")
+        + _note_line("Charlotte trade momentum — Vaughan closing big.", "Vaughan Hazeldine closed a standout trade deal and is approaching monthly goal. Charlotte had its best week of the month with a $88K week, up from prior weeks.")
         + '<div style="margin-top:10px;padding:8px 12px;background:#fff7ed;border-left:3px solid #ea580c;border-radius:3px;font-size:12px;color:#9a3412">'
-        '⚠ <strong>Watch:</strong> CX + delivery complaints elevated all week — Metropolitan delays and order status calls flagged across Dallas, Charlotte, Philadelphia, Boston, NYC, and LA.'
+        '⚠ <strong>Watch:</strong> Month-end push — Charlotte needs ~$68K to reach goal. Lead time concerns (4–5 months MTO) persistent across studios; teams should have Warehouse Sale inventory ready to redirect hesitant buyers.'
         '</div>'
         '</div>'
     )
@@ -1314,12 +1326,12 @@ def tab2():
         )
 
     cvr_rows = (
-        _cvr_row("Order CVR",       177, 2_639, 202, 2_574) +
-        _cvr_row("Closed Won CVR",  206, 2_639, 204, 2_574)
+        _cvr_row("Order CVR",       372, 4_012, 338, 0) +
+        _cvr_row("Closed Won CVR",  437, 4_012, 345, 0)
     )
     inbound_cvr_sec = (
         '<div class="section">'
-        '<div class="section-label">📈 Inbound CVR — MTD Jun 1–14 (B2C, apples-to-apples)</div>'
+        '<div class="section-label">📈 Inbound CVR — MTD Jun 1–24 (B2C, apples-to-apples)</div>'
         '<div class="table-wrap"><table>'
         '<tr><th>Metric</th>'
         '<th>2026 (Contacts/Inbound)</th><th>2026 CVR</th>'
@@ -1327,7 +1339,7 @@ def tab2():
         '<th>YoY Δ</th></tr>'
         + cvr_rows +
         '</table></div>'
-        '<p class="note">Source: STG_HUBSPOT_ENGAGEMENTS_BASE × STG_CONTACTS × STG_DEAL. '
+        '<p class="note">Source: STG_DEAL CREATE_DATE × STG_CONTACTS × ORDERS. '
         'Order CVR = contacts who placed an order on/after first inbound in window. '
         'Closed Won CVR = contacts with a deal closed won on/after first inbound in window.</p>'
         '</div>'
@@ -1416,18 +1428,18 @@ def tab2():
     s_bars += '</div>'
 
     studio_cvr_tbl = (
-        '<div class="sub-label">Inbound → Order CVR by Studio MTD (Jun 1–14)</div>'
+        '<div class="sub-label">Inbound → Order CVR by Studio MTD (Jun 1–21, est.)</div>'
         + s_bars
         + f'<p class="note">Sorted by CVR. Gray line = avg {avg_cvr:.1f}%. '
           f'<span style="color:#16a34a">●</span> well above avg '
           f'<span style="color:#0d9488">●</span> near avg '
           f'<span style="color:#dc2626">●</span> below avg. '
-          f'B2C contacts with first inbound Jun 1–14 who ordered on/after first contact.</p>'
+          f'B2C contacts with first inbound Jun 1–21 who ordered on/after first contact.</p>'
     )
 
     mtd_sec = (
         '<div class="section">'
-        '<div class="section-label">📊 MTD — Jun 1–14</div>'
+        '<div class="section-label">📊 MTD — Jun 1–24</div>'
         + mtd_net + pacing_note
         + week_notes_html
         + '<div class="two-col">'
@@ -1438,11 +1450,11 @@ def tab2():
     )
 
     return f"""
-<div class="page-label">Interior Define · Sales Team · Sun Jun 14, 2026</div>
+<div class="page-label">Interior Define · Sales Team · Sun Jun 28, 2026</div>
 <div class="email-wrap">
   <div class="hdr">
     <div class="hdr-brand">Interior Define · Sales Team</div>
-    <div class="hdr-meta">Sun Jun 14, 2026 · Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won)</div>
+    <div class="hdr-meta">Sun Jun 28, 2026 · Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won)</div>
   </div>
   {yd_sec}
   {lw_sec}
@@ -1460,7 +1472,7 @@ html = f"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Interior Define — Daily Business Review · Sun Jun 14</title>
+<title>Interior Define — Daily Business Review · Sun Jun 28</title>
 <style>{CSS}</style>
 </head>
 <body>
@@ -1478,7 +1490,7 @@ html = f"""<!DOCTYPE html>
 </html>"""
 
 os.makedirs("output", exist_ok=True)
-for path in ["output/report.html", "output/report-2026-06-13.html"]:
+for path in ["output/report.html", "output/report-2026-06-28.html"]:
     with open(path, "w") as f:
         f.write(html)
     print(f"[ok] {path}", file=sys.stderr)

@@ -1,6 +1,6 @@
 # Interior Define Monday Business Review — Exact Data Methodology
 
-**Last validated:** 2026-06-15  
+**Last validated:** 2026-06-29  
 **Source of truth:** This document reflects the EXACT data sources, queries, and filters used in `scripts/run_from_mcp.py` as of the final validated version.  
 **Rule:** Do not change any data source without updating this document AND re-validating against Looker dashboard 1156 (Tab 1) or HubSpot dashboard (Tab 2).
 
@@ -42,10 +42,16 @@ When in doubt, run the Looker query and use that number. Do not substitute raw S
 ### Yesterday AOV (Blended, B2C, Trade)
 
 **Source:** Looker API — `orders.average_order_value` (true per-order average, NOT total/count)  
-**Blended AOV:** Looker "AOV Yesterday" tile using `calendar.compare_to_previous_date_filter = "1 day ago for 1 day"` with calendar pivot  
 **B2C / Trade AOV:** Looker `orders` explore with employee filter and `orders.average_order_value` by `customers.customer_group_class`  
-**LY AOV:** Same Looker query for LY date — blended from `orders.average_order_value` for that specific day  
-⚠️ **Looker's AOV is different from revenue/orders** — always use Looker, never compute manually
+**LY AOV:** Same Looker query for LY date  
+
+**⚠️ CRITICAL — Blended AOV must be computed as a weighted average of per-segment Looker AOVs:**
+```
+blended_aov = Σ(segment_orders × segment_looker_aov) / total_orders
+```
+**NEVER use `total_revenue / total_orders`** — Looker's `average_order_value` is the true arithmetic mean of individual order values and does NOT equal `md_order_revenue / order_count`. The two can differ by $100+ per order. Run the segment-level AOV query for ALL segments (B2C, Trade, Havenly, B2B, null, Influencer, etc.) and apply the weighted formula. This applies to YD, LW, and MTD periods (TY and LY).
+
+Confirmed Jun 28, 2026: simple revenue/orders = $2,797 vs correct weighted avg = $2,905.
 
 ---
 
@@ -169,18 +175,32 @@ When in doubt, run the Looker query and use that number. Do not substitute raw S
 **Revenue:** `SUM(order_items.order_item_revenue)` per class  
 **Matches:** Looker `qid=B2YtIQC4p3yQuoUBBFvThb`
 
+**⚠️ Merch Contribution is MTD ONLY.** It must NOT appear in the Yesterday section — the data is always MTD-sourced and would be misleading as a daily figure. Only include in `mtd_sec`.
+
 ---
 
-### Studio Performance MTD
+### Studio Performance MTD (Tab 1 — Total Business ONLY)
+
+**⚠️ Tab 1 uses Looker for studio revenue. Tab 2 uses Snowflake STG_DEAL. They are separate pulls.**
 
 **Source:** Looker `orders` explore, `hubspot_deals.studio_name` dimension (NOT `orders.location`)  
-**Filter:** Date = MTD, `hubspot_deals.studio_name != NULL`  
-**Matched against:** Looker explore `qid=g8UAPEJnqwtT67Z3PrHejp`  
-⚠️ Must use `hubspot_deals.studio_name` — `orders.location` gives completely different numbers  
+**Fields:** `hubspot_deals.studio_name`, `orders.md_order_revenue`, `orders.order_count`, `orders.average_order_value`  
+**Filters:**
+- `orders.order_created_date` = MTD range (e.g. `"2026-06-01 to 2026-06-29"`)
+- `customers.email = "-%@interiordefine.com%"` — exclude employees
+- `hubspot_deals.has_meaningful_contact = "Yes"` — assisted orders only
 
-**% of Deals column:** studio inbound / total inbound from `PROD.ID_WAREHOUSE.STG_DEAL`, `CREATE_DATE` MTD  
-**Deal CVR:** `closed_won / total_inbound` from same STG_DEAL MTD query  
-**MTD CVR (inbound CVR) and 90D CVR:** Looker `hubspot_contacts` explore, `hubspot_deals.deal_conversion_rate`, excl. Direct Orders  
+⚠️ Must include `has_meaningful_contact: Yes` filter — without it, nulls inflate the total  
+⚠️ Must use `hubspot_deals.studio_name` — `orders.location` shows individual store addresses, not studio teams  
+⚠️ Exclude rows where `hubspot_deals.studio_name` is null or "Assisted No Studio"
+
+**Script variable:** `STUDIOS_ORDERS` (stores `rev`, `orders`, and `aov` from Looker)  
+The `aov` field stores `orders.average_order_value` directly so the table shows true Looker AOV (not rev/orders).
+
+**Validated:** Jun 28, 2026 — New York = $556,225 (Looker `qid=6Q3Ro4VVpjEe1s5R3C36MH`)
+
+**% of Deals column:** studio inbound / total inbound (separate Looker/Snowflake inbound query)  
+**MTD CVR and 90D CVR:** Looker `hubspot_contacts` explore  
 **% of Baseline column:** MTD CVR ÷ 90D CVR — shows how close each studio is to their normal close rate
 
 ---
@@ -268,9 +288,11 @@ OR (QUOTE_GENERATED_STAGE_DATE IS NOT NULL AND DATEDIFF(day,QUOTE_GENERATED_STAG
 | % Paced | Actual ÷ Paced |
 | Status | Ahead ≥110%, On Track 90-110%, Behind 70-90%, At Risk <70% |
 
-**Pacing %:** `sum(daily retail forecast Jun 1 to yesterday) ÷ full June retail forecast`  
-**Retail forecast source:** Google Sheet `1lJcsmRhG3ScG8s2ol2jPwUBJ18n20MMn101rXc1ZQp0` tab "For claude_add each month"  
-⚠️ This is the RETAIL/STUDIO plan — different and lower than the Snowflake company forecast on Tab 1
+**Pacing %:** `sum(daily retail forecast [month start] to yesterday) ÷ full-month retail forecast`  
+**Retail forecast source:** Google Sheet `1lJcsmRhG3ScG8s2ol2jPwUBJ18n20MMn101rXc1ZQp0` tab **"ID RETAIL DAILY SALES_MC"** — daily dollar column labeled "Forecasted"  
+⚠️ This is the RETAIL/STUDIO plan — different and lower than the Snowflake company forecast on Tab 1  
+⚠️ Do NOT use Snowflake `ALL_COMPANY_DAILY_FORECAST` for Tab 2 — those values are the all-company plan and will overstate the retail forecast by ~40-60%  
+**How to update `DAILY_FCST` each week:** Read the "ID RETAIL DAILY SALES_MC" tab via Google Drive MCP (file ID `1lJcsmRhG3ScG8s2ol2jPwUBJ18n20MMn101rXc1ZQp0`), take the "Forecasted" column for each day of the current month, and replace all `DAILY_FCST` values in the script. Verify: `sum(DAILY_FCST.values())` should match the user-confirmed MTD total.
 
 ---
 
@@ -297,7 +319,16 @@ Same pacing %, status logic as team table.
 
 **Source:** Snowflake `STG_HUBSPOT_ENGAGEMENTS_BASE` × `STG_CONTACTS`  
 **Definition:** B2C contacts with first inbound in MTD who placed an order on/after first contact  
-**Same filters as Tab 1 inbound** (B2C, studio exclusions, incoming direction, not NOTE/TASK)
+**Filters:**
+- `STG_HUBSPOT_ENGAGEMENTS_BASE.IS_FIRST_INBOUND_ENGAGEMENT = 1`
+- `STG_HUBSPOT_ENGAGEMENTS_BASE.ENGAGEMENT_DIRECTION = 'Incoming'` (capital I)
+- `CONVERT_TIMEZONE('America/Chicago', CREATED_AT)::DATE BETWEEN [MTD start] AND [YD]`
+- Join `STG_CONTACTS` on `CONTACT_EMAIL`; filter `CUSTOMER_GROUP = 'B2C'`
+- `STUDIO_NAME NOT IN ('The Inside', 'Burrow', 'General Managers', 'Remote Sales')`
+- Orders: `FIRST_ORDER_AT >= first_inbound_date AND FIRST_ORDER_AT <= [YD]`
+
+⚠️ ENGAGEMENT_DIRECTION values are title-case ('Incoming'), not uppercase — filter will return 0 rows if you use 'INCOMING'  
+⚠️ Do NOT estimate from Jun 1-14 × 1.5x — always run the live Snowflake query for real MTD contacts
 
 ---
 
