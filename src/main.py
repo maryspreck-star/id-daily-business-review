@@ -7,6 +7,7 @@ from src.collectors.slack_notes import fetch_slack_notes
 from src.synthesizer            import synthesize
 from src.renderer               import render
 from src.email_sender           import send
+from src.github_pages           import push_report_page, post_slack_link
 
 
 def _safe(fn, fallback):
@@ -43,7 +44,12 @@ def main() -> None:
     subject   = f"Interior Define Daily Review — {day_label}{today.strftime('%a %b %-d, %Y')}"
 
     send(html, subject)
-    print(f"[ok] Report sent: {subject}", file=sys.stderr)
+    print(f"[ok] Email sent: {subject}", file=sys.stderr)
+
+    page_url = push_report_page(html, str(today))
+    if page_url:
+        post_slack_link(page_url, subject)
+    print(f"[ok] Done: {subject}", file=sys.stderr)
 
 
 if __name__ == "__main__":
