@@ -2,7 +2,7 @@
 All data pulled via MCP queries on 2026-06-25. Report date = 2026-06-24 (Wednesday).
 Run: source venv/bin/activate && python scripts/run_from_mcp.py
 """
-import os, sys, datetime, asyncio, pathlib, requests
+import os, sys, datetime, asyncio, pathlib, requests, base64
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ── Formatting helpers ────────────────────────────────────────────────────────
@@ -1494,6 +1494,48 @@ for path in ["output/report.html", "output/report-2026-06-28.html"]:
     with open(path, "w") as f:
         f.write(html)
     print(f"[ok] {path}", file=sys.stderr)
+
+# ── GitHub Pages delivery ─────────────────────────────────────────────────────
+
+_GH_TOKEN      = os.getenv("GITHUB_PAT", "")
+_GH_REPO       = "maryspreck-star/id-daily-business-review"
+_PAGE_URL      = "https://maryspreck-star.github.io/id-daily-business-review/"
+_SLACK_TOKEN   = os.getenv("SLACK_BOT_TOKEN", "")
+_SLACK_CHANNEL = "C05CJH674S3"  # #salesoperations
+
+def _push_to_pages(html_str, date_label):
+    encoded = base64.b64encode(html_str.encode()).decode()
+    hdrs = {"Authorization": f"token {_GH_TOKEN}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"}
+    r = requests.get(f"https://api.github.com/repos/{_GH_REPO}/contents/index.html",
+                     headers=hdrs, params={"ref": "gh-pages"})
+    body = {"message": f"Report {date_label}", "content": encoded, "branch": "gh-pages"}
+    if r.ok:
+        body["sha"] = r.json()["sha"]
+    r2 = requests.put(f"https://api.github.com/repos/{_GH_REPO}/contents/index.html",
+                      headers=hdrs, json=body)
+    if r2.ok:
+        print(f"[ok] Published to {_PAGE_URL}", file=sys.stderr)
+        return _PAGE_URL
+    print(f"[warn] GitHub Pages push failed: {r2.status_code} {r2.text[:200]}", file=sys.stderr)
+    return None
+
+def _post_slack_link(page_url, subject):
+    r = requests.post("https://slack.com/api/chat.postMessage",
+        headers={"Authorization": f"Bearer {_SLACK_TOKEN}", "Content-Type": "application/json"},
+        json={"channel": _SLACK_CHANNEL,
+              "text": f"📊 *{subject}*\n<{page_url}|View Report →>"})
+    if r.json().get("ok"):
+        print("[ok] Slack link posted to #salesoperations", file=sys.stderr)
+    else:
+        print(f"[warn] Slack post failed: {r.json().get('error')}", file=sys.stderr)
+
+_today_label = datetime.date.today().strftime("%a %b %-d, %Y")
+_subject     = f"Interior Define Daily Business Review — {_today_label}"
+_page        = _push_to_pages(html, _today_label)
+if _page:
+    _post_slack_link(_page, _subject)
 
 # ── PDF generation ────────────────────────────────────────────────────────────
 
