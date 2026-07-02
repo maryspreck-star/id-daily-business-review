@@ -1,0 +1,40 @@
+name: Deploy Report
+
+on:
+  push:
+    branches: [data]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: data
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests -q
+
+      - name: Get report generator from main
+        run: git show origin/main:scripts/generate_report.py > generate_report.py
+
+      - name: Generate report
+        run: |
+          mkdir -p /tmp/id /tmp/deploy
+          cp data.json /tmp/id/data.json
+          python generate_report.py
+          cp /tmp/id/report.html /tmp/deploy/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: /tmp/deploy
+          publish_branch: gh-pages
+          keep_files: false
