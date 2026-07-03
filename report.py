@@ -206,6 +206,27 @@ class Looker:
             print(f"  ⚠  Swatch query failed: {e}")
             return {"orders": 0, "customers": 0}
 
+    def forecast_by_day(self, start, end):
+        """Daily forecast → {YYYY-MM-DD: amount} for the date range."""
+        try:
+            rows = self.query(
+                explore="orders",
+                fields=["sales_forecast.forecast_date_date",
+                        "sales_forecast.ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS"],
+                filters={"sales_forecast.forecast_date_date": self._df(start, end)},
+                sorts=["sales_forecast.forecast_date_date"],
+                limit=100,
+            )
+            return {
+                r["sales_forecast.forecast_date_date"]:
+                    float(r.get("sales_forecast.ID_FORECASTED_ADJUSTED_GROSS_BOOKINGS") or 0)
+                for r in rows
+                if r.get("sales_forecast.forecast_date_date")
+            }
+        except Exception as e:
+            print(f"  ⚠  Forecast query failed: {e}")
+            return {}
+
 # ── HubSpot ───────────────────────────────────────────────────────────────────
 
 def _hs_h():
@@ -510,10 +531,26 @@ def main():
     sw_looker_ty = lk.swatch(d["mtd_start"],    d["yd"])
     sw_looker_ly = lk.swatch(d["ly_mtd_start"], d["ly_yd"])
 
-    # ── Forecast sheet ────────────────────────────────────────────────────────
-    print("Reading forecast sheet...")
-    daily_fcst   = get_daily_forecast(d)
+    # ── Forecast (Looker sales_forecast, with Google Sheet fallback) ──────────
+    print("Querying forecast...")
+    mo_end = d["yd"].replace(day=28) + datetime.timedelta(days=4)
+    mo_end = mo_end - datetime.timedelta(days=mo_end.day)  # last day of month
+    daily_fcst = lk.forecast_by_day(d["mtd_start"], mo_end)
+    if not daily_fcst:
+        print("  Looker forecast empty — trying Google Sheet fallback...")
+        daily_fcst = get_daily_forecast(d)
     full_mo_fcst = sum(daily_fcst.values())
+
+    def sum_fcst(start, end):
+        cur, total = start, 0.0
+        while cur <= end:
+            total += daily_fcst.get(str(cur), 0.0)
+            cur += datetime.timedelta(days=1)
+        return total
+
+    yd_fcst  = sum_fcst(d["yd"],        d["yd"])
+    lw_fcst  = sum_fcst(d["lw_start"],  d["lw_end"])
+    mtd_fcst = sum_fcst(d["mtd_start"], d["yd"])
 
     # ── HubSpot ───────────────────────────────────────────────────────────────
     hs_yd_ty = hs_lw_ty = hs_mtd_ty = 0.0
@@ -600,11 +637,9 @@ def main():
         # Forecast (Google Sheet retail daily)
         "daily_fcst":   daily_fcst,
         "full_mo_fcst": full_mo_fcst,
-        # All-company Snowflake forecast — not available from GitHub Actions, left as 0
-        # The report shows these as blank/missing rather than wrong numbers
-        "yd_fcst":  0,
-        "lw_fcst":  0,
-        "mtd_fcst": 0,
+        "yd_fcst":  yd_fcst,
+        "lw_fcst":  lw_fcst,
+        "mtd_fcst": mtd_fcst,
         # HubSpot sales totals
         "hs_yd_ty":  hs_yd_ty,   "hs_yd_ly":  hs_yd_ly,
         "hs_lw_ty":  hs_lw_ty,   "hs_lw_ly":  hs_lw_ly,
