@@ -468,9 +468,7 @@ def main():
     print(f"yd={d['yd']}  mtd_start={d['mtd_start']}")
 
     today_str = str(d["today"])
-    if check_already_posted(today_str):
-        print(f"ℹ️  Already posted today ({today_str}) — skipping")
-        return
+    already_posted = check_already_posted(today_str)
 
     # ── Looker ────────────────────────────────────────────────────────────────
     print("Connecting to Looker...")
@@ -677,14 +675,17 @@ def main():
         for s in looker_studios[:6]:
             text += f"• {s['name']}: {fmtd(s['rev'])}\n"
 
-    print("Posting to Slack...")
-    resp = requests.post(SLACK_WEBHOOK, json={"text": text, "mrkdwn": True}, timeout=15)
-    if resp.status_code == 200 and resp.text == "ok":
-        print("✅  Slack posted")
-        mark_as_posted(today_str)
+    if already_posted:
+        print(f"ℹ️  Already posted today ({today_str}) — skipping Slack")
     else:
-        print(f"❌  Slack error: {resp.status_code} {resp.text}", file=sys.stderr)
-        sys.exit(1)
+        print("Posting to Slack...")
+        resp = requests.post(SLACK_WEBHOOK, json={"text": text, "mrkdwn": True}, timeout=15)
+        if resp.status_code == 200 and resp.text == "ok":
+            print("✅  Slack posted")
+            mark_as_posted(today_str)
+        else:
+            print(f"❌  Slack error: {resp.status_code} {resp.text}", file=sys.stderr)
+            sys.exit(1)
 
 
 if __name__ == "__main__":
