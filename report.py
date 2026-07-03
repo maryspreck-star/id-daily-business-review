@@ -23,6 +23,8 @@ SLACK_WEBHOOK    = os.environ["SLACK_WEBHOOK_URL"]
 SLACK_READ_TOKEN = os.environ.get("SLACK_READ_TOKEN", "")
 GITHUB_TOKEN     = os.environ.get("GITHUB_TOKEN", "")
 ID_HS_TOKEN      = os.environ.get("ID_HUBSPOT_TOKEN", "")
+# "schedule" = automated 8am run; "workflow_dispatch" = manual trigger
+TRIGGERED_BY     = os.environ.get("TRIGGERED_BY", "workflow_dispatch")
 GITHUB_REPO   = "maryspreck-star/id-daily-business-review"
 PAGE_URL      = "https://maryspreck-star.github.io/id-daily-business-review/"
 
@@ -895,7 +897,9 @@ def main():
         for s in looker_studios[:6]:
             text += f"• {s['name']}: {fmtd(s['rev'])}\n"
 
-    if already_posted:
+    if TRIGGERED_BY != "schedule":
+        print(f"ℹ️  Manual run (TRIGGERED_BY={TRIGGERED_BY!r}) — skipping Slack")
+    elif already_posted:
         print(f"ℹ️  Already posted today ({today_str}) — skipping Slack")
     else:
         print("Posting to Slack...")
