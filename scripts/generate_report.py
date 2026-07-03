@@ -438,14 +438,10 @@ MTD_SALES_FCST = sum(v for k, v in DAILY_FCST.items() if k <= yd_str)
 YD_SALES_FCST  = DAILY_FCST.get(yd_str, 0)
 PACING_PCT     = MTD_SALES_FCST / FULL_MO_FCST if FULL_MO_FCST else 0
 
-# LW sales forecast from DAILY_FCST (Google Sheet has current month only)
-# Suppress when LW spans two months — partial-month forecast would make the vs-fcst comparison misleading
+# LW sales forecast from DAILY_FCST
 lw_start_str = dates["lw_start"]
 lw_end_str   = dates["lw_end"]
-if lw_start_dt.month == lw_end_dt.month:
-    LW_SALES_FCST = sum(v for k, v in DAILY_FCST.items() if lw_start_str <= k <= lw_end_str)
-else:
-    LW_SALES_FCST = 0  # LW crosses month boundary; no full-week forecast available
+LW_SALES_FCST = sum(v for k, v in DAILY_FCST.items() if lw_start_str <= k <= lw_end_str)
 
 # Reps
 _reps_mtd = d.get("reps_mtd", [])

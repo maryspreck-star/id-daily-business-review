@@ -603,7 +603,6 @@ def get_daily_forecast(d):
         return {}
 
     rows = list(csv.reader(io.StringIO(resp.text)))
-    mo, yr = d["mtd_start"].month, d["mtd_start"].year
 
     # Find the "Forecasted" column
     hdr_row = fcst_col = None
@@ -633,9 +632,7 @@ def get_daily_forecast(d):
             if len(parts) == 3:
                 m2, day, y2 = int(parts[0]), int(parts[1]), int(parts[2])
                 if y2 < 100: y2 += 2000
-                if m2 != mo or y2 != yr:
-                    continue
-                dt_str = f"{yr}-{mo:02d}-{day:02d}"
+                dt_str = f"{y2}-{m2:02d}-{day:02d}"
                 result[dt_str] = pv(row[fcst_col]) if fcst_col < len(row) else 0.0
         except:
             continue
