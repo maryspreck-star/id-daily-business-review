@@ -8,7 +8,7 @@ Forecast: Google Sheet CSV export (must be "Anyone with link can view").
 Delivery: HTML → GitHub Pages; Slack link → #salesoperations.
 """
 
-import os, sys, datetime, csv, io, base64, json, subprocess, zoneinfo
+import os, sys, datetime, csv, io, base64, json, subprocess, zoneinfo, html, re
 import requests
 from datetime import timezone
 
@@ -19,9 +19,10 @@ _CT = zoneinfo.ZoneInfo("America/Chicago")
 LOOKER_URL    = os.environ["LOOKER_BASE_URL"]
 LOOKER_ID     = os.environ["LOOKER_CLIENT_ID"]
 LOOKER_SECRET = os.environ["LOOKER_CLIENT_SECRET"]
-SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK_URL"]
-GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
-ID_HS_TOKEN   = os.environ.get("ID_HUBSPOT_TOKEN", "")
+SLACK_WEBHOOK    = os.environ["SLACK_WEBHOOK_URL"]
+SLACK_READ_TOKEN = os.environ.get("SLACK_READ_TOKEN", "")
+GITHUB_TOKEN     = os.environ.get("GITHUB_TOKEN", "")
+ID_HS_TOKEN      = os.environ.get("ID_HUBSPOT_TOKEN", "")
 GITHUB_REPO   = "maryspreck-star/id-daily-business-review"
 PAGE_URL      = "https://maryspreck-star.github.io/id-daily-business-review/"
 
@@ -530,6 +531,67 @@ def get_daily_forecast(d):
     print(f"  Forecast: {len(result)} days loaded")
     return result
 
+# ── Closing Notes (Slack #id--retail-closing-notes) ──────────────────────────
+
+_CLOSING_NOTES_CHANNEL = "C08MYB2S3DH"
+
+def get_closing_notes(yd):
+    """
+    Fetch studio closing notes for `yd` from #id--retail-closing-notes.
+    Window: midnight CT on yd through 8am CT the following morning, so late
+    posts (e.g. SF posting at 3am CT) are always captured.
+    Returns an HTML string ready to drop into the report, or "" on failure.
+    """
+    if not SLACK_READ_TOKEN:
+        return ""
+    try:
+        oldest_ts = _ms(yd) / 1000.0               # midnight CT on yd
+        latest_ts = oldest_ts + 32 * 3600           # + 32 h = 8am CT next day
+
+        r = requests.get(
+            "https://slack.com/api/conversations.history",
+            headers={"Authorization": f"Bearer {SLACK_READ_TOKEN}"},
+            params={
+                "channel": _CLOSING_NOTES_CHANNEL,
+                "oldest":  oldest_ts,
+                "latest":  latest_ts,
+                "limit":   50,
+            },
+            timeout=15,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if not data.get("ok"):
+            print(f"  ⚠  Slack closing notes error: {data.get('error')}")
+            return ""
+
+        messages = data.get("messages", [])
+        if not messages:
+            return "No closing notes posted for this date."
+
+        parts = []
+        for msg in reversed(messages):          # chronological order
+            text = (msg.get("text") or "").strip()
+            if not text:
+                continue
+            safe = html.escape(text)
+            # Convert Slack *bold* to <strong>
+            safe = re.sub(r'\*([^*\n]+)\*', r'<strong>\1</strong>', safe)
+            # Indent Slack bullet • into a styled span
+            safe = re.sub(r'^([\t ]*)[••]', r'\1<span style="color:#6366f1">▸</span>', safe, flags=re.MULTILINE)
+            parts.append(
+                f'<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;'
+                f'white-space:pre-wrap;font-size:11.5px;line-height:1.65;color:#1e293b">'
+                f'{safe}</div>'
+            )
+
+        print(f"  Closing notes: {len(parts)} studio posts loaded")
+        return "".join(parts)
+    except Exception as e:
+        print(f"  ⚠  Closing notes fetch failed: {e}")
+        return ""
+
+
 # ── GitHub Pages ──────────────────────────────────────────────────────────────
 
 def push_report_page(html, d):
@@ -780,7 +842,7 @@ def main():
         "activities":     {},
         "repeat_pct":     0,
         "merch":          [],
-        "closing_notes":  "",
+        "closing_notes":  get_closing_notes(d["yd"]),
     }
 
     # ── Generate HTML ─────────────────────────────────────────────────────────
