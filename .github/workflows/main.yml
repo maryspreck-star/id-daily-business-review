@@ -29,6 +29,7 @@ jobs:
           LOOKER_CLIENT_ID:     ${{ secrets.LOOKER_CLIENT_ID }}
           LOOKER_CLIENT_SECRET: ${{ secrets.LOOKER_CLIENT_SECRET }}
           SLACK_WEBHOOK_URL:    ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_READ_TOKEN:     ${{ secrets.SLACK_READ_TOKEN }}
           ID_HUBSPOT_TOKEN:     ${{ secrets.ID_HUBSPOT_TOKEN }}
           GITHUB_TOKEN:         ${{ secrets.GITHUB_TOKEN }}
         run: python report.py
