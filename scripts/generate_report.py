@@ -649,9 +649,12 @@ def tab1():
         + _kpi(f"{SW_MTD_CUST:,}", "Unique Customers MTD", _yoy_n(SW_MTD_CUST, SW_LY_CUST))
         + '</div>'
     )
-    mtd_merch = '<div class="sub-label">Merch Contribution (Merchandise · MTO + QS)</div>'
-    for m in MERCH[:9]:
-        mtd_merch += _merch_bar(m["cat"], m["rev"], m["units"], m["aur"], MERCH_TOTAL)
+    if MERCH:
+        mtd_merch = '<div class="sub-label">Merch Contribution (Merchandise · MTO + QS)</div>'
+        for m in MERCH[:9]:
+            mtd_merch += _merch_bar(m["cat"], m["rev"], m["units"], m["aur"], MERCH_TOTAL)
+    else:
+        mtd_merch = ""
 
     # Studio table
     tot_ord = sum(s["orders"] for s in STUDIOS_ORDERS) or 1

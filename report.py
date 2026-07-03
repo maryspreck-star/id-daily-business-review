@@ -250,9 +250,16 @@ class Looker:
             print(f"  ⚠  Studio CVR query failed: {e}")
             return []
 
-    def monthly_inbound_cvr(self, months=12):
-        """Monthly inbound B2C CVR trend → list of {month, contacts, d14, d30, d90}"""
+    def monthly_inbound_cvr(self, months=12, today=None):
+        """Monthly inbound B2C CVR trend → list of {month, contacts, d14, d30, d90}
+        sorted oldest-first so charts render chronologically (left=old, right=new).
+        The current partial month is included as the last entry (in-progress)."""
+        if today is None:
+            today = datetime.date.today()
         try:
+            # Start at the first day of the same month one year ago to include 12
+            # complete months plus the current partial month (13 rows total).
+            start_mo = today.replace(year=today.year - 1, day=1)
             rows = self.query(
                 explore="hubspot_contacts",
                 fields=["hubspot_engagements.engagement_created_at_month",
@@ -267,11 +274,11 @@ class Looker:
                     "hubspot_engagements.inbound_engagement": "Yes",
                     "hubspot_contacts.customer_group":        "B2C",
                     "hubspot_engagements.engagement_created_at_date":
-                        f"{months} months ago for {months} months",
+                        self._df(start_mo, today),
                 },
-                sorts=["hubspot_engagements.engagement_created_at_month desc"],
+                sorts=["hubspot_engagements.engagement_created_at_month asc"],
                 tz="America/Chicago",
-                limit=months,
+                limit=months + 2,
             )
             result = []
             for r in rows:
@@ -346,14 +353,15 @@ def _hs_owner_map():
         return {}
 
 def _ms(dt):
-    """Date → start-of-day epoch ms Central Time (matches sales team TZ)."""
-    return int(datetime.datetime(dt.year, dt.month, dt.day, 0, 0, 0,
-                                 tzinfo=_CT).timestamp() * 1000)
+    """Date → start-of-day epoch ms UTC. HubSpot stores closedate as midnight UTC of
+    the date the rep entered, so UTC boundaries are required to capture all deals."""
+    return int(datetime.datetime(dt.year, dt.month, dt.day,
+                                 tzinfo=timezone.utc).timestamp() * 1000)
 
 def _ms_eod(dt):
-    """Date → end-of-day epoch ms Central Time."""
+    """Date → end-of-day epoch ms UTC (23:59:59 UTC)."""
     return int(datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59,
-                                 tzinfo=_CT).timestamp() * 1000)
+                                 tzinfo=timezone.utc).timestamp() * 1000)
 
 def _hs_search(filter_groups, properties):
     results, after = [], None
@@ -550,7 +558,10 @@ def get_closing_notes(yd):
     if not SLACK_READ_TOKEN:
         return ""
     try:
-        oldest_ts = _ms(yd) / 1000.0               # midnight CT on yd
+        # Slack timestamps are real Unix seconds; use CT midnight so late posts
+        # (e.g. SF posting after midnight UTC) are still captured under the right day.
+        oldest_ts = datetime.datetime(yd.year, yd.month, yd.day, 0, 0, 0,
+                                      tzinfo=_CT).timestamp()
         latest_ts = oldest_ts + 32 * 3600           # + 32 h = 8am CT next day
 
         r = requests.get(
@@ -706,32 +717,34 @@ def main():
     studio_cvr_90d_data = {r["studio"]: r["cvr"] for r in studio_cvr_90d_rows}
 
     print("Querying monthly inbound CVR trend...")
-    monthly_cvr_data = lk.monthly_inbound_cvr(months=12)
+    monthly_cvr_data = lk.monthly_inbound_cvr(months=12, today=d["today"])
 
     print("Querying swatch (TY + LY)...")
     sw_looker_ty = lk.swatch(d["mtd_start"],    d["yd"])
     sw_looker_ly = lk.swatch(d["ly_mtd_start"], d["ly_yd"])
 
-    # ── Forecast (Looker sales_forecast, with Google Sheet fallback) ──────────
-    print("Querying forecast...")
+    # ── Forecast ──────────────────────────────────────────────────────────────
+    # Looker sales_forecast → Total Business tab (yd_fcst, lw_fcst, mtd_fcst)
+    # Google Sheet         → Sales Team tab only (daily_fcst, full_mo_fcst)
+    print("Querying Looker forecast (Total Business)...")
     mo_end = d["yd"].replace(day=28) + datetime.timedelta(days=4)
     mo_end = mo_end - datetime.timedelta(days=mo_end.day)  # last day of month
-    daily_fcst = lk.forecast_by_day(d["mtd_start"], mo_end)
-    if not daily_fcst:
-        print("  Looker forecast empty — trying Google Sheet fallback...")
-        daily_fcst = get_daily_forecast(d)
-    full_mo_fcst = sum(daily_fcst.values())
+    looker_daily_fcst = lk.forecast_by_day(d["mtd_start"], mo_end)
 
-    def sum_fcst(start, end):
+    def sum_looker_fcst(start, end):
         cur, total = start, 0.0
         while cur <= end:
-            total += daily_fcst.get(str(cur), 0.0)
+            total += looker_daily_fcst.get(str(cur), 0.0)
             cur += datetime.timedelta(days=1)
         return total
 
-    yd_fcst  = sum_fcst(d["yd"],        d["yd"])
-    lw_fcst  = sum_fcst(d["lw_start"],  d["lw_end"])
-    mtd_fcst = sum_fcst(d["mtd_start"], d["yd"])
+    yd_fcst  = sum_looker_fcst(d["yd"],        d["yd"])
+    lw_fcst  = sum_looker_fcst(d["lw_start"],  d["lw_end"])
+    mtd_fcst = sum_looker_fcst(d["mtd_start"], d["yd"])
+
+    print("Fetching Google Sheet forecast (Sales tab)...")
+    sales_daily_fcst   = get_daily_forecast(d)
+    sales_full_mo_fcst = sum(sales_daily_fcst.values())
 
     # ── HubSpot ───────────────────────────────────────────────────────────────
     hs_yd_ty = hs_lw_ty = hs_mtd_ty = 0.0
@@ -821,10 +834,10 @@ def main():
         # Swatch
         "sw_looker_ty": sw_looker_ty,  "sw_looker_ly": sw_looker_ly,
         "sw_mtd_ty":    sw_looker_ty,  "sw_mtd_ly":    sw_looker_ly,
-        # Forecast (Google Sheet retail daily)
-        "daily_fcst":   daily_fcst,
-        "full_mo_fcst": full_mo_fcst,
-        "yd_fcst":  yd_fcst,
+        # Forecast — Google Sheet for Sales tab pacing; Looker sums for Total Business
+        "daily_fcst":   sales_daily_fcst,     # Google Sheet → DAILY_FCST in Sales tab
+        "full_mo_fcst": sales_full_mo_fcst,
+        "yd_fcst":  yd_fcst,                  # Looker → YD/LW/MTD v-plan in Total Business
         "lw_fcst":  lw_fcst,
         "mtd_fcst": mtd_fcst,
         # HubSpot sales totals
