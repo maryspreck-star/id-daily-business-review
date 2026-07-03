@@ -828,7 +828,9 @@ def main():
     print("Querying Looker forecast (Total Business)...")
     mo_end = d["yd"].replace(day=28) + datetime.timedelta(days=4)
     mo_end = mo_end - datetime.timedelta(days=mo_end.day)  # last day of month
-    looker_daily_fcst = lk.forecast_by_day(d["mtd_start"], mo_end)
+    # Start from lw_start so LW forecast covers the full 7-day window even when it spans months
+    fcst_query_start  = min(d["mtd_start"], d["lw_start"])
+    looker_daily_fcst = lk.forecast_by_day(fcst_query_start, mo_end)
 
     def sum_looker_fcst(start, end):
         cur, total = start, 0.0
