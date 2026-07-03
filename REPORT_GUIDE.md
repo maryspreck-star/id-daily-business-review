@@ -19,14 +19,15 @@ Live report: https://maryspreck-star.github.io/id-daily-business-review/
 ## Repository Structure
 
 ```
-id-daily-business-review/
+id-daily-business-review/          ← main branch
 ├── report.py                    # Main pipeline: fetches data, builds data.json
 ├── scripts/
 │   └── generate_report.py      # Reads data.json, renders the HTML report
 ├── requirements.txt             # Python dependencies (requests)
-├── .github/workflows/main.yml  # GitHub Actions schedule + Slack trigger
-└── docs/
-    └── index.html              # Published report (auto-generated, do not edit)
+└── .github/workflows/main.yml  # GitHub Actions schedule + Slack trigger
+
+gh-pages branch (auto-managed)
+└── index.html                  # Published report — do not edit manually
 ```
 
 ---
@@ -291,7 +292,7 @@ scripts/generate_report.py
   /tmp/id/report.html
         │
         ▼
-  git commit → docs/index.html  (GitHub Pages)
+  git commit → index.html on gh-pages branch  (GitHub Pages)
         │
         ▼
   Slack webhook → #salesoperations  (scheduled runs only)
@@ -372,6 +373,6 @@ GitHub secrets (Looker credentials, HubSpot token, Slack tokens) live only in th
 4. Update `FORECAST_CSV_URL` to point to the new brand's Google Sheet
 5. Update `STUDIO_EXCLUDE` if different studios should be filtered
 6. Update the `GITHUB_REPO` and `PAGE_URL` constants in `report.py`
-7. Enable GitHub Pages on the new repo (`Settings → Pages → Deploy from branch: main, /docs`)
+7. Enable GitHub Pages on the new repo (`Settings → Pages → Deploy from branch: gh-pages, / (root)`)
 8. Add all secrets to the new repo's Settings
 9. Create a new Slack Bot and add `SLACK_READ_TOKEN` for closing notes (see Slack Bot Setup above)
