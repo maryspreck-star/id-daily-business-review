@@ -8,9 +8,11 @@ Forecast: Google Sheet CSV export (must be "Anyone with link can view").
 Delivery: HTML → GitHub Pages; Slack link → #salesoperations.
 """
 
-import os, sys, datetime, csv, io, base64, json, subprocess
+import os, sys, datetime, csv, io, base64, json, subprocess, zoneinfo
 import requests
 from datetime import timezone
+
+_CT = zoneinfo.ZoneInfo("America/Chicago")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -309,15 +311,43 @@ class Looker:
 def _hs_h():
     return {"Authorization": f"Bearer {ID_HS_TOKEN}", "Content-Type": "application/json"}
 
+def _hs_owner_map():
+    """Fetch all HubSpot owners → {owner_id_str: 'First Last'}"""
+    try:
+        owners = {}
+        after = None
+        while True:
+            params = {"limit": 250}
+            if after:
+                params["after"] = after
+            r = requests.get("https://api.hubapi.com/crm/v3/owners",
+                             headers=_hs_h(), params=params, timeout=15)
+            r.raise_for_status()
+            data = r.json()
+            for o in data.get("results", []):
+                oid  = str(o.get("id", ""))
+                name = f"{o.get('firstName', '').strip()} {o.get('lastName', '').strip()}".strip()
+                if not name:
+                    name = o.get("email", oid)
+                owners[oid] = name
+            after = data.get("paging", {}).get("next", {}).get("after")
+            if not after:
+                break
+        print(f"  Loaded {len(owners)} HubSpot owners")
+        return owners
+    except Exception as e:
+        print(f"  ⚠  Owner lookup failed: {e}")
+        return {}
+
 def _ms(dt):
-    """Date → start-of-day epoch ms UTC."""
-    return int(datetime.datetime(dt.year, dt.month, dt.day,
-                                 tzinfo=timezone.utc).timestamp() * 1000)
+    """Date → start-of-day epoch ms Central Time (matches sales team TZ)."""
+    return int(datetime.datetime(dt.year, dt.month, dt.day, 0, 0, 0,
+                                 tzinfo=_CT).timestamp() * 1000)
 
 def _ms_eod(dt):
-    """Date → end-of-day epoch ms UTC."""
+    """Date → end-of-day epoch ms Central Time."""
     return int(datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59,
-                                 tzinfo=timezone.utc).timestamp() * 1000)
+                                 tzinfo=_CT).timestamp() * 1000)
 
 def _hs_search(filter_groups, properties):
     results, after = [], None
@@ -337,12 +367,11 @@ def _hs_search(filter_groups, properties):
             break
     return results
 
-def hs_deals(start, end, require_mc=True):
+def hs_deals(start, end, require_mc=True, owner_map=None):
     """
     Query closed-won deals for a date range.
     require_mc=True  → TY:  meaningful_contact_ = true (Aug 2025+)
-    require_mc=False → LY:  all closed-won (approximation; ideally would use
-                            stage-date filter but DATEDIFF not available in API)
+    require_mc=False → LY:  all closed-won (approximation)
     Returns: (total_rev, studio_list [{name, rev}], owner_list [{name, studio, rev}])
     """
     filters = [
@@ -356,8 +385,7 @@ def hs_deals(start, end, require_mc=True):
 
     deals = _hs_search(
         filter_groups=[{"filters": filters}],
-        properties=["amount", "hubspot_owner_id", "studio_name",
-                    "meaningful_contact_", "hubspot_owner_displayname"],
+        properties=["amount", "hubspot_owner_id", "studio_name", "meaningful_contact_"],
     )
 
     total     = 0.0
@@ -368,7 +396,7 @@ def hs_deals(start, end, require_mc=True):
         studio = (p.get("studio_name") or "").strip()
         amt    = float(p.get("amount") or 0)
         oid    = str(p.get("hubspot_owner_id") or "")
-        oname  = (p.get("hubspot_owner_displayname") or oid).strip()
+        oname  = (owner_map or {}).get(oid) or oid
         if studio in STUDIO_EXCLUDE:
             continue
         total += amt
@@ -647,23 +675,29 @@ def main():
     mc_mtd = mc_90d = {}
 
     if ID_HS_TOKEN:
+        print("Fetching HubSpot owner names...")
+        owner_map = _hs_owner_map()
+
         print("Querying HubSpot (TY)...")
         try:
-            hs_yd_ty,  studio_yd_ty,  _        = hs_deals(d["yd"],        d["yd"])
-            hs_lw_ty,  studio_lw_ty,  _        = hs_deals(d["lw_start"],  d["lw_end"])
-            hs_mtd_ty, _,             reps_mtd = hs_deals(d["mtd_start"], d["yd"])
+            hs_yd_ty,  studio_yd_ty,  _        = hs_deals(d["yd"],        d["yd"],        owner_map=owner_map)
+            hs_lw_ty,  studio_lw_ty,  _        = hs_deals(d["lw_start"],  d["lw_end"],    owner_map=owner_map)
+            hs_mtd_ty, _,             reps_mtd = hs_deals(d["mtd_start"], d["yd"],        owner_map=owner_map)
             studio_hs_mtd                       = hs_studio_hs_mtd(d["mtd_start"], d["yd"])
-            mc_mtd                              = hs_mc_pct(d["mtd_start"], d["yd"])
             d90_start                           = d["yd"] - datetime.timedelta(days=89)
+            mc_mtd                              = hs_mc_pct(d["mtd_start"], d["yd"])
+            if not mc_mtd:
+                print("  MTD mc_pct empty (early month) — falling back to last 30 days")
+                mc_mtd = hs_mc_pct(d["yd"] - datetime.timedelta(days=29), d["yd"])
             mc_90d                              = hs_mc_pct(d90_start,      d["yd"])
         except Exception as e:
             print(f"  ⚠  HubSpot TY error: {e}")
 
         print("Querying HubSpot (LY)...")
         try:
-            hs_yd_ly,  _,                 _ = hs_deals(d["ly_yd"],        d["ly_yd"],       require_mc=False)
-            hs_lw_ly,  studio_lw_ly_list, _ = hs_deals(d["ly_lw_start"],  d["ly_lw_end"],   require_mc=False)
-            hs_mtd_ly, _,                 _ = hs_deals(d["ly_mtd_start"], d["ly_yd"],        require_mc=False)
+            hs_yd_ly,  _,                 _ = hs_deals(d["ly_yd"],        d["ly_yd"],       require_mc=False, owner_map=owner_map)
+            hs_lw_ly,  studio_lw_ly_list, _ = hs_deals(d["ly_lw_start"],  d["ly_lw_end"],   require_mc=False, owner_map=owner_map)
+            hs_mtd_ly, _,                 _ = hs_deals(d["ly_mtd_start"], d["ly_yd"],        require_mc=False, owner_map=owner_map)
         except Exception as e:
             print(f"  ⚠  HubSpot LY error: {e}")
     else:
