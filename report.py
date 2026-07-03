@@ -463,7 +463,7 @@ def hs_deals(start, end, require_mc=True, owner_map=None, owner_studio_map=None)
 
     studio_list = [{"name": k, "rev": v}
                    for k, v in sorted(by_studio.items(), key=lambda x: -x[1])]
-    owner_list  = sorted(by_owner.values(), key=lambda x: -x["rev"])[:10]
+    owner_list  = sorted(by_owner.values(), key=lambda x: -x["rev"])
 
     return total, studio_list, owner_list
 
