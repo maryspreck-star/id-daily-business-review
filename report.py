@@ -417,11 +417,12 @@ def _hs_search(filter_groups, properties):
             break
     return results
 
-def hs_deals(start, end, require_mc=True, owner_map=None):
+def hs_deals(start, end, require_mc=True, owner_map=None, owner_studio_map=None):
     """
     Query closed-won deals for a date range.
     require_mc=True  → TY:  meaningful_contact_ = true (Aug 2025+)
     require_mc=False → LY:  all closed-won (approximation)
+    owner_studio_map → {owner_id: studio} fallback when studio_name is blank on deal
     Returns: (total_rev, studio_list [{name, rev}], owner_list [{name, studio, rev}])
     """
     filters = [
@@ -435,7 +436,7 @@ def hs_deals(start, end, require_mc=True, owner_map=None):
 
     deals = _hs_search(
         filter_groups=[{"filters": filters}],
-        properties=["amount", "hubspot_owner_id", "studio_name", "meaningful_contact_"],
+        properties=["amount", "hubspot_owner_id", "hubspot_team", "meaningful_contact_"],
     )
 
     total     = 0.0
@@ -443,10 +444,13 @@ def hs_deals(start, end, require_mc=True, owner_map=None):
     by_owner  = {}
     for deal in deals:
         p      = deal.get("properties", {})
-        studio = (p.get("studio_name") or "").strip()
+        studio = (p.get("hubspot_team") or "").strip()
         amt    = float(p.get("amount") or 0)
         oid    = str(p.get("hubspot_owner_id") or "")
         oname  = (owner_map or {}).get(oid) or oid
+        # Fall back to owner email→studio mapping when HubSpot studio_name is blank
+        if not studio and owner_studio_map:
+            studio = owner_studio_map.get(oid, "")
         if studio in STUDIO_EXCLUDE:
             continue
         total += amt
@@ -472,12 +476,12 @@ def hs_studio_hs_mtd(start, end):
             {"propertyName": "closedate",           "operator": "GTE", "value": str(_ms(start))},
             {"propertyName": "closedate",           "operator": "LTE", "value": str(_ms_eod(end))},
         ]}],
-        properties=["amount", "studio_name"],
+        properties=["amount", "hubspot_team"],
     )
     by_studio = {}
     for deal in deals:
         p      = deal.get("properties", {})
-        studio = (p.get("studio_name") or "").strip()
+        studio = (p.get("hubspot_team") or "").strip()
         amt    = float(p.get("amount") or 0)
         if not studio or studio in STUDIO_EXCLUDE:
             continue
@@ -495,12 +499,12 @@ def hs_mc_pct(start, end):
             {"propertyName": "closedate",         "operator": "GTE", "value": str(_ms(start))},
             {"propertyName": "closedate",         "operator": "LTE", "value": str(_ms_eod(end))},
         ]}],
-        properties=["studio_name", "meaningful_contact_"],
+        properties=["hubspot_team", "meaningful_contact_"],
     )
     by_studio = {}
     for deal in deals:
         p      = deal.get("properties", {})
-        studio = (p.get("studio_name") or "").strip()
+        studio = (p.get("hubspot_team") or "").strip()
         mc     = str(p.get("meaningful_contact_") or "").lower() == "true"
         if not studio or studio in STUDIO_EXCLUDE:
             continue
@@ -864,10 +868,10 @@ def main():
 
         print("Querying HubSpot (TY)...")
         try:
-            hs_yd_ty,  studio_yd_ty,  _        = hs_deals(d["yd"],        d["yd"],        owner_map=owner_map)
-            hs_lw_ty,  studio_lw_ty,  _        = hs_deals(d["lw_start"],  d["lw_end"],    owner_map=owner_map)
-            hs_mtd_ty, _,             reps_mtd = hs_deals(d["mtd_start"], d["yd"],        owner_map=owner_map)
-            studio_hs_mtd                       = hs_studio_hs_mtd(d["mtd_start"], d["yd"])
+            hs_yd_ty,  studio_yd_ty,  _              = hs_deals(d["yd"],        d["yd"],       owner_map=owner_map, owner_studio_map=owner_studio_map)
+            hs_lw_ty,  studio_lw_ty,  _              = hs_deals(d["lw_start"],  d["lw_end"],   owner_map=owner_map, owner_studio_map=owner_studio_map)
+            hs_mtd_ty, studio_mtd_list, reps_mtd     = hs_deals(d["mtd_start"], d["yd"],       owner_map=owner_map, owner_studio_map=owner_studio_map)
+            studio_hs_mtd = [{"name": s["name"], "rev": s["rev"], "deals": 0} for s in studio_mtd_list]
             d90_start                           = d["yd"] - datetime.timedelta(days=89)
             mc_mtd                              = hs_mc_pct(d["mtd_start"], d["yd"])
             if not mc_mtd:
