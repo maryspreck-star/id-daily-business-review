@@ -206,6 +206,81 @@ class Looker:
             print(f"  ⚠  Swatch query failed: {e}")
             return {"orders": 0, "customers": 0}
 
+    def studio_cvr(self, start, end):
+        """Inbound B2C CVR by studio → list of {studio, contacts, orders, cvr}"""
+        try:
+            rows = self.query(
+                explore="hubspot_contacts",
+                fields=["hubspot_contacts.studio_name",
+                        "hubspot_contacts.number_of_contacts",
+                        "hubspot_contacts.all_converted_count"],
+                filters={
+                    "hubspot_contacts.studio_name":
+                        "-The Inside,-Burrow,-General Managers,-Remote Sales",
+                    "hubspot_engagements.inbound_engagement": "Yes",
+                    "hubspot_contacts.customer_group":        "B2C",
+                    "hubspot_engagements.engagement_created_at_date": self._df(start, end),
+                },
+                sorts=["hubspot_contacts.number_of_contacts desc"],
+                tz="America/Chicago",
+            )
+            result = []
+            for r in rows:
+                studio   = (r.get("hubspot_contacts.studio_name") or "").strip()
+                contacts = int(r.get("hubspot_contacts.number_of_contacts") or 0)
+                orders   = int(r.get("hubspot_contacts.all_converted_count") or 0)
+                if not studio or contacts == 0:
+                    continue
+                result.append({
+                    "studio":   studio,
+                    "contacts": contacts,
+                    "orders":   orders,
+                    "cvr":      round(orders / contacts, 4),
+                })
+            return result
+        except Exception as e:
+            print(f"  ⚠  Studio CVR query failed: {e}")
+            return []
+
+    def monthly_inbound_cvr(self, months=12):
+        """Monthly inbound B2C CVR trend → list of {month, contacts, d14, d30, d90}"""
+        try:
+            rows = self.query(
+                explore="hubspot_contacts",
+                fields=["hubspot_engagements.engagement_created_at_month",
+                        "hubspot_contacts.number_of_contacts",
+                        "hubspot_contacts.14_day_conversion_rate",
+                        "hubspot_contacts.30_day_conversion_rate",
+                        "hubspot_contacts.90_day_conversion_rate"],
+                filters={
+                    "hubspot_contacts.studio_name":
+                        "-The Inside,-Burrow,-General Managers,-Remote Sales",
+                    "hubspot_engagements.inbound_engagement": "Yes",
+                    "hubspot_contacts.customer_group":        "B2C",
+                    "hubspot_engagements.engagement_created_at_date":
+                        f"{months} months ago for {months} months",
+                },
+                sorts=["hubspot_engagements.engagement_created_at_month desc"],
+                tz="America/Chicago",
+                limit=months,
+            )
+            result = []
+            for r in rows:
+                mo = r.get("hubspot_engagements.engagement_created_at_month")
+                if not mo:
+                    continue
+                result.append({
+                    "month":    mo,
+                    "contacts": int(r.get("hubspot_contacts.number_of_contacts") or 0),
+                    "d14":      float(r.get("hubspot_contacts.14_day_conversion_rate") or 0),
+                    "d30":      float(r.get("hubspot_contacts.30_day_conversion_rate") or 0),
+                    "d90":      float(r.get("hubspot_contacts.90_day_conversion_rate") or 0),
+                })
+            return result
+        except Exception as e:
+            print(f"  ⚠  Monthly CVR query failed: {e}")
+            return []
+
     def forecast_by_day(self, start, end):
         """Daily forecast → {YYYY-MM-DD: amount} for the date range."""
         try:
@@ -527,6 +602,15 @@ def main():
     print("Querying Looker studios MTD...")
     looker_studios = lk.studio_mtd(d["mtd_start"], d["yd"])
 
+    print("Querying studio CVR (MTD + 90d)...")
+    studio_cvr_mtd_data = lk.studio_cvr(d["mtd_start"], d["yd"])
+    d90_cvr_start       = d["yd"] - datetime.timedelta(days=89)
+    studio_cvr_90d_rows = lk.studio_cvr(d90_cvr_start, d["yd"])
+    studio_cvr_90d_data = {r["studio"]: r["cvr"] for r in studio_cvr_90d_rows}
+
+    print("Querying monthly inbound CVR trend...")
+    monthly_cvr_data = lk.monthly_inbound_cvr(months=12)
+
     print("Querying swatch (TY + LY)...")
     sw_looker_ty = lk.swatch(d["mtd_start"],    d["yd"])
     sw_looker_ly = lk.swatch(d["ly_mtd_start"], d["ly_yd"])
@@ -653,11 +737,11 @@ def main():
         "reps_mtd": reps_mtd,
         "mc_mtd":   mc_mtd,
         "mc_90d":   mc_90d,
-        # Fields requiring Snowflake/complex logic — generate_report.py handles empty gracefully
+        "studio_cvr_mtd": studio_cvr_mtd_data,
+        "studio_cvr_90d": studio_cvr_90d_data,
+        "monthly_cvr":    monthly_cvr_data,
+        # Fields requiring Snowflake — generate_report.py handles empty gracefully
         "activities":     {},
-        "studio_cvr_mtd": [],
-        "studio_cvr_90d": {},
-        "monthly_cvr":    [],
         "repeat_pct":     0,
         "merch":          [],
         "closing_notes":  "",
