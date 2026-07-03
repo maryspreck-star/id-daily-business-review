@@ -35,7 +35,7 @@ STUDIO_EXCLUDE = {"Assisted No Studio", "Automated DE", "Santa Monica"}
 
 def compute_dates():
     import zoneinfo
-    today     = datetime.datetime.now(zoneinfo.ZoneInfo("America/Chicago")).date()
+    today     = datetime.datetime.now(zoneinfo.ZoneInfo("America/Denver")).date()
     yd        = today - datetime.timedelta(days=1)
     lw_end    = yd
     lw_start  = lw_end  - datetime.timedelta(days=6)
