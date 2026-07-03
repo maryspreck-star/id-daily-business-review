@@ -652,6 +652,7 @@ def get_closing_notes(yd):
     Returns an HTML string ready to drop into the report, or "" on failure.
     """
     if not SLACK_READ_TOKEN:
+        print("  ⚠  Closing notes: SLACK_READ_TOKEN not set — add it as a GitHub secret")
         return ""
     try:
         # Slack timestamps are real Unix seconds; use CT midnight so late posts
@@ -674,11 +675,20 @@ def get_closing_notes(yd):
         r.raise_for_status()
         data = r.json()
         if not data.get("ok"):
-            print(f"  ⚠  Slack closing notes error: {data.get('error')}")
+            err = data.get("error", "unknown")
+            print(f"  ⚠  Slack closing notes error: {err}")
+            if err == "channel_not_found":
+                print("     → Bot is not a member of #id--retail-closing-notes. Invite it with /invite @<bot-name>")
+            elif err == "missing_scope":
+                needed = data.get("needed", "channels:history or groups:history")
+                print(f"     → Token missing scope: {needed}. Re-install the Slack app with that scope.")
+            elif err == "invalid_auth":
+                print("     → SLACK_READ_TOKEN is invalid or expired. Regenerate it from api.slack.com/apps.")
             return ""
 
         messages = data.get("messages", [])
         if not messages:
+            print(f"  Closing notes: no messages in window {yd} 12am–8am CT next day")
             return "No closing notes posted for this date."
 
         parts = []

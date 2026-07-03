@@ -56,10 +56,43 @@ Set in **Settings → Secrets and variables → Actions** on the repo.
 | `LOOKER_BASE_URL` | Looker instance URL, e.g. `https://havenly.looker.com` |
 | `LOOKER_CLIENT_ID` | Looker API client ID |
 | `LOOKER_CLIENT_SECRET` | Looker API client secret |
-| `SLACK_WEBHOOK_URL` | Incoming webhook URL for `#salesoperations` |
-| `SLACK_READ_TOKEN` | Bot token to read `#id--retail-closing-notes` (optional) |
+| `SLACK_WEBHOOK_URL` | Incoming webhook URL for `#salesoperations` (outbound posts only) |
+| `SLACK_READ_TOKEN` | Slack Bot Token (`xoxb-...`) to read `#id--retail-closing-notes` — see setup below |
 | `ID_HUBSPOT_TOKEN` | HubSpot Private App token for Interior Define's account |
 | `GITHUB_TOKEN` | Auto-provided by GitHub Actions — do not add manually |
+
+---
+
+## Slack Bot Setup (Closing Notes)
+
+The closing notes section pulls yesterday's posts from `#id--retail-closing-notes` (channel ID `C08MYB2S3DH`). This requires a **Slack Bot Token** — not the outbound webhook used for Slack posting.
+
+### Steps to set up
+
+1. Go to **https://api.slack.com/apps** and create a new app (or use an existing one)
+2. Under **OAuth & Permissions → Scopes → Bot Token Scopes**, add:
+   - `channels:history` — read messages in public channels
+   - `groups:history` — read messages in private channels
+   - `channels:read` — list channels (for diagnostics)
+3. Click **Install to Workspace** and copy the **Bot User OAuth Token** (starts with `xoxb-`)
+4. In Slack, open `#id--retail-closing-notes` and type `/invite @<your-bot-name>` — the bot must be a member of the channel to read it
+5. Add the token as `SLACK_READ_TOKEN` in the GitHub repo secrets
+
+### Troubleshooting
+
+Run a manual workflow and check the Actions log. The report now prints specific error messages:
+
+| Log message | Fix |
+|-------------|-----|
+| `SLACK_READ_TOKEN not set` | Add the secret to GitHub repo settings |
+| `channel_not_found` | Invite the bot to `#id--retail-closing-notes` with `/invite @<bot>` |
+| `missing_scope` | Re-install the Slack app with `channels:history` and `groups:history` scopes |
+| `invalid_auth` | Token is expired or revoked — regenerate from api.slack.com |
+| `no messages in window` | No posts were made in the channel for that day — expected on low-activity days |
+
+### How the time window works
+
+The closing notes window is **midnight CT on yesterday** through **8am CT the following morning**. This means late posts (e.g. SF posting at 1am CT) are captured under the correct business day.
 
 ---
 
@@ -152,7 +185,7 @@ HubSpot deals return a `hubspot_team` property. When that field is blank on a de
 The sheet must have:
 - A column with daily dates in `M/D/YYYY` format
 - A column whose header contains the word "forecast" (case-insensitive)
-- Daily rows for every day of each month you want coverage for (the code now loads all months, not just the current one)
+- Daily rows for every day of each month (the code loads all months present in the sheet)
 
 **Pacing % calculation:**
 ```
@@ -197,7 +230,7 @@ REP_GOALS = {
 ```
 
 - **Key** = email prefix (part before `@interiordefine.com`)
-- **Display Name** = must match the rep's `firstName + ' ' + lastName` in HubSpot exactly (this is how actuals are matched)
+- **Display Name** = must match the rep's `firstName + ' ' + lastName` in HubSpot exactly (this is how actuals are matched to goals)
 - **Goal** = monthly dollar goal
 
 ### Adding a New Rep
@@ -272,9 +305,9 @@ scripts/generate_report.py
 
 **MC% (Meaningful Contact %) chart:** This chart can show empty at the very start of a month when there are too few deals to populate by studio. It falls back to the last 30 days automatically.
 
-**LW spanning two months:** In the first 6 days of any month, last week spans two calendar months. The Looker forecast query extends back to `lw_start` to cover the full 7-day window. The Google Sheet forecast also loads all available months, so both tabs show the correct 7-day forecast comparison.
+**LW spanning two months:** In the first 6 days of any month, last week spans two calendar months. The Looker forecast query extends back to `lw_start` to cover the full 7-day window. The Google Sheet forecast loads all months present in the sheet, so both tabs show a correct 7-day forecast comparison.
 
-**Closing notes:** The Slack window is midnight CT through 8am CT the following morning, so late posts (e.g. SF posting after midnight) still appear under the correct date.
+**Closing notes:** The Slack window is midnight CT through 8am CT the following morning, so late posts (e.g. SF posting after midnight) still appear under the correct date. If the section shows blank, check the Actions log for a specific error message — see the Slack Bot Setup section above.
 
 ---
 
@@ -288,3 +321,4 @@ scripts/generate_report.py
 6. Update the `GITHUB_REPO` and `PAGE_URL` constants in `report.py`
 7. Enable GitHub Pages on the new repo (`Settings → Pages → Deploy from branch: main, /docs`)
 8. Add all secrets to the new repo's Settings
+9. Create a new Slack Bot and add `SLACK_READ_TOKEN` for closing notes (see Slack Bot Setup above)
