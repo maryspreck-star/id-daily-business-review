@@ -311,6 +311,59 @@ scripts/generate_report.py
 
 ---
 
+## Making Edits with Claude Code
+
+Anyone on the team can edit this report using Claude Code — no need to write Python manually.
+
+### Setup (one time)
+
+1. **Get repo access** — ask Mary to add you as a collaborator in **GitHub → Settings → Collaborators**
+2. **Clone the repo** locally:
+   ```bash
+   git clone https://github.com/maryspreck-star/id-daily-business-review
+   cd id-daily-business-review
+   ```
+3. **Open Claude Code** in that folder:
+   - Terminal: run `claude` from inside the folder
+   - VS Code: open the folder, then open the Claude panel
+
+### Making a change
+
+Just describe what you want in plain English. Examples:
+
+> "Update Boston's monthly goal to $500K"
+
+> "Add a new rep: jane.smith in Chicago, goal $120K, display name Jane Smith"
+
+> "Remove rachel.roth from Seattle — she left the team"
+
+> "The MTD revenue tile is showing the wrong number — can you investigate?"
+
+Claude will read the relevant files, make the edit, and show you a diff to review. Once you're happy, push it:
+
+```bash
+git push
+```
+
+The next scheduled 8am CT run will use the updated code automatically. You can also trigger an immediate refresh via the **Run workflow** button on the [Actions page](https://github.com/maryspreck-star/id-daily-business-review/actions/workflows/main.yml) (manual runs don't post to Slack).
+
+### What you can safely edit
+
+| Task | File |
+|------|------|
+| Studio monthly goals | `scripts/generate_report.py` → `STUDIO_GOALS` |
+| Rep goals + display names | `scripts/generate_report.py` → `REP_GOALS` |
+| Add/remove reps | `scripts/generate_report.py` → `REP_GOALS` + `report.py` → `_DE_EMAIL_STUDIO` |
+| New month forecast source | Update Google Sheet (no code change needed) |
+| Report layout / styling | `scripts/generate_report.py` |
+| Data sources / filters | `report.py` |
+
+### What you don't need to touch
+
+GitHub secrets (Looker credentials, HubSpot token, Slack tokens) live only in the repo's GitHub Actions settings and never appear in the code. Team members can edit and push code without ever seeing them.
+
+---
+
 ## Replicating for Another Brand
 
 1. Fork the repo
