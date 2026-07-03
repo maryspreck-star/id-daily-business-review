@@ -434,7 +434,8 @@ for studio_name, act in d.get("activities", {}).items():
 DAILY_FCST  = d.get("daily_fcst", {})
 FULL_MO_FCST = d.get("full_mo_fcst", 0)
 yd_str       = dates["yd"]
-MTD_SALES_FCST = sum(v for k, v in DAILY_FCST.items() if k <= yd_str)
+mo_start_str   = dates["mo_start"]
+MTD_SALES_FCST = sum(v for k, v in DAILY_FCST.items() if mo_start_str <= k <= yd_str)
 YD_SALES_FCST  = DAILY_FCST.get(yd_str, 0)
 PACING_PCT     = MTD_SALES_FCST / FULL_MO_FCST if FULL_MO_FCST else 0
 

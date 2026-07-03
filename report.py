@@ -852,7 +852,8 @@ def main():
 
     print("Fetching Google Sheet forecast (Sales tab)...")
     sales_daily_fcst   = get_daily_forecast(d)
-    sales_full_mo_fcst = sum(sales_daily_fcst.values())
+    mo_prefix          = d["mtd_start"].strftime("%Y-%m-")
+    sales_full_mo_fcst = sum(v for k, v in sales_daily_fcst.items() if k.startswith(mo_prefix))
 
     # ── HubSpot ───────────────────────────────────────────────────────────────
     hs_yd_ty = hs_lw_ty = hs_mtd_ty = 0.0
