@@ -191,16 +191,16 @@ class Looker:
         try:
             rows = self.query(
                 explore="swatch_orders",
-                fields=["swatch_orders.order_count", "swatch_orders.distinct_customers"],
+                fields=["swatch_orders.count", "customers.count"],
                 filters={
-                    "swatch_orders.created_date":         self._df(start, end),
-                    "customers.customer_group_class": "B2C,Trade",
+                    "swatch_orders.swatch_order_created_date": self._df(start, end),
+                    "customers.customer_group_class":          "B2C,Trade",
                 },
             )
             row = rows[0] if rows else {}
             return {
-                "orders":    int(row.get("swatch_orders.order_count") or 0),
-                "customers": int(row.get("swatch_orders.distinct_customers") or 0),
+                "orders":    int(row.get("swatch_orders.count") or 0),
+                "customers": int(row.get("customers.count") or 0),
             }
         except Exception as e:
             print(f"  ⚠  Swatch query failed: {e}")
