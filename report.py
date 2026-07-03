@@ -235,7 +235,7 @@ class Looker:
                     "studio":   studio,
                     "contacts": contacts,
                     "orders":   orders,
-                    "cvr":      round(orders / contacts, 4),
+                    "cvr":      round(orders / contacts * 100, 2),
                 })
             return result
         except Exception as e:
@@ -251,6 +251,7 @@ class Looker:
                         "hubspot_contacts.number_of_contacts",
                         "hubspot_contacts.14_day_conversion_rate",
                         "hubspot_contacts.30_day_conversion_rate",
+                        "hubspot_contacts.60_day_conversion_rate",
                         "hubspot_contacts.90_day_conversion_rate"],
                 filters={
                     "hubspot_contacts.studio_name":
@@ -272,9 +273,10 @@ class Looker:
                 result.append({
                     "month":    mo,
                     "contacts": int(r.get("hubspot_contacts.number_of_contacts") or 0),
-                    "d14":      float(r.get("hubspot_contacts.14_day_conversion_rate") or 0),
-                    "d30":      float(r.get("hubspot_contacts.30_day_conversion_rate") or 0),
-                    "d90":      float(r.get("hubspot_contacts.90_day_conversion_rate") or 0),
+                    "d14":      round(float(r.get("hubspot_contacts.14_day_conversion_rate") or 0) * 100, 2),
+                    "d30":      round(float(r.get("hubspot_contacts.30_day_conversion_rate") or 0) * 100, 2),
+                    "d60":      round(float(r.get("hubspot_contacts.60_day_conversion_rate") or 0) * 100, 2),
+                    "d90":      round(float(r.get("hubspot_contacts.90_day_conversion_rate") or 0) * 100, 2),
                 })
             return result
         except Exception as e:
