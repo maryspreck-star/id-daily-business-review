@@ -8,7 +8,7 @@ Forecast: Google Sheet CSV export (must be "Anyone with link can view").
 Delivery: HTML → GitHub Pages; Slack link → #salesoperations.
 """
 
-import os, sys, datetime, csv, io, base64, json, subprocess, zoneinfo, html, re
+import os, sys, datetime, csv, io, base64, json, subprocess, zoneinfo, html, re, time
 import requests
 from datetime import timezone
 
@@ -388,14 +388,25 @@ def _ms_eod(dt):
     return int(datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59,
                                  tzinfo=timezone.utc).timestamp() * 1000)
 
+def _hs_post(url, body, max_retries=5):
+    """POST to HubSpot with exponential backoff on 429 rate-limit responses."""
+    for attempt in range(max_retries):
+        r = requests.post(url, headers=_hs_h(), json=body, timeout=30)
+        if r.status_code == 429 and attempt < max_retries - 1:
+            wait = 2 ** attempt   # 1 → 2 → 4 → 8 seconds
+            print(f"  ⚠  HubSpot 429 — waiting {wait}s (attempt {attempt + 1}/{max_retries})")
+            time.sleep(wait)
+            continue
+        return r
+    return r
+
 def _hs_search(filter_groups, properties):
     results, after = [], None
     while True:
         body = {"filterGroups": filter_groups, "properties": properties, "limit": 100}
         if after:
             body["after"] = after
-        r = requests.post("https://api.hubapi.com/crm/v3/objects/deals/search",
-                          headers=_hs_h(), json=body, timeout=30)
+        r = _hs_post("https://api.hubapi.com/crm/v3/objects/deals/search", body)
         if not r.ok:
             print(f"  ⚠  HubSpot {r.status_code}: {r.text[:200]}")
             break
@@ -530,10 +541,10 @@ def hs_activities(start, end, owner_studio_map):
             }
             if after:
                 body["after"] = after
-            r = requests.post(
-                f"https://api.hubapi.com/crm/v3/objects/{object_type}/search",
-                headers=_hs_h(), json=body, timeout=30,
-            )
+            r = _hs_post(f"https://api.hubapi.com/crm/v3/objects/{object_type}/search", body)
+            if r.status_code == 403:
+                # Missing scope — skip this engagement type silently
+                break
             if not r.ok:
                 print(f"  ⚠  {object_type} activities {r.status_code}: {r.text[:200]}")
                 break
@@ -551,7 +562,7 @@ def hs_activities(start, end, owner_studio_map):
     try:
         calls    = _fetch("calls")
         meetings = _fetch("meetings")
-        emails   = _fetch("emails")
+        emails   = _fetch("emails")   # may return {} if scope not granted — handled above
         all_studios = set(calls) | set(meetings) | set(emails)
         result = {
             s: {
