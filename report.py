@@ -67,8 +67,11 @@ class Looker:
 
     def _df(self, start, end):
         s = start.strftime("%Y/%m/%d")
-        e = end.strftime("%Y/%m/%d")
-        return s if start == end else f"{s} to {e}"
+        if start == end:
+            return s
+        # Looker "A to B" is exclusive of B; add 1 day to include end date
+        e = (end + datetime.timedelta(days=1)).strftime("%Y/%m/%d")
+        return f"{s} to {e}"
 
     def query(self, explore, fields, filters, sorts=None, limit=500, tz=None):
         body = {"model": self.MODEL, "view": explore,
