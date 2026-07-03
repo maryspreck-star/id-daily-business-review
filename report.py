@@ -23,13 +23,10 @@ ID_HS_TOKEN   = os.environ.get("ID_HUBSPOT_TOKEN", "")
 GITHUB_REPO   = "maryspreck-star/id-daily-business-review"
 PAGE_URL      = "https://maryspreck-star.github.io/id-daily-business-review/"
 
-# Open the sheet in a browser, click the "ID RETAIL DAILY SALES_MC" tab,
-# and copy the gid=XXXXXXXX number from the URL, then replace 0 below.
-# Also ensure sharing is set to "Anyone with the link can view".
 FORECAST_CSV_URL = (
     "https://docs.google.com/spreadsheets/d/"
     "1lJcsmRhG3ScG8s2ol2jPwUBJ18n20MMn101rXc1ZQp0"
-    "/export?format=csv&gid=0"  # TODO: replace 0 with correct gid
+    "/export?format=csv&gid=910871961"  # tab: "for claude_add each month"
 )
 
 STUDIO_EXCLUDE = {"Assisted No Studio", "Automated DE", "Santa Monica"}
