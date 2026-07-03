@@ -36,6 +36,24 @@ FORECAST_CSV_URL = (
 
 STUDIO_EXCLUDE = {"Assisted No Studio", "Automated DE", "Santa Monica"}
 
+# email prefix → studio, used to attribute HubSpot activities to the right studio
+_DE_EMAIL_STUDIO = {
+    "ashanti.gillespie": "Baltimore",    "nikolaus.pollutra": "Baltimore",   "olga.pushina": "Baltimore",
+    "abby.keane": "Boston",              "brynn.cohune": "Boston",           "eric.sorensen": "Boston",      "heaven.chartier": "Boston",
+    "julie.alfonso": "Charlotte",        "vaughan.hazeldine": "Charlotte",
+    "brandi.davis": "Chicago",           "kaylee.krostag": "Chicago",        "kristen.rosario": "Chicago",   "sean.steele": "Chicago",
+    "emily.nunn": "Dallas",              "jasmyne.boles": "Dallas",          "victoria.correa": "Dallas",
+    "brittany.herrera": "Denver",        "robyn.yannoukos": "Denver",        "sydney.stetzel": "Denver",
+    "david.mckeever": "Los Angeles",     "nick.pagdilao": "Los Angeles",     "richard.boone": "Los Angeles", "sarah.dreier": "Los Angeles",
+    "angela.sunder": "Minneapolis",      "jose.macario": "Minneapolis",      "luz.rivera": "Minneapolis",    "zoe.finkelstein": "Minneapolis",
+    "anastasia.seminchenko": "New York", "ibtesam.chowdhury": "New York",    "jamie.williams": "New York",
+    "lauren.shull": "New York",          "mouny.alfraik": "New York",        "robert.perez": "New York",
+    "jenee.satterwhite": "Philadelphia", "kagen.haberstick": "Philadelphia", "laurel.clark": "Philadelphia",
+    "amira.seale": "San Francisco",      "bran.randol": "San Francisco",     "mary.langridge": "San Francisco", "rachel.kivo": "San Francisco",
+    "alejandra.jimenez": "Seattle",      "kai.davies": "Seattle",            "laura.tulloch": "Seattle",     "lindsay.reyna": "Seattle",  "rachel.roth": "Seattle",
+    "maico.vergara": "Washington DC",    "sameera.tanveer": "Washington DC", "shawn.neifert": "Washington DC",
+}
+
 # ── Dates ─────────────────────────────────────────────────────────────────────
 
 def compute_dates():
@@ -325,10 +343,14 @@ def _hs_h():
     return {"Authorization": f"Bearer {ID_HS_TOKEN}", "Content-Type": "application/json"}
 
 def _hs_owner_map():
-    """Fetch all HubSpot owners → {owner_id_str: 'First Last'}"""
+    """Fetch all HubSpot owners.
+    Returns: ({owner_id: 'First Last'}, {owner_id: email_prefix})
+    email_prefix is the part before '@', e.g. 'brandi.davis'.
+    """
     try:
-        owners = {}
-        after = None
+        names  = {}
+        emails = {}
+        after  = None
         while True:
             params = {"limit": 250}
             if after:
@@ -338,19 +360,22 @@ def _hs_owner_map():
             r.raise_for_status()
             data = r.json()
             for o in data.get("results", []):
-                oid  = str(o.get("id", ""))
-                name = f"{o.get('firstName', '').strip()} {o.get('lastName', '').strip()}".strip()
+                oid   = str(o.get("id", ""))
+                name  = f"{o.get('firstName', '').strip()} {o.get('lastName', '').strip()}".strip()
+                email = (o.get("email") or "").lower()
                 if not name:
-                    name = o.get("email", oid)
-                owners[oid] = name
+                    name = email or oid
+                names[oid] = name
+                if "@" in email:
+                    emails[oid] = email.split("@")[0]   # e.g. "brandi.davis"
             after = data.get("paging", {}).get("next", {}).get("after")
             if not after:
                 break
-        print(f"  Loaded {len(owners)} HubSpot owners")
-        return owners
+        print(f"  Loaded {len(names)} HubSpot owners")
+        return names, emails
     except Exception as e:
         print(f"  ⚠  Owner lookup failed: {e}")
-        return {}
+        return {}, {}
 
 def _ms(dt):
     """Date → start-of-day epoch ms UTC. HubSpot stores closedate as midnight UTC of
@@ -484,6 +509,65 @@ def hs_mc_pct(start, end):
             "no_cvr": 0.0,
         }
     return result
+
+def hs_activities(start, end, owner_studio_map):
+    """
+    Fetch HubSpot calls, meetings, emails for the date range and group by studio.
+    owner_studio_map: {owner_id_str: studio_name} — only activities from mapped owners counted.
+    Returns: {studio_name: {calls, meetings, emails, deals}}
+    """
+    def _fetch(object_type):
+        counts = {}
+        after  = None
+        while True:
+            body = {
+                "filterGroups": [{"filters": [
+                    {"propertyName": "hs_createdate", "operator": "GTE", "value": str(_ms(start))},
+                    {"propertyName": "hs_createdate", "operator": "LTE", "value": str(_ms_eod(end))},
+                ]}],
+                "properties": ["hubspot_owner_id"],
+                "limit": 100,
+            }
+            if after:
+                body["after"] = after
+            r = requests.post(
+                f"https://api.hubapi.com/crm/v3/objects/{object_type}/search",
+                headers=_hs_h(), json=body, timeout=30,
+            )
+            if not r.ok:
+                print(f"  ⚠  {object_type} activities {r.status_code}: {r.text[:200]}")
+                break
+            data = r.json()
+            for obj in data.get("results", []):
+                oid    = str((obj.get("properties") or {}).get("hubspot_owner_id") or "")
+                studio = owner_studio_map.get(oid)
+                if studio:
+                    counts[studio] = counts.get(studio, 0) + 1
+            after = data.get("paging", {}).get("next", {}).get("after")
+            if not after:
+                break
+        return counts
+
+    try:
+        calls    = _fetch("calls")
+        meetings = _fetch("meetings")
+        emails   = _fetch("emails")
+        all_studios = set(calls) | set(meetings) | set(emails)
+        result = {
+            s: {
+                "calls":    calls.get(s, 0),
+                "meetings": meetings.get(s, 0),
+                "emails":   emails.get(s, 0),
+                "deals":    0,
+            }
+            for s in all_studios
+        }
+        total_acts = sum(v["calls"] + v["meetings"] + v["emails"] for v in result.values())
+        print(f"  Activities: {total_acts} total across {len(result)} studios")
+        return result
+    except Exception as e:
+        print(f"  ⚠  Activities fetch failed: {e}")
+        return {}
 
 # ── Google Sheet forecast ─────────────────────────────────────────────────────
 
@@ -753,10 +837,19 @@ def main():
     studio_lw_ly_list = []
     reps_mtd = studio_hs_mtd = []
     mc_mtd = mc_90d = {}
+    activities_data = {}
+    owner_studio_map = {}
 
     if ID_HS_TOKEN:
         print("Fetching HubSpot owner names...")
-        owner_map = _hs_owner_map()
+        owner_map, owner_emails = _hs_owner_map()
+        # Map owner_id → studio for activities attribution (DE/SDE email prefixes only)
+        owner_studio_map = {
+            oid: _DE_EMAIL_STUDIO[prefix]
+            for oid, prefix in owner_emails.items()
+            if prefix in _DE_EMAIL_STUDIO
+        }
+        print(f"  Mapped {len(owner_studio_map)} DE/SDE owners to studios")
 
         print("Querying HubSpot (TY)...")
         try:
@@ -772,6 +865,12 @@ def main():
             mc_90d                              = hs_mc_pct(d90_start,      d["yd"])
         except Exception as e:
             print(f"  ⚠  HubSpot TY error: {e}")
+
+        print("Querying HubSpot activities (calls/meetings/emails MTD)...")
+        try:
+            activities_data = hs_activities(d["mtd_start"], d["yd"], owner_studio_map)
+        except Exception as e:
+            print(f"  ⚠  HubSpot activities error: {e}")
 
         print("Querying HubSpot (LY)...")
         try:
@@ -856,8 +955,7 @@ def main():
         "studio_cvr_mtd": studio_cvr_mtd_data,
         "studio_cvr_90d": studio_cvr_90d_data,
         "monthly_cvr":    monthly_cvr_data,
-        # Fields requiring Snowflake — generate_report.py handles empty gracefully
-        "activities":     {},
+        "activities":     activities_data,   # HubSpot calls/meetings/emails by studio
         "repeat_pct":     0,
         "merch":          [],
         "closing_notes":  get_closing_notes(d["yd"]),

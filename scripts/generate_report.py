@@ -799,7 +799,7 @@ def tab1():
 
     mtd_sec = (
         '<div class="section">'
-        f'<div class="section-label">📅 MTD — {mo_range} · Forecast: Looker/Snowflake</div>'
+        f'<div class="section-label">📅 MTD — {mo_range} · Forecast: Looker</div>'
         + mtd_row1 + mtd_row2 + mtd_segs + swatches + mtd_merch + studio_tbl + '</div>'
     )
 
@@ -890,7 +890,7 @@ def tab2():
     yd_net = (
         '<div class="ns-pair">'
         f'<div class="ns-box" style="border-left:3px solid #0d9488">'
-        f'<div class="ns-lbl">Net Sales (Snowflake/HubSpot)</div>'
+        f'<div class="ns-lbl">Net Sales (HubSpot)</div>'
         f'<div class="ns-val">{_c(YD_HS_TOTAL)}</div>'
         f'<div class="ns-chg">{yd_yoy}</div>'
         f'</div>'
@@ -1015,7 +1015,7 @@ def tab2():
             f'<strong>{top_calls_studio["studio"]}</strong> leads on calls/rep ({top_c_pp:.1f}); '
             f'<strong>{top_mtg_studio["studio"]}</strong> leads on meetings/rep ({top_m_pp:.1f}). '
             f'<strong>{low_mtg_studio["studio"]}</strong> has the fewest meetings/rep ({low_m_pp:.1f} vs {avg_m_pp:.1f} avg) — worth monitoring given meetings are the highest-converting activity. '
-            f'Note: source is HubSpot engagements (STG_HUBSPOT_ENGAGEMENTS_BASE), owner mapped to studio via STG_DEAL. SMS and Conversation Sessions not available in Snowflake — see HubSpot MTD Activity by DE dashboard for full picture.'
+            f'Source: HubSpot CRM (calls/meetings/emails via /crm/v3/objects API), filtered to DE/SDE owners. SMS and Conversation Sessions not available — see HubSpot MTD Activity by DE dashboard for full picture.'
         )
     act_blurb = (
         '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0284c7;border-radius:6px;padding:12px 14px;margin-top:10px">'
@@ -1142,7 +1142,7 @@ def tab2():
     mtd_net = (
         '<div class="ns-pair">'
         f'<div class="ns-box" style="border-left:3px solid #0d9488">'
-        f'<div class="ns-lbl">Net Sales (Snowflake/HubSpot)</div>'
+        f'<div class="ns-lbl">Net Sales (HubSpot)</div>'
         f'<div class="ns-val">{_c(MTD_HS_TOTAL)}</div>'
         f'<div class="ns-chg">{mtd_yoy}</div>'
         f'</div>'
@@ -1154,7 +1154,7 @@ def tab2():
     )
     pacing_note = (
         f'<p class="note">Pacing: {_pct(PACING_PCT)} of {mo_name_full} elapsed through {yd_label_dow} · '
-        f'Google Sheet forecast {_c(MTD_SALES_FCST)} MTD. Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won).</p>'
+        f'Google Sheet forecast {_c(MTD_SALES_FCST)} MTD. Revenue: HubSpot (MC=Yes + Closed Won).</p>'
     )
 
     # Team pacing table
@@ -1347,14 +1347,14 @@ def tab2():
 <div class="email-wrap">
   <div class="hdr">
     <div class="hdr-brand">Interior Define · Sales Team</div>
-    <div class="hdr-meta">{yd_label_dow} · Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won)</div>
+    <div class="hdr-meta">{yd_label_dow} · Revenue: HubSpot (MC=Yes + Closed Won) · Forecast: Google Sheet</div>
   </div>
   {yd_sec}
   {lw_sec}
   {perf_blurb_sec}
   {mtd_sec}
   {activities_sec}
-  <div class="footer">Revenue: Snowflake STG_DEAL (MC=Yes + Closed Won) · Pacing: Google Sheet</div>
+  <div class="footer">Revenue: HubSpot (MC=Yes + Closed Won) · Forecast: Google Sheet</div>
 </div>"""
 
 
