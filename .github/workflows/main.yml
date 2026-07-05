@@ -2,7 +2,7 @@ name: ID Daily Business Review
 
 on:
   schedule:
-    - cron: '0 13 * * 1-5'  # 8am CT = 1pm UTC, weekdays
+   -cron: '0 13 * * *'    # 8am CT = 1pm UTC, daily
   workflow_dispatch:
 
 jobs:
